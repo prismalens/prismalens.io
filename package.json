@@ -1,0 +1,13 @@
+{
+  "name": "prismalens.io",
+  "private": true,
+  "pnpm": {
+    "onlyBuiltDependencies": ["esbuild", "sharp"]
+  },
+  "scripts": {
+    "dev:site": "pnpm --filter site dev",
+    "dev:docs": "pnpm --filter docs dev",
+    "build:site": "pnpm --filter site build",
+    "build:docs": "pnpm --filter docs build"
+  }
+}

@@ -1,0 +1,36 @@
+---
+title: Command Center
+description: Your operational dashboard for monitoring incidents and investigations.
+---
+
+The Command Center is the primary operational dashboard in PrismaLens. It provides a real-time view of all active incidents, ongoing investigations, and items needing attention.
+
+## Layout
+
+The Command Center uses a **master-detail** layout:
+
+- **Left panel** — List of active incidents with severity indicators
+- **Right panel** — Details of the selected incident
+
+## Quick Stats Bar
+
+At the top, clickable metric cards show:
+
+- **Active Incidents** — Currently open incidents
+- **Running Investigations** — AI investigations in progress
+- **Pending Alerts** — Alerts not yet correlated to an incident
+- **Services Affected** — Count of impacted services
+
+Click any metric to drill down to its filtered view.
+
+## Needs Attention
+
+A highlighted section surfaces items requiring human action:
+
+- **Unassigned alerts** — New alerts not yet linked to incidents
+- **Pending recommendations** — AI suggestions awaiting approval
+- **Mapping issues** — Alerts that couldn't be mapped to a service
+
+## Real-Time Updates
+
+The Command Center updates automatically via polling. Active investigations show live progress as AI agents work through their investigation steps.

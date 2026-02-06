@@ -1,0 +1,45 @@
+---
+title: Settings
+description: Configure AI providers, investigation policies, integrations, and more.
+---
+
+The Settings page is organized into multiple sections for configuring PrismaLens.
+
+## AI Provider
+
+Configure your LLM provider and models:
+
+- **Provider selection** — OpenAI, Anthropic, or custom
+- **Default model** — Used for all investigations unless overridden
+- **Per-agent overrides** — Assign specific models to specific investigation agents
+- **API keys** — Configured via environment variables for security
+
+:::tip
+Models are sorted by release date with badges for the latest releases. Choose the model that best balances cost and capability for your investigation volume.
+:::
+
+## Investigation
+
+Global investigation policies:
+
+- **Auto-investigate** — Enable/disable per service tier
+- **Confidence threshold** — Minimum confidence for auto-resolution
+- **Max investigation duration** — Timeout for long-running investigations
+- **Approval gates** — Require human approval for sensitive actions
+
+## Integrations
+
+Manage your connected monitoring tools. See the [Integrations](/integrations/prometheus/) section for setup guides.
+
+## Notifications
+
+Configure notification routing:
+
+- **Channels** — Email, Slack, webhook
+- **Rules** — Route notifications by severity, service, or incident type
+- **Escalation** — Time-based escalation policies
+
+## Data & Storage
+
+- **Retention** — How long to keep incidents, investigations, and alerts
+- **Export** — Bulk export data for compliance or analysis

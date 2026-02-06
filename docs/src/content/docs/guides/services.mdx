@@ -1,0 +1,48 @@
+---
+title: Services
+description: Manage your service catalog with dependencies, tiers, and investigation policies.
+---
+
+The Services page is your living service catalog. It maps your infrastructure, tracks dependencies, and controls how PrismaLens investigates incidents per service.
+
+## Service Tiers
+
+Every service is assigned a tier that controls its investigation behavior:
+
+| Tier | Auto-Investigate | Response Target |
+|------|-----------------|-----------------|
+| **Critical** | Always | Immediate |
+| **High** | Always | 15 minutes |
+| **Medium** | On-demand | 1 hour |
+| **Low** | Manual only | Best effort |
+
+## Service Types
+
+- **Gateway** — API gateways, load balancers
+- **Service** — Backend microservices
+- **Database** — PostgreSQL, Redis, etc.
+- **Queue** — Kafka, RabbitMQ
+- **Cache** — Redis, Memcached
+- **External** — Third-party APIs
+
+## Service Detail Tabs
+
+### General
+Name, description, owner, type, tier, and contact information.
+
+### Integrations
+Which monitoring tools are connected to this service and how alerts are mapped.
+
+### Investigation
+Per-service investigation policy: auto-investigate toggle, preferred models, custom prompts, and approval requirements.
+
+### Dependencies
+Upstream and downstream service relationships. Used by the AI during investigation to understand blast radius.
+
+## Service Discovery
+
+PrismaLens can automatically discover services from your connected integrations. When a new service name appears in alert labels, PrismaLens creates a placeholder entry for you to configure.
+
+## Topology View
+
+A visual graph showing service dependencies and their current health status. Click any service node to navigate to its detail page.

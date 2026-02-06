@@ -1,0 +1,53 @@
+---
+title: Investigations
+description: AI-powered root cause analysis using LangGraph agent workflows.
+---
+
+Investigations are PrismaLens's core differentiator — AI agents that automatically investigate incidents by querying your observability tools and correlating signals.
+
+## How It Works
+
+When an investigation starts, PrismaLens:
+
+1. **Creates a LangGraph workflow** tailored to the incident context
+2. **Executes agent nodes** that query your connected integrations
+3. **Correlates findings** across multiple data sources
+4. **Builds an evidence timeline** of what happened
+5. **Surfaces root cause** with confidence scoring
+
+## Investigation Canvas
+
+The investigation view renders the actual LangGraph execution graph — not a hardcoded diagram. You can see:
+
+- Which agent nodes have executed
+- What data each node retrieved
+- Decision points and branching logic
+- The current execution position
+
+Click any node to see its inputs, outputs, and reasoning.
+
+## Investigation Tabs
+
+### List
+All investigations with status (running, completed, failed) and links to their parent incidents.
+
+### Failed
+Investigations that encountered errors, with detailed error messages and retry options.
+
+### Low Confidence
+Completed investigations where the AI was not confident in its root cause determination. These may benefit from human review.
+
+### Analytics
+Metrics on investigation performance: average time to root cause, success rates, and common failure modes.
+
+## Human Approval Gates
+
+For sensitive actions (like querying production databases), investigations can pause and request human approval before proceeding. Configure approval gates in [Settings](/guides/settings/).
+
+## Export
+
+Investigation results can be exported as:
+
+- **Markdown** — For postmortems and documentation
+- **JSON** — For programmatic consumption
+- **PNG/SVG** — Visual graph export

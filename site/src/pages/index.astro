@@ -1,0 +1,64 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro'
+import Hero from '../components/Hero.astro'
+import FeatureGrid from '../components/FeatureGrid.astro'
+import CTA from '../components/CTA.astro'
+
+const features = [
+  {
+    title: 'AI-Powered Root Cause Analysis',
+    description:
+      'LangGraph agents automatically investigate incidents, correlate signals across services, and surface the root cause.',
+    icon: '🔍',
+  },
+  {
+    title: 'Unified Command Center',
+    description:
+      'A single pane of glass for all your incidents — severity, status, affected services, and investigation timeline.',
+    icon: '🎛️',
+  },
+  {
+    title: 'Multi-Source Correlation',
+    description:
+      'Pull metrics, logs, and traces from Prometheus, Grafana, Datadog, New Relic, and more into one investigation.',
+    icon: '🔗',
+  },
+  {
+    title: 'Automated Investigations',
+    description:
+      'AI agents follow investigation playbooks, gather evidence, and build a timeline of what happened.',
+    icon: '🤖',
+  },
+  {
+    title: 'Service Dependency Mapping',
+    description:
+      'Understand blast radius instantly with auto-discovered service relationships and dependency graphs.',
+    icon: '🗺️',
+  },
+  {
+    title: 'Open Source Core',
+    description:
+      'Self-host with Docker Compose. Full control over your data. No vendor lock-in.',
+    icon: '🔓',
+  },
+]
+---
+
+<BaseLayout title="AI-Powered Incident Investigation">
+  <Hero
+    title="Resolve incidents faster with AI-powered root cause analysis"
+    subtitle="PrismaLens uses AI agents to automatically investigate production incidents, correlate signals across your observability stack, and surface the root cause — so your team can fix, not search."
+    primaryCta={{ href: 'https://app.prismalens.io', label: 'Get Started' }}
+    secondaryCta={{
+      href: 'https://github.com/prismalens',
+      label: 'View on GitHub',
+    }}
+  />
+  <FeatureGrid features={features} />
+  <CTA
+    title="Ready to stop firefighting?"
+    description="Deploy PrismaLens in minutes with Docker Compose. Open source, self-hosted, and built for teams who are tired of manual incident investigation."
+    href="https://docs.prismalens.io/getting-started/quick-start"
+    label="Read the Quick Start Guide"
+  />
+</BaseLayout>

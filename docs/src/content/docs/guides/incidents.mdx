@@ -1,0 +1,49 @@
+---
+title: Incidents
+description: Manage the full incident lifecycle from detection to resolution.
+---
+
+Incidents are the core entity in PrismaLens. They represent production issues that need investigation and resolution.
+
+## Incident Lifecycle
+
+```
+Triggered → Acknowledged → Investigating → Resolved
+```
+
+## Incident List
+
+The incidents page provides:
+
+- **Filters** — By severity, status, service, and date range
+- **Search** — Full-text search across incident titles and descriptions
+- **Analytics tab** — Charts showing incident trends over time
+
+## Incident Detail
+
+Each incident has a tabbed detail view:
+
+### Overview
+Summary of the incident including severity, affected services, assigned team members, and current status.
+
+### Alerts
+All alerts correlated to this incident, with their source, timestamp, and severity.
+
+### Timeline
+Chronological view of all events: alert arrivals, investigation steps, status changes, and human actions.
+
+### Settings
+Incident-specific configuration like notification preferences and escalation policies.
+
+## Quick Actions
+
+From the incident detail view:
+
+- **Acknowledge** — Signal that someone is looking at it
+- **Escalate** — Increase severity or notify additional responders
+- **Merge** — Combine duplicate incidents
+- **Resolve** — Mark the incident as resolved with a resolution note
+
+## AI Investigations
+
+Each incident can have multiple AI investigations. PrismaLens automatically starts an investigation when an incident is created (configurable per service tier). See the [Investigations guide](/guides/investigations/) for details.

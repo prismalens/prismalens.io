@@ -1,0 +1,66 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro'
+import Hero from '../components/Hero.astro'
+import PricingTable from '../components/PricingTable.astro'
+import CTA from '../components/CTA.astro'
+
+const plans = [
+  {
+    name: 'Community',
+    price: 'Free',
+    description: 'Self-hosted, open source. Everything you need to get started.',
+    features: [
+      'Unlimited incidents',
+      'AI-powered investigations',
+      'All integrations',
+      'Service catalog',
+      'Docker Compose deployment',
+      'Community support',
+    ],
+    cta: { href: 'https://github.com/prismalens', label: 'Get Started' },
+  },
+  {
+    name: 'Pro',
+    price: 'Coming Soon',
+    description: 'Enhanced features for growing teams.',
+    features: [
+      'Everything in Community',
+      'SSO / SAML authentication',
+      'Advanced analytics',
+      'Priority support',
+      'Custom integrations',
+      'SLA guarantees',
+    ],
+    cta: { href: '#', label: 'Join Waitlist' },
+    highlighted: true,
+  },
+  {
+    name: 'Enterprise',
+    price: 'Contact Us',
+    description: 'For organizations with advanced security and compliance needs.',
+    features: [
+      'Everything in Pro',
+      'Dedicated support engineer',
+      'Custom deployment options',
+      'Compliance reporting',
+      'On-premise installation',
+      'Training & onboarding',
+    ],
+    cta: { href: '#', label: 'Contact Sales' },
+  },
+]
+---
+
+<BaseLayout title="Pricing" description="PrismaLens is open source and free to self-host. Pro and Enterprise plans coming soon.">
+  <Hero
+    title="Simple, transparent pricing"
+    subtitle="Start free with our open-source Community edition. Upgrade when you need advanced features and support."
+  />
+  <PricingTable plans={plans} />
+  <CTA
+    title="Not sure which plan is right?"
+    description="Start with Community — it's free, fully featured, and you can upgrade anytime."
+    href="https://docs.prismalens.io/getting-started/installation"
+    label="Install PrismaLens"
+  />
+</BaseLayout>

@@ -1,0 +1,43 @@
+---
+title: Onboarding
+description: Complete the initial setup wizard to configure PrismaLens.
+---
+
+When you first access PrismaLens, a 3-step setup wizard guides you through the essential configuration.
+
+## Step 1: Create Owner Account
+
+Set up the admin account that will manage PrismaLens:
+
+- **Name** — Your display name
+- **Email** — Used for login
+- **Password** — Minimum 8 characters
+
+## Step 2: Configure AI Provider
+
+PrismaLens uses LLMs to power its investigation agents. Configure your preferred provider:
+
+- **OpenAI** — GPT-4o recommended
+- **Anthropic** — Claude Sonnet recommended
+
+Enter your API key and select the default model. You can configure per-agent model overrides later in [Settings](/guides/settings/).
+
+:::note
+API keys are stored securely and only used for investigation queries. You can also configure them via environment variables.
+:::
+
+## Step 3: Connect Integration (Optional)
+
+Optionally connect your first monitoring tool:
+
+- [Prometheus / Alertmanager](/integrations/prometheus/)
+- [Grafana](/integrations/grafana/)
+- [Datadog](/integrations/datadog/)
+- [New Relic](/integrations/newrelic/)
+- [Generic Webhook](/integrations/generic/)
+
+You can skip this step and add integrations later from Settings.
+
+## After Onboarding
+
+Once setup is complete, you'll be taken to the **Command Center** — your operational dashboard for all incidents and investigations.

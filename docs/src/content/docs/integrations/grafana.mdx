@@ -1,0 +1,41 @@
+---
+title: Grafana
+description: Connect Grafana alerting to PrismaLens.
+---
+
+PrismaLens supports Grafana alerts through a compatible webhook format. Grafana alerts are ingested using the same endpoint as Prometheus.
+
+## Setup
+
+### 1. Create Contact Point
+
+In Grafana, navigate to **Alerting > Contact Points** and create a new contact point:
+
+- **Type**: Webhook
+- **URL**: `https://app.prismalens.io/api/webhooks/prometheus`
+- **HTTP Method**: POST
+
+### 2. Configure Notification Policy
+
+Create a notification policy that routes alerts to the PrismaLens contact point.
+
+## Grafana-Specific Fields
+
+PrismaLens extracts additional context from Grafana alerts:
+
+- **Dashboard URL** — Link back to the Grafana dashboard
+- **Panel URL** — Direct link to the alerting panel
+- **Image URL** — Alert screenshot if configured
+- **Values** — Current metric values that triggered the alert
+
+## Severity Mapping
+
+Use Grafana labels to set severity:
+
+| Grafana Label | PrismaLens Severity |
+|--------------|-------------------|
+| `severity=critical` | Critical |
+| `severity=warning` | Warning |
+| `severity=info` | Info |
+
+Add the `severity` label to your alert rules in Grafana to control how PrismaLens categorizes them.

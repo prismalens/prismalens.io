@@ -1,0 +1,51 @@
+---
+title: New Relic
+description: Connect New Relic alerts to PrismaLens via workflow webhooks.
+---
+
+PrismaLens integrates with New Relic through its Workflows feature using webhook destinations.
+
+## Setup
+
+### 1. Create Webhook Destination
+
+In New Relic, navigate to **Alerts > Destinations** and create a new webhook destination:
+
+- **URL**: `https://app.prismalens.io/api/webhooks/generic`
+- **HTTP Method**: POST
+
+### 2. Configure Payload Template
+
+Use a Handlebars template to format the payload:
+
+```json
+{
+  "title": "{{issueTitle}}",
+  "description": "{{accumulations.conditionDescription.[0]}}",
+  "severity": "{{priority}}",
+  "source": "newrelic",
+  "service": "{{accumulations.tag.service.[0]}}",
+  "metadata": {
+    "issueId": "{{issueId}}",
+    "alertPolicyNames": {{json accumulations.policyName}},
+    "entities": {{json entitiesData.names}}
+  }
+}
+```
+
+### 3. Create Workflow
+
+Create a Workflow that filters issues and sends them to the PrismaLens destination.
+
+## Severity Mapping
+
+| New Relic Priority | PrismaLens Severity |
+|-------------------|-------------------|
+| CRITICAL | Critical |
+| HIGH | High |
+| MEDIUM | Warning |
+| LOW | Info |
+
+## Service Mapping
+
+PrismaLens extracts the service name from New Relic entity tags. Ensure your entities have a `service` tag, or configure a custom mapping in the integration settings.

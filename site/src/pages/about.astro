@@ -1,0 +1,38 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro'
+import Hero from '../components/Hero.astro'
+import CTA from '../components/CTA.astro'
+---
+
+<BaseLayout title="About" description="Learn about PrismaLens and our mission to make incident response faster and smarter.">
+  <Hero
+    title="About PrismaLens"
+    subtitle="We're building the future of incident investigation — where AI does the searching and your team does the fixing."
+  />
+  <section class="mx-auto max-w-3xl px-4 py-16 sm:px-6 lg:px-8">
+    <div class="space-y-8 text-gray-300">
+      <p>
+        PrismaLens was born from a simple frustration: when production breaks, engineers spend more
+        time searching for the cause than fixing it. They jump between Grafana dashboards, grep
+        through logs, check deployment timelines, and piece together a story manually.
+      </p>
+      <p>
+        We believe AI agents can do this investigation work — faster, more thoroughly, and without
+        the cognitive load. PrismaLens connects to your existing observability stack and uses
+        LangGraph-powered agents to automatically correlate signals, build timelines, and surface
+        root causes.
+      </p>
+      <p>
+        PrismaLens is open source at its core. We believe incident response tooling should be
+        transparent, extensible, and free from vendor lock-in. Self-host with Docker Compose and
+        maintain full control over your data.
+      </p>
+    </div>
+  </section>
+  <CTA
+    title="Join the community"
+    description="PrismaLens is open source. Star us on GitHub, contribute, or just say hello."
+    href="https://github.com/prismalens"
+    label="View on GitHub"
+  />
+</BaseLayout>

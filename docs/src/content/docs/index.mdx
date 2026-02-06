@@ -1,0 +1,34 @@
+---
+title: PrismaLens Documentation
+description: Learn how to deploy, configure, and use PrismaLens for AI-powered incident investigation.
+template: splash
+hero:
+  tagline: AI-powered root cause analysis for production incidents. Open source, self-hosted.
+  actions:
+    - text: Quick Start
+      link: /getting-started/quick-start/
+      icon: right-arrow
+    - text: View on GitHub
+      link: https://github.com/prismalens
+      icon: external
+      variant: minimal
+---
+
+import { Card, CardGrid } from '@astrojs/starlight/components';
+
+## Get started
+
+<CardGrid stagger>
+  <Card title="Install PrismaLens" icon="laptop">
+    Deploy with Docker Compose or run locally with the CLI. See the [installation guide](/getting-started/installation/).
+  </Card>
+  <Card title="Connect your tools" icon="setting">
+    Integrate Prometheus, Grafana, Datadog, New Relic, or any webhook-compatible source.
+  </Card>
+  <Card title="Run an investigation" icon="magnifier">
+    Let AI agents automatically investigate incidents and surface root causes. Learn about [investigations](/guides/investigations/).
+  </Card>
+  <Card title="Manage services" icon="list-format">
+    Build a service catalog with ownership, dependencies, and per-tier investigation policies. See the [services guide](/guides/services/).
+  </Card>
+</CardGrid>

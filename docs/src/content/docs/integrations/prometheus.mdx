@@ -1,0 +1,63 @@
+---
+title: Prometheus
+description: Connect Prometheus Alertmanager to PrismaLens for automatic alert ingestion.
+---
+
+PrismaLens natively supports Prometheus Alertmanager webhooks for automatic alert ingestion and incident creation.
+
+## Setup
+
+### 1. Add Webhook to Alertmanager
+
+Add PrismaLens as a webhook receiver in your `alertmanager.yml`:
+
+```yaml
+receivers:
+  - name: prismalens
+    webhook_configs:
+      - url: 'https://app.prismalens.io/api/webhooks/prometheus'
+        send_resolved: true
+
+route:
+  receiver: prismalens
+  routes:
+    - match:
+        severity: critical
+      receiver: prismalens
+```
+
+### 2. Configure in PrismaLens
+
+Navigate to **Settings > Integrations > Prometheus** and enable the integration. PrismaLens will display the webhook URL to use.
+
+## Severity Mapping
+
+PrismaLens maps Prometheus severity labels:
+
+| Prometheus Label | PrismaLens Severity |
+|-----------------|-------------------|
+| `critical` | Critical |
+| `warning` | Warning |
+| `info` | Info |
+
+## Service Mapping
+
+PrismaLens extracts the service name from alert labels. Configure the label key in the integration settings (default: `service`, `job`, or `instance`).
+
+You can also create **alert mapping rules** to override the default behavior for specific alert names.
+
+## Example Alert Rules
+
+```yaml
+groups:
+  - name: prismalens-examples
+    rules:
+      - alert: HighCPUUsage
+        expr: rate(process_cpu_seconds_total[5m]) > 0.9
+        for: 5m
+        labels:
+          severity: critical
+          service: api-gateway
+        annotations:
+          summary: "High CPU usage on {{ $labels.instance }}"
+```

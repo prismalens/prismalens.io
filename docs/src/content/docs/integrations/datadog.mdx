@@ -1,0 +1,54 @@
+---
+title: Datadog
+description: Connect Datadog monitors to PrismaLens via webhooks.
+---
+
+PrismaLens integrates with Datadog through the generic webhook endpoint, using Datadog's webhook integration feature.
+
+## Setup
+
+### 1. Create Webhook in Datadog
+
+Navigate to **Integrations > Webhooks** in Datadog and create a new webhook:
+
+- **URL**: `https://app.prismalens.io/api/webhooks/generic`
+- **Payload**:
+
+```json
+{
+  "title": "$EVENT_TITLE",
+  "description": "$EVENT_MSG",
+  "severity": "$ALERT_PRIORITY",
+  "source": "datadog",
+  "service": "$HOSTNAME",
+  "metadata": {
+    "alertId": "$ALERT_ID",
+    "orgName": "$ORG_NAME",
+    "tags": "$TAGS"
+  }
+}
+```
+
+### 2. Add to Monitor Notifications
+
+In your Datadog monitor, add `@webhook-prismalens` to the notification message.
+
+## Priority Mapping
+
+| Datadog Priority | PrismaLens Severity |
+|-----------------|-------------------|
+| P1 | Critical |
+| P2 | High |
+| P3 | Warning |
+| P4 | Info |
+| P5 | Info |
+
+## Template Variables
+
+Datadog supports template variables in webhook payloads. Common variables:
+
+- `$EVENT_TITLE` — Monitor name and status
+- `$EVENT_MSG` — Monitor message body
+- `$ALERT_PRIORITY` — Priority level
+- `$HOSTNAME` — Host that triggered the alert
+- `$TAGS` — All monitor tags

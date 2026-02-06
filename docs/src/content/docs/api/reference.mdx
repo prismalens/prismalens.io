@@ -1,0 +1,88 @@
+---
+title: API Reference
+description: PrismaLens REST API endpoints for incidents, investigations, services, and more.
+---
+
+PrismaLens exposes a REST API built with oRPC. All endpoints return JSON and require authentication via session cookies.
+
+## Authentication
+
+PrismaLens uses session-based authentication via `better-auth`. Authenticate by calling the login endpoint and using the returned session cookie.
+
+## Response Format
+
+All endpoints return a consistent response format:
+
+```json
+{
+  "data": { ... },
+  "meta": {
+    "total": 100,
+    "page": 1,
+    "limit": 20
+  }
+}
+```
+
+## Core Endpoints
+
+### Incidents
+
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/api/incidents` | List incidents (filterable) |
+| GET | `/api/incidents/:id` | Get incident by ID |
+| POST | `/api/incidents` | Create incident |
+| PATCH | `/api/incidents/:id` | Update incident |
+| POST | `/api/incidents/:id/resolve` | Resolve incident |
+
+### Investigations
+
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/api/investigations` | List investigations |
+| GET | `/api/investigations/:id` | Get investigation with graph |
+| POST | `/api/investigations` | Start new investigation |
+| POST | `/api/investigations/:id/approve` | Approve pending gate |
+
+### Services
+
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/api/services` | List services |
+| GET | `/api/services/:id` | Get service detail |
+| POST | `/api/services` | Create service |
+| PATCH | `/api/services/:id` | Update service |
+
+### Alerts
+
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/api/alerts` | List alerts |
+| GET | `/api/alerts/:id` | Get alert detail |
+
+### Webhooks
+
+| Method | Path | Description |
+|--------|------|-------------|
+| POST | `/api/webhooks/prometheus` | Prometheus/Grafana alerts |
+| POST | `/api/webhooks/generic` | Generic webhook alerts |
+
+## Rate Limiting
+
+API requests are rate-limited per category:
+
+| Category | Limit |
+|----------|-------|
+| Read operations | 100 req/min |
+| Write operations | 30 req/min |
+| Webhook ingestion | 60 req/min |
+
+## WebSocket Events
+
+PrismaLens provides real-time updates via WebSocket:
+
+- `incident:created` — New incident
+- `incident:updated` — Incident status change
+- `investigation:progress` — Investigation step completed
+- `alert:created` — New alert ingested

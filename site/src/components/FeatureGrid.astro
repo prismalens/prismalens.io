@@ -1,0 +1,29 @@
+---
+interface Feature {
+  title: string
+  description: string
+  icon: string
+}
+
+interface Props {
+  features: Feature[]
+}
+
+const { features } = Astro.props
+---
+
+<section class="px-4 py-24 sm:px-6 lg:px-8">
+  <div class="mx-auto max-w-7xl">
+    <div class="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+      {
+        features.map((feature) => (
+          <div class="rounded-xl border border-gray-800 bg-gray-900/50 p-6">
+            <div class="mb-4 text-3xl">{feature.icon}</div>
+            <h3 class="mb-2 text-lg font-semibold text-white">{feature.title}</h3>
+            <p class="text-sm text-gray-400">{feature.description}</p>
+          </div>
+        ))
+      }
+    </div>
+  </div>
+</section>

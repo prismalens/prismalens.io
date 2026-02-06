@@ -1,0 +1,87 @@
+---
+title: Generic Webhook
+description: Send alerts from any monitoring tool using the generic webhook endpoint.
+---
+
+The generic webhook endpoint accepts alerts from any source. Use it for tools that don't have a dedicated integration, or for custom alerting pipelines.
+
+## Endpoint
+
+```
+POST https://app.prismalens.io/api/webhooks/generic
+Content-Type: application/json
+```
+
+## Payload Schema
+
+```json
+{
+  "title": "High CPU on api-gateway",
+  "description": "CPU usage exceeded 90% for 5 minutes",
+  "severity": "critical",
+  "source": "custom-monitor",
+  "service": "api-gateway",
+  "metadata": {
+    "region": "us-east-1",
+    "cluster": "production"
+  }
+}
+```
+
+### Required Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `title` | string | Alert title |
+
+### Optional Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `description` | string | Detailed description |
+| `severity` | string | `critical`, `high`, `warning`, `info` |
+| `source` | string | Source system identifier |
+| `service` | string | Service name for mapping |
+| `metadata` | object | Arbitrary key-value pairs |
+
+## Response
+
+```json
+{
+  "eventId": "evt_abc123",
+  "alertId": "alt_def456",
+  "incidentId": "inc_ghi789",
+  "correlation": "Matched to existing incident by service"
+}
+```
+
+## Deduplication
+
+PrismaLens deduplicates alerts using:
+
+1. **Source alert ID** — If `metadata.sourceAlertId` is provided
+2. **Fingerprint** — Based on title + service + source combination
+3. **Service correlation** — Alerts for the same service within a time window
+
+## Examples
+
+### Shell
+
+```bash
+curl -X POST https://app.prismalens.io/api/webhooks/generic \
+  -H "Content-Type: application/json" \
+  -d '{"title": "Disk usage > 90%", "severity": "warning", "service": "db-primary"}'
+```
+
+### Python
+
+```python
+import requests
+
+requests.post("https://app.prismalens.io/api/webhooks/generic", json={
+    "title": "Memory pressure detected",
+    "severity": "critical",
+    "source": "custom-monitor",
+    "service": "cache-redis",
+})
+```

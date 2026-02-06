@@ -1,0 +1,59 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro'
+import Hero from '../components/Hero.astro'
+import FeatureGrid from '../components/FeatureGrid.astro'
+import CTA from '../components/CTA.astro'
+
+const coreFeatures = [
+  {
+    title: 'Command Center',
+    description:
+      'Real-time dashboard showing all active incidents, their severity, affected services, and current investigation status.',
+    icon: '🎛️',
+  },
+  {
+    title: 'AI Investigations',
+    description:
+      'LangGraph-powered agents that autonomously investigate incidents by querying your observability tools and correlating signals.',
+    icon: '🤖',
+  },
+  {
+    title: 'Incident Timeline',
+    description:
+      'Automatically constructed timeline of events leading up to and during an incident, with evidence from multiple sources.',
+    icon: '📊',
+  },
+  {
+    title: 'Service Catalog',
+    description:
+      'Maintain a living catalog of your services with ownership, dependencies, runbooks, and integration metadata.',
+    icon: '📋',
+  },
+  {
+    title: 'Integration Hub',
+    description:
+      'Connect Prometheus, Grafana, Datadog, New Relic, PagerDuty, and more. Generic webhook support for custom sources.',
+    icon: '🔌',
+  },
+  {
+    title: 'Role-Based Access',
+    description:
+      'Fine-grained permissions for who can view, manage, and resolve incidents across your organization.',
+    icon: '🔐',
+  },
+]
+---
+
+<BaseLayout title="Features" description="Explore the features that make PrismaLens the fastest way to resolve production incidents.">
+  <Hero
+    title="Everything you need for incident investigation"
+    subtitle="From automated root cause analysis to multi-source correlation, PrismaLens gives your team superpowers when things go wrong."
+  />
+  <FeatureGrid features={coreFeatures} />
+  <CTA
+    title="See it in action"
+    description="Deploy PrismaLens locally in under 5 minutes and run your first AI-powered investigation."
+    href="https://docs.prismalens.io/getting-started/quick-start"
+    label="Quick Start Guide"
+  />
+</BaseLayout>
