@@ -1,6 +1,7 @@
 {
   "name": "prismalens.io",
   "private": true,
+  "packageManager": "pnpm@10.26.2",
   "pnpm": {
     "onlyBuiltDependencies": ["esbuild", "sharp"]
   },
