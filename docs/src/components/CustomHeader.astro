@@ -1,0 +1,72 @@
+---
+import { buttonVariants } from '@/components/ui/button'
+
+const siteBase = import.meta.env.DEV ? 'http://localhost:4321' : 'https://prismalens.io';
+---
+
+<header class="docs-header sticky top-0 z-50 backdrop-blur-lg" style="border-bottom: 1px solid var(--sl-color-hairline); background: oklch(0.141 0.005 285.823 / 0.95);">
+  <nav class="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
+    <!-- Logo with link to marketing home -->
+    <a href="/" class="flex items-center gap-2 text-xl font-bold">
+      <span style="color: var(--sl-color-accent);">Prisma</span><span style="color: var(--sl-color-white);">Lens</span>
+      <span class="text-sm font-normal ml-2" style="color: var(--sl-color-gray-4);">Docs</span>
+    </a>
+
+    <div class="hidden items-center gap-6 md:flex">
+      <!-- Marketing site links -->
+      <a
+        href={`${siteBase}/features`}
+        class="docs-header-link text-sm transition-colors"
+        style="color: var(--sl-color-gray-4);"
+      >
+        Features
+      </a>
+      <a
+        href={`${siteBase}/examples`}
+        class="docs-header-link text-sm transition-colors"
+        style="color: var(--sl-color-gray-4);"
+      >
+        Examples
+      </a>
+      <a
+        href={`${siteBase}/about`}
+        class="docs-header-link text-sm transition-colors"
+        style="color: var(--sl-color-gray-4);"
+      >
+        About
+      </a>
+
+      <!-- GitHub link -->
+      <a
+        href="https://github.com/prismalens"
+        target="_blank"
+        rel="noopener noreferrer"
+        class={buttonVariants({ variant: 'default', size: 'sm' })}
+      >
+        View on GitHub
+      </a>
+    </div>
+  </nav>
+</header>
+
+<style>
+  /* Force dark header background */
+  .docs-header,
+  .docs-header::before,
+  .docs-header::after {
+    background: oklch(0.141 0.005 285.823 / 0.95) !important;
+    border-bottom: 1px solid var(--sl-color-hairline) !important;
+  }
+
+  /* Override any Starlight header wrappers */
+  :global(.header),
+  :global(header),
+  :global([data-sl-header]) {
+    background: oklch(0.141 0.005 285.823 / 0.95) !important;
+  }
+
+  /* Navigation link hover state */
+  .docs-header-link:hover {
+    color: var(--sl-color-accent);
+  }
+</style>

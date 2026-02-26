@@ -1,43 +1,156 @@
-# Astro Starter Kit: Minimal
+# PrismaLens Marketing Site
 
-```sh
-pnpm create astro@latest -- --template minimal
+The marketing website for PrismaLens, built with Astro.
+
+## Tech Stack
+
+- **Framework:** Astro 5.x
+- **Styling:** Tailwind CSS
+- **Language:** TypeScript
+- **UI Components:** Custom components in `src/components/`
+
+## Project Structure
+
 ```
-
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
-
-## 🚀 Project Structure
-
-Inside of your Astro project, you'll see the following folders and files:
-
-```text
-/
-├── public/
+site/
+├── public/               # Static assets (images, fonts, etc.)
 ├── src/
-│   └── pages/
-│       └── index.astro
-└── package.json
+│   ├── components/       # Reusable UI components
+│   │   ├── Header.astro  # Site header with navigation
+│   │   ├── Hero.astro    # Hero section component
+│   │   ├── FeatureGrid.astro
+│   │   └── CTA.astro     # Call-to-action component
+│   ├── content/          # Content collections
+│   │   └── blog/         # Blog posts (MDX)
+│   ├── layouts/          # Page layouts
+│   │   └── BaseLayout.astro
+│   ├── pages/            # File-based routing
+│   │   ├── index.astro   # Homepage
+│   │   ├── features.astro
+│   │   ├── pricing.astro
+│   │   ├── about.astro
+│   │   └── blog/         # Blog index and posts
+│   └── styles/           # Global styles
+└── astro.config.mjs      # Astro configuration
 ```
 
-Astro looks for `.astro` or `.md` files in the `src/pages/` directory. Each page is exposed as a route based on its file name.
+## Development
 
-There's nothing special about `src/components/`, but that's where we like to put any Astro/React/Vue/Svelte/Preact components.
+### Run from Repository Root
 
-Any static assets, like images, can be placed in the `public/` directory.
+It's recommended to run the development server from the **repository root** to leverage the concurrent setup:
 
-## 🧞 Commands
+```bash
+# From /prismalens.io/
+pnpm dev
+```
 
-All commands are run from the root of the project, from a terminal:
+This runs both the marketing site (localhost:4321) and docs (localhost:4322) concurrently.
 
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `pnpm install`             | Installs dependencies                            |
-| `pnpm dev`             | Starts local dev server at `localhost:4321`      |
-| `pnpm build`           | Build your production site to `./dist/`          |
-| `pnpm preview`         | Preview your build locally, before deploying     |
-| `pnpm astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `pnpm astro -- --help` | Get help using the Astro CLI                     |
+### Run Site Only
 
-## 👀 Want to learn more?
+To run just the marketing site:
 
-Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
+```bash
+# From repository root
+pnpm dev:site
+
+# Or from this directory
+pnpm dev
+```
+
+The site will be available at http://localhost:4321
+
+### Build for Production
+
+```bash
+# From repository root
+pnpm build:site
+
+# Or from this directory
+pnpm build
+```
+
+The build output will be in `dist/`.
+
+## Adding Content
+
+### Blog Posts
+
+Create a new `.mdx` file in `src/content/blog/`:
+
+```mdx
+---
+title: "Your Post Title"
+description: "A short description"
+pubDate: 2026-02-06
+author: "Your Name"
+---
+
+Your content here...
+```
+
+### Pages
+
+Add new `.astro` files in `src/pages/`. File-based routing means:
+
+- `src/pages/example.astro` → `/example`
+- `src/pages/features/ai.astro` → `/features/ai`
+
+### Components
+
+Create reusable components in `src/components/`:
+
+```astro
+---
+interface Props {
+  title: string;
+}
+
+const { title } = Astro.props;
+---
+
+<div class="component">
+  <h2>{title}</h2>
+</div>
+```
+
+## Styling
+
+This project uses **Tailwind CSS** for styling. Use utility classes directly in components:
+
+```astro
+<div class="mx-auto max-w-7xl px-4 py-8">
+  <h1 class="text-4xl font-bold text-white">Hello</h1>
+</div>
+```
+
+Tailwind configuration is in `tailwind.config.mjs`.
+
+## Environment-Aware Features
+
+The "Docs" navigation link is environment-aware:
+- **Development:** Points to http://localhost:4322
+- **Production:** Points to https://docs.prismalens.io
+
+This is controlled by `import.meta.env.DEV` in `Header.astro`.
+
+## Commands
+
+| Command | Action |
+|---------|--------|
+| `pnpm install` | Install dependencies |
+| `pnpm dev` | Start dev server at localhost:4321 |
+| `pnpm build` | Build for production to `./dist/` |
+| `pnpm preview` | Preview production build locally |
+| `pnpm astro check` | Run type checking |
+
+## Deployment
+
+The site is deployed to Vercel (planned) and available at https://prismalens.io
+
+## Learn More
+
+- [Astro Documentation](https://docs.astro.build)
+- [Tailwind CSS Documentation](https://tailwindcss.com/docs)
+- [PrismaLens Documentation](https://docs.prismalens.io)

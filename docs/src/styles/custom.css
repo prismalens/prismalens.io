@@ -1,0 +1,108 @@
+/* PrismaLens Docs - Starlight Theme Overrides + Tailwind v4 */
+
+/* Cascade layer order — Starlight v0.34+ requirement */
+@layer base, starlight, theme, components, utilities;
+
+/* Starlight <-> Tailwind bridge (handles Preflight + dark: variant) */
+@import '@astrojs/starlight-tailwind';
+
+/* Tailwind v4 split imports with layer assignments */
+@import 'tailwindcss/theme.css' layer(theme);
+@import 'tailwindcss/utilities.css' layer(utilities);
+
+/* Fonts + design tokens */
+@import "@fontsource-variable/inter";
+@import "@fontsource-variable/jetbrains-mono";
+@import "@prismalens/design-tokens/starlight.css";
+
+/* Force dark header background globally */
+header,
+.header,
+[data-sl-header],
+.docs-header {
+  background: oklch(0.141 0.005 285.823 / 0.95) !important;
+  border-bottom-color: var(--sl-color-hairline) !important;
+}
+
+/* Theme synchronization */
+:root {
+  color-scheme: dark;
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+}
+
+/* Fix active sidebar link contrast (Accessibility) */
+[data-theme="dark"] .sidebar a[aria-current="page"] {
+  color: var(--sl-color-white) !important;
+  background-color: oklch(0.585 0.233 277.117 / 0.2) !important;
+  font-weight: 600;
+}
+
+[data-theme="dark"] .sidebar a[aria-current="page"]:hover {
+  background-color: oklch(0.585 0.233 277.117 / 0.3) !important;
+}
+
+/* Light theme active link */
+[data-theme="light"] .sidebar a[aria-current="page"] {
+  color: var(--sl-color-white) !important;
+  background-color: oklch(0.585 0.233 277.117 / 0.15) !important;
+  font-weight: 600;
+}
+
+[data-theme="light"] .sidebar a[aria-current="page"]:hover {
+  background-color: oklch(0.585 0.233 277.117 / 0.25) !important;
+}
+
+/* Sidebar hover */
+[data-theme="dark"] .sidebar a:not([aria-current="page"]):hover {
+  background-color: oklch(0.585 0.233 277.117 / 0.1);
+  color: var(--sl-color-accent);
+}
+
+/* Table of contents styling */
+[data-theme="dark"] .right-sidebar a {
+  color: var(--sl-color-gray-4);
+}
+
+[data-theme="dark"] .right-sidebar a:hover {
+  color: var(--sl-color-accent);
+}
+
+[data-theme="dark"] .right-sidebar a[aria-current="true"] {
+  color: var(--sl-color-accent);
+  font-weight: 600;
+}
+
+/* Search input */
+[data-theme="dark"] .search-input {
+  background-color: oklch(0.21 0.006 285.885 / 0.6) !important;
+  border-color: var(--sl-color-hairline) !important;
+  color: var(--sl-color-text) !important;
+}
+
+/* Code blocks */
+[data-theme="dark"] .expressive-code {
+  --ec-brdCol: var(--sl-color-hairline);
+  --ec-codeBg: oklch(0.21 0.006 285.885);
+}
+
+/* Light theme equivalents */
+[data-theme="light"] .sidebar a:not([aria-current="page"]):hover {
+  background-color: oklch(0.585 0.233 277.117 / 0.08);
+  color: var(--sl-color-accent);
+}
+
+[data-theme="light"] .right-sidebar a {
+  color: var(--sl-color-gray-3);
+}
+
+[data-theme="light"] .right-sidebar a:hover {
+  color: var(--sl-color-accent);
+}
+
+[data-theme="light"] .right-sidebar a[aria-current="true"] {
+  color: var(--sl-color-accent);
+  font-weight: 600;
+}

@@ -1,0 +1,71 @@
+---
+title: Langsmith Configuration
+description: Environment variables for langsmith/langchain tracing configuration.
+---
+
+# Langsmith Configuration
+
+:::note[Auto-generated Documentation]
+This page is automatically generated from source code.
+- **Last updated:** 2026-02-06T12:07:30.005Z
+- **Source:** [langsmith.ts](https://github.com/prismalens/prismalens/blob/20ebbb27b1a8e3908ead47dcf1092a22df48ed6e/packages/@prismalens/config/src/schemas/langsmith.ts)
+:::
+
+## Overview
+
+LangSmith/LangChain tracing configuration.
+
+Enable LangSmith tracing for debugging and evaluating LLM interactions. This is optional but recommended for development and debugging.
+
+## Environment Variables
+
+| Variable | Type | Required | Default | Description |
+|----------|------|----------|---------|-------------|
+| `LANGSMITH_API_KEY` | string | No | - | LangSmith API key |
+| `LANGSMITH_TRACING` | string | Yes | `false` | Enable LangSmith tracing |
+| `LANGCHAIN_TRACING_V2` | string | Yes | `false` | Enable LangChain tracing v2 |
+| `LANGCHAIN_PROJECT` | string | Yes | `prismalens-agents-dev` | LangSmith project name |
+
+## Docker Secrets Support
+
+All environment variables support Docker and Kubernetes secrets via the `_FILE` suffix pattern. This allows you to mount secrets as files instead of passing them directly as environment variables.
+
+**Example:**
+
+```bash
+# Direct value (less secure for secrets)
+ANTHROPIC_API_KEY=sk-ant-xxx
+
+# Or via mounted secret file (recommended for production)
+ANTHROPIC_API_KEY_FILE=/run/secrets/anthropic_key
+```
+
+When a `_FILE` variable is provided, PrismaLens will read the secret from that file path. This is the recommended approach for sensitive values in containerized environments.
+
+## Example Configuration
+
+```bash title=".env"
+# Enable LangSmith tracing
+LANGSMITH_TRACING=false
+
+# Enable LangChain tracing v2
+LANGCHAIN_TRACING_V2=false
+
+# LangSmith project name
+LANGCHAIN_PROJECT=prismalens-agents-dev
+```
+
+
+
+## Configuration Precedence
+
+Environment variables have the highest priority and override any values stored in the database (configured via the Settings UI). Default values defined in the schema are used when neither an environment variable nor a database value is set.
+
+## Related Configuration
+
+- [Global Configuration](/reference/config-global)
+- [Database](/reference/config-database)
+- [Logging](/reference/config-logging)
+- [LLM Providers](/reference/config-llm)
+- [Configuration Overview](/reference/)
+

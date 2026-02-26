@@ -3,62 +3,110 @@ import BaseLayout from '../layouts/BaseLayout.astro'
 import Hero from '../components/Hero.astro'
 import FeatureGrid from '../components/FeatureGrid.astro'
 import CTA from '../components/CTA.astro'
+import Icon from '../components/Icon.astro'
 
 const features = [
   {
     title: 'AI-Powered Root Cause Analysis',
-    description:
-      'LangGraph agents automatically investigate incidents, correlate signals across services, and surface the root cause.',
-    icon: '🔍',
+    description: 'LangGraph agents query Prometheus, parse logs, and trace requests — building a complete picture of what broke and why in under 2 minutes.',
+    icon: 'search',
   },
   {
-    title: 'Unified Command Center',
-    description:
-      'A single pane of glass for all your incidents — severity, status, affected services, and investigation timeline.',
-    icon: '🎛️',
+    title: 'Incident Command Center',
+    description: 'Real-time dashboard showing active incidents with severity, affected services, investigation status, and blast radius. One view, all your incidents.',
+    icon: 'command',
   },
   {
     title: 'Multi-Source Correlation',
-    description:
-      'Pull metrics, logs, and traces from Prometheus, Grafana, Datadog, New Relic, and more into one investigation.',
-    icon: '🔗',
+    description: 'Connect Prometheus, Grafana, Datadog, New Relic, and custom webhooks. One timeline, all your signals. No more tab switching.',
+    icon: 'link',
   },
   {
-    title: 'Automated Investigations',
-    description:
-      'AI agents follow investigation playbooks, gather evidence, and build a timeline of what happened.',
-    icon: '🤖',
+    title: 'Automated Investigation Playbooks',
+    description: 'Define investigation steps once. AI agents execute them every time: check these metrics, search these logs, trace these endpoints.',
+    icon: 'bot',
   },
   {
-    title: 'Service Dependency Mapping',
-    description:
-      'Understand blast radius instantly with auto-discovered service relationships and dependency graphs.',
-    icon: '🗺️',
+    title: 'Service Dependency Graphs',
+    description: 'Auto-discover service relationships from distributed traces. Instantly understand blast radius when a service fails.',
+    icon: 'map',
   },
   {
-    title: 'Open Source Core',
-    description:
-      'Self-host with Docker Compose. Full control over your data. No vendor lock-in.',
-    icon: '🔓',
+    title: 'Self-Hosted & Open Source',
+    description: 'Deploy with Docker Compose in under 5 minutes. Your data stays on your infrastructure. No vendor lock-in, ever.',
+    icon: 'unlock',
   },
 ]
 ---
 
 <BaseLayout title="AI-Powered Incident Investigation">
   <Hero
-    title="Resolve incidents faster with AI-powered root cause analysis"
-    subtitle="PrismaLens uses AI agents to automatically investigate production incidents, correlate signals across your observability stack, and surface the root cause — so your team can fix, not search."
-    primaryCta={{ href: 'https://app.prismalens.io', label: 'Get Started' }}
+    title="Stop searching. Start fixing."
+    subtitle="Turn 2-hour incident investigations into 2-minute root cause discoveries. PrismaLens AI agents automatically correlate signals across your entire observability stack."
+    primaryCta={{ href: 'https://github.com/prismalens', label: 'Star on GitHub' }}
     secondaryCta={{
-      href: 'https://github.com/prismalens',
-      label: 'View on GitHub',
+      href: '/examples',
+      label: 'See Example Investigations',
     }}
   />
   <FeatureGrid features={features} />
+
+  <!-- Why We Built This Section -->
+  <section class="relative px-4 py-24 sm:px-6 lg:px-8 overflow-hidden" style="background: linear-gradient(135deg, color-mix(in srgb, var(--primary) 3%, transparent) 0%, transparent 50%, color-mix(in srgb, var(--pl-investigation-purple) 3%, transparent) 100%);">
+    <div class="mx-auto max-w-4xl relative">
+      <div class="rounded-3xl p-12 backdrop-blur-xl" style="border: 1px solid var(--border); background: linear-gradient(135deg, color-mix(in srgb, var(--card) 90%, transparent) 0%, color-mix(in srgb, var(--background) 90%, transparent) 100%); box-shadow: 0 20px 60px color-mix(in srgb, var(--primary) 10%, transparent);">
+        <!-- Accent line -->
+        <div class="absolute left-0 top-0 h-1 w-32 rounded-tl-3xl" style="background: linear-gradient(to right, var(--primary) 0%, var(--pl-investigation-purple) 100%);"></div>
+
+        <h2 class="text-4xl font-bold tracking-tight sm:text-5xl mb-8" style="color: var(--foreground);">
+          Why We Built This
+        </h2>
+
+        <div class="space-y-6" style="color: var(--muted-foreground);">
+          <p class="text-lg sm:text-xl leading-relaxed">
+            At <span class="font-mono font-bold" style="color: var(--destructive);">2:47am</span>, your payment API times out. Revenue drops to zero. You spend
+            <span class="font-bold" style="color: var(--foreground);">90 minutes</span> jumping between Prometheus dashboards, grepping logs, and
+            correlating deployment times before finding the cause: a database migration
+            that added an unindexed column.
+          </p>
+
+          <p class="text-lg leading-relaxed">
+            You had all the right tools — Prometheus, Grafana, distributed tracing,
+            structured logs. The problem wasn't <em style="color: var(--muted-foreground);">observability</em>. It was
+            <span class="font-bold text-xl" style="color: var(--primary);">correlation</span>.
+          </p>
+
+          <div class="my-8 p-6 rounded-xl" style="background: color-mix(in srgb, var(--primary) 10%, transparent); border: 1px solid color-mix(in srgb, var(--primary) 30%, transparent);">
+            <p class="text-lg leading-relaxed">
+              <strong class="text-xl" style="color: var(--foreground);">PrismaLens automates that correlation.</strong> AI
+              agents follow investigation playbooks: query metrics for anomalies, search logs
+              for errors, trace requests through services, and build a timeline of what happened.
+              The same incident that took <span class="line-through" style="color: var(--muted-foreground);">90 minutes</span> manually takes PrismaLens <span class="font-bold text-xl" style="color: var(--primary);">under 2 minutes</span>.
+            </p>
+          </div>
+
+          <p class="text-lg italic pl-6" style="color: var(--foreground); border-left: 4px solid var(--primary);">
+            We built PrismaLens because incident response should be about
+            <em class="font-bold not-italic" style="color: var(--foreground);">fixing</em> problems, not <em class="not-italic" style="color: var(--muted-foreground);">finding</em> them.
+          </p>
+        </div>
+
+        <a
+          href="/about"
+          class="mt-8 inline-flex items-center gap-2 text-base font-semibold transition-all hover:gap-3"
+          style="color: var(--primary);"
+        >
+          Read the full story
+          <Icon name="arrow-right" size={20} />
+        </a>
+      </div>
+    </div>
+  </section>
+
   <CTA
-    title="Ready to stop firefighting?"
-    description="Deploy PrismaLens in minutes with Docker Compose. Open source, self-hosted, and built for teams who are tired of manual incident investigation."
+    title="Ready to stop firefighting blind?"
+    description="Deploy PrismaLens locally in under 5 minutes. Run your first AI-powered investigation before your next standup."
     href="https://docs.prismalens.io/getting-started/quick-start"
-    label="Read the Quick Start Guide"
+    label="Quick Start Guide →"
   />
 </BaseLayout>

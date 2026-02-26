@@ -1,4 +1,6 @@
 ---
+import Icon from './Icon.astro'
+
 interface Feature {
   title: string
   description: string
@@ -10,20 +12,33 @@ interface Props {
 }
 
 const { features } = Astro.props
+
 ---
 
-<section class="px-4 py-24 sm:px-6 lg:px-8">
+<section class="px-4 py-24 sm:px-6 lg:px-8" style="background: linear-gradient(to bottom, var(--background) 0%, var(--card) 50%, var(--background) 100%);">
   <div class="mx-auto max-w-7xl">
-    <div class="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-      {
-        features.map((feature) => (
-          <div class="rounded-xl border border-gray-800 bg-gray-900/50 p-6">
-            <div class="mb-4 text-3xl">{feature.icon}</div>
-            <h3 class="mb-2 text-lg font-semibold text-white">{feature.title}</h3>
-            <p class="text-sm text-gray-400">{feature.description}</p>
+    <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      {features.map((feature) => (
+        <div
+          class="group relative rounded-2xl p-8 transition-all hover:-translate-y-1 feature-card-bg overflow-hidden"
+          style="box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);"
+        >
+          <!-- Glow effect on hover -->
+          <div class="absolute inset-0 rounded-2xl opacity-0 transition-opacity group-hover:opacity-100" style="background: linear-gradient(135deg, color-mix(in srgb, var(--primary) 10%, transparent) 0%, color-mix(in srgb, var(--pl-investigation-purple) 10%, transparent) 100%); filter: blur(20px); z-index: -1;"></div>
+
+          <!-- Left accent stripe -->
+          <div class="absolute left-0 top-0 h-full w-1 rounded-l-2xl opacity-0 transition-opacity group-hover:opacity-100" style="background: linear-gradient(to bottom, var(--primary) 0%, var(--pl-investigation-purple) 100%);"></div>
+
+          <!-- Icon container -->
+          <div class="relative mb-6 flex h-16 w-16 items-center justify-center rounded-xl" style="background: linear-gradient(135deg, color-mix(in srgb, var(--primary) 20%, transparent) 0%, color-mix(in srgb, var(--pl-investigation-purple) 20%, transparent) 100%); border: 1px solid color-mix(in srgb, var(--primary) 30%, transparent); box-shadow: 0 4px 12px color-mix(in srgb, var(--primary) 20%, transparent);">
+            <div class="absolute inset-0 rounded-xl" style="background: color-mix(in srgb, var(--primary) 10%, transparent); filter: blur(8px);"></div>
+            <Icon name={feature.icon as any} size={32} class="relative z-10 text-primary" />
           </div>
-        ))
-      }
+
+          <h3 class="mb-3 text-xl font-bold feature-title">{feature.title}</h3>
+          <p class="text-base leading-relaxed feature-description">{feature.description}</p>
+        </div>
+      ))}
     </div>
   </div>
 </section>

@@ -1,0 +1,84 @@
+---
+title: Llm Configuration
+description: Environment variables for llm provider metadata
+---
+
+# Llm Configuration
+
+:::note[Auto-generated Documentation]
+This page is automatically generated from source code.
+- **Last updated:** 2026-02-06T12:07:30.005Z
+- **Source:** [llm.ts](https://github.com/prismalens/prismalens/blob/20ebbb27b1a8e3908ead47dcf1092a22df48ed6e/packages/@prismalens/config/src/schemas/llm.ts)
+:::
+
+## Overview
+
+LLM Provider Metadata
+
+Configure API keys and settings for LLM providers like Anthropic Claude, OpenAI, Google Gemini, and others. At least one LLM provider must be configured for PrismaLens to function.
+
+## Environment Variables
+
+| Variable | Type | Required | Default | Description |
+|----------|------|----------|---------|-------------|
+| `ANTHROPIC_API_KEY` | string | No | - | Anthropic API key |
+| `OPENAI_API_KEY` | string | No | - | OpenAI API key |
+| `GOOGLE_API_KEY` | string | No | - | Google Gemini API key |
+| `GROQ_API_KEY` | string | No | - | Groq API key |
+| `OPENROUTER_API_KEY` | string | No | - | OpenRouter API key |
+| `NVIDIA_API_KEY` | string | No | - | NVIDIA NIM API key |
+| `OLLAMA_API_KEY` | string | No | - | Ollama Cloud API key (optional - for cloud mode) |
+| `PRISMALENS_OLLAMA_BASE_URL` | string | Yes | `http://localhost:11434` | Ollama server URL |
+
+## Docker Secrets Support
+
+All environment variables support Docker and Kubernetes secrets via the `_FILE` suffix pattern. This allows you to mount secrets as files instead of passing them directly as environment variables.
+
+**Example:**
+
+```bash
+# Direct value (less secure for secrets)
+ANTHROPIC_API_KEY=sk-ant-xxx
+
+# Or via mounted secret file (recommended for production)
+ANTHROPIC_API_KEY_FILE=/run/secrets/anthropic_key
+```
+
+When a `_FILE` variable is provided, PrismaLens will read the secret from that file path. This is the recommended approach for sensitive values in containerized environments.
+
+## Example Configuration
+
+```bash title=".env"
+# Ollama server URL
+PRISMALENS_OLLAMA_BASE_URL=http://localhost:11434
+```
+
+
+## Supported LLM Providers
+
+PrismaLens supports multiple LLM providers. You can configure one or more providers - the system will use them based on availability and your preferences.
+
+### Anthropic Claude (Recommended)
+Claude models excel at complex reasoning and investigation tasks. PrismaLens is optimized for Claude 3.5 Sonnet and Claude 3 Opus.
+
+### OpenAI
+Support for GPT-4 and GPT-3.5 models. Useful as a fallback provider.
+
+### Google Gemini
+Support for Gemini Pro and Gemini Ultra models.
+
+### Priority and Fallback
+Configure multiple providers for redundancy. If one provider fails or hits rate limits, PrismaLens will automatically fall back to alternative providers.
+
+## Configuration Precedence
+
+Environment variables have the highest priority and override any values stored in the database (configured via the Settings UI). Default values defined in the schema are used when neither an environment variable nor a database value is set.
+
+## Related Configuration
+
+- [Global Configuration](/reference/config-global)
+- [Database](/reference/config-database)
+- [Logging](/reference/config-logging)
+- [Queue](/reference/config-queue)
+- [Configuration Overview](/reference/)
+

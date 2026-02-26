@@ -1,0 +1,124 @@
+---
+title: Database Configuration
+description: Environment variables for database type configuration.
+---
+
+# Database Configuration
+
+:::note[Auto-generated Documentation]
+This page is automatically generated from source code.
+- **Last updated:** 2026-02-06T12:07:30.005Z
+- **Source:** [database.ts](https://github.com/prismalens/prismalens/blob/20ebbb27b1a8e3908ead47dcf1092a22df48ed6e/packages/@prismalens/config/src/schemas/database.ts)
+:::
+
+## Overview
+
+Database type configuration.
+
+PrismaLens supports both SQLite (default) and PostgreSQL databases. SQLite is recommended for single-server deployments, while PostgreSQL is better suited for production environments with high availability requirements.
+
+## Environment Variables
+
+| Variable | Type | Required | Default | Description |
+|----------|------|----------|---------|-------------|
+| `PRISMALENS_DB_SQLITE_READONLY` | enum: `true`, `false` | Yes | `false` | Open SQLite database connection in readonly mode |
+| `PRISMALENS_DB_SQLITE_FILE_MUST_EXIST` | enum: `true`, `false` | Yes | `false` | Throw error if SQLite database file does not exist |
+| `PRISMALENS_DB_SQLITE_TIMEOUT` | number | Yes | `5000` | Milliseconds to wait when executing queries on locked database |
+| `PRISMALENS_DB_POSTGRES_HOST` | string | Yes | `localhost` | PostgreSQL host |
+| `PRISMALENS_DB_POSTGRES_PORT` | number | Yes | `5432` | PostgreSQL port |
+| `PRISMALENS_DB_POSTGRES_DATABASE` | string | Yes | `prismalens` | PostgreSQL database name |
+| `PRISMALENS_DB_POSTGRES_USER` | string | Yes | `postgres` | PostgreSQL user |
+| `PRISMALENS_DB_POSTGRES_PASSWORD` | string | Yes | - | PostgreSQL password |
+| `PRISMALENS_DB_POSTGRES_SCHEMA` | string | Yes | `public` | PostgreSQL schema |
+| `PRISMALENS_DB_POSTGRES_POOL_SIZE` | number | Yes | `10` | PostgreSQL connection pool size |
+| `PRISMALENS_DB_POSTGRES_SSL_ENABLED` | enum: `true`, `false` | Yes | `false` | Enable SSL for PostgreSQL connection |
+| `PRISMALENS_DB_POSTGRES_SSL_CA` | string | No | - | PostgreSQL SSL CA certificate |
+| `PRISMALENS_DB_POSTGRES_SSL_CERT` | string | No | - | PostgreSQL SSL certificate |
+| `PRISMALENS_DB_POSTGRES_SSL_KEY` | string | No | - | PostgreSQL SSL key |
+| `PRISMALENS_DB_POSTGRES_SSL_REJECT_UNAUTHORIZED` | enum: `true`, `false` | Yes | `true` | Reject unauthorized SSL connections |
+
+## Docker Secrets Support
+
+All environment variables support Docker and Kubernetes secrets via the `_FILE` suffix pattern. This allows you to mount secrets as files instead of passing them directly as environment variables.
+
+**Example:**
+
+```bash
+# Direct value (less secure for secrets)
+ANTHROPIC_API_KEY=sk-ant-xxx
+
+# Or via mounted secret file (recommended for production)
+ANTHROPIC_API_KEY_FILE=/run/secrets/anthropic_key
+```
+
+When a `_FILE` variable is provided, PrismaLens will read the secret from that file path. This is the recommended approach for sensitive values in containerized environments.
+
+## Example Configuration
+
+```bash title=".env"
+# Open SQLite database connection in readonly mode
+PRISMALENS_DB_SQLITE_READONLY=false
+
+# Throw error if SQLite database file does not exist
+PRISMALENS_DB_SQLITE_FILE_MUST_EXIST=false
+
+# Milliseconds to wait when executing queries on locked database
+PRISMALENS_DB_SQLITE_TIMEOUT=5000
+
+# PostgreSQL host
+PRISMALENS_DB_POSTGRES_HOST=localhost
+
+# PostgreSQL port
+PRISMALENS_DB_POSTGRES_PORT=5432
+
+# PostgreSQL database name
+PRISMALENS_DB_POSTGRES_DATABASE=prismalens
+
+# PostgreSQL user
+PRISMALENS_DB_POSTGRES_USER=postgres
+
+# PostgreSQL password
+PRISMALENS_DB_POSTGRES_PASSWORD=<value>
+
+# PostgreSQL schema
+PRISMALENS_DB_POSTGRES_SCHEMA=public
+
+# PostgreSQL connection pool size
+PRISMALENS_DB_POSTGRES_POOL_SIZE=10
+
+# Enable SSL for PostgreSQL connection
+PRISMALENS_DB_POSTGRES_SSL_ENABLED=false
+
+# Reject unauthorized SSL connections
+PRISMALENS_DB_POSTGRES_SSL_REJECT_UNAUTHORIZED=true
+```
+
+
+## Choosing a Database
+
+### SQLite (Default)
+- **Best for:** Single-server deployments, development, testing
+- **Pros:** Zero configuration, no separate database server needed, fast for single-instance
+- **Cons:** Not suitable for distributed deployments
+- **Location:** `~/.prismalens/prismalens.db`
+
+### PostgreSQL
+- **Best for:** Production deployments, high availability setups
+- **Pros:** Better concurrency, replication support, suitable for distributed systems
+- **Cons:** Requires separate database server
+- **Requirements:** PostgreSQL 14+
+
+To switch from SQLite to PostgreSQL, set `PRISMALENS_DB_TYPE=postgresql` and configure the PostgreSQL connection settings.
+
+## Configuration Precedence
+
+Environment variables have the highest priority and override any values stored in the database (configured via the Settings UI). Default values defined in the schema are used when neither an environment variable nor a database value is set.
+
+## Related Configuration
+
+- [Global Configuration](/reference/config-global)
+- [Logging](/reference/config-logging)
+- [LLM Providers](/reference/config-llm)
+- [Queue](/reference/config-queue)
+- [Configuration Overview](/reference/)
+

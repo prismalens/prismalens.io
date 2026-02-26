@@ -1,6 +1,14 @@
-name: deploy-docs
+name: Deploy Documentation
 
 on:
+  repository_dispatch:
+    types: [deploy-docs]
+  push:
+    branches:
+      - main
+    paths:
+      - 'docs/**'
+      - 'site/**'
   workflow_dispatch:
 
 permissions:
@@ -19,26 +27,27 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
-          node-version: 22
+          node-version: '22'
           cache: pnpm
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
       - name: Build docs
-        run: pnpm --filter docs build
+        run: pnpm build:docs
 
-      - name: Deploy to VPS
-        env:
-          SSH_PRIVATE_KEY: ${{ secrets.VPS_SSH_KEY }}
-          VPS_HOST: ${{ secrets.VPS_HOST }}
-          VPS_USER: ${{ secrets.VPS_USER }}
-        run: |
-          mkdir -p ~/.ssh
-          echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
-          chmod 600 ~/.ssh/id_ed25519
-          ssh-keyscan -H "$VPS_HOST" >> ~/.ssh/known_hosts
+      - name: Build site
+        run: pnpm build:site
 
-          rsync -avz --delete \
-            docs/dist/ \
-            "${VPS_USER}@${VPS_HOST}:/srv/docs/"
+      # Add deployment step based on hosting provider
+      # Example for Vercel:
+      # - name: Deploy to Vercel
+      #   uses: amondnet/vercel-action@v25
+      #   with:
+      #     vercel-token: ${{ secrets.VERCEL_TOKEN }}
+      #     vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+      #     vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+      #     vercel-args: '--prod'
+
+      - name: Deploy notification
+        run: echo "Documentation built successfully"

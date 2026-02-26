@@ -1,0 +1,82 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro'
+import Hero from '../components/Hero.astro'
+import ScenarioTabs from '../components/react/ScenarioTabs.tsx'
+import { buttonVariants } from '@/components/ui/button'
+
+const scenarios = [
+  {
+    title: 'The 3am Payment Timeout',
+    problem: 'Payment API P99 latency jumped from 150ms to 4.2s. Checkout conversion dropped 87%.',
+    investigation: [
+      'Detected latency spike in Prometheus alert at 02:47:32',
+      'Queried Datadog traces showing timeout errors to payment-service',
+      'Searched logs for "connection" errors in payment-service',
+      'Found "connection pool exhausted" errors starting 02:45:18',
+      'Checked deployments: payment-service config change at 02:30:12',
+      'Identified root cause: MAX_DB_CONNECTIONS reduced from 100 to 10',
+    ],
+    rootCause: 'Database connection pool size misconfigured in deployment e7b4c89',
+    timeToRootCause: '2m 14s',
+    manualTime: '45-90 min',
+  },
+  {
+    title: 'Mystery Memory Leak',
+    problem: 'API server memory usage climbing 5% per hour. OOMKilled after 8 hours.',
+    investigation: [
+      'Detected memory growth pattern in Prometheus metrics',
+      'Correlated with deployment timestamp (6 hours before OOMKill)',
+      'Analyzed heap dumps showing growing cache size',
+      'Searched code changes in recent deployment',
+      'Found new caching feature with no TTL configured',
+      'Cache infinitely accumulating data with no eviction policy',
+    ],
+    rootCause: 'In-memory cache added without TTL or size limits in PR #347',
+    timeToRootCause: '1m 58s',
+    manualTime: '2-4 hours',
+  },
+  {
+    title: 'Cascading Service Failure',
+    problem: 'Checkout service 5xx errors. Users unable to complete purchases.',
+    investigation: [
+      'Traced checkout requests showing timeouts to inventory-service',
+      'Checked inventory-service: high CPU, healthy response to direct calls',
+      'Discovered inventory-service calling pricing-service in tight loop',
+      'Found pricing-service returning 500 errors (DB connection failures)',
+      'Identified pricing DB failover event 10 minutes before incident',
+      'Root cause: pricing DB replica lag causing stale reads to fail',
+    ],
+    rootCause: 'Database replica lag after failover. Pricing service using stale replica.',
+    timeToRootCause: '3m 42s',
+    manualTime: '1-2 hours',
+  },
+]
+---
+
+<BaseLayout
+  title="Example Investigations"
+  description="See how PrismaLens investigates real production incidents in under 5 minutes."
+>
+  <Hero
+    title="Real incidents, automated investigations"
+    subtitle="See how PrismaLens cuts incident response time from hours to minutes with AI-powered correlation."
+  />
+
+  <section class="px-4 py-16 sm:px-6 lg:px-8">
+    <div class="mx-auto max-w-4xl">
+      <ScenarioTabs client:visible scenarios={scenarios} />
+    </div>
+  </section>
+
+  <section class="px-4 py-16 sm:px-6 lg:px-8">
+    <div class="mx-auto max-w-2xl text-center">
+      <h2 class="text-2xl font-bold mb-4">Ready to investigate your incidents this fast?</h2>
+      <a
+        href="https://docs.prismalens.io/getting-started/quick-start"
+        class={buttonVariants({ variant: 'default' })}
+      >
+        Deploy PrismaLens Now →
+      </a>
+    </div>
+  </section>
+</BaseLayout>

@@ -1,35 +1,51 @@
 ---
+import ThemeToggle from './react/ThemeToggle.tsx'
+import MobileNav from './react/MobileNav.tsx'
+import { buttonVariants } from '@/components/ui/button'
+
 const navLinks = [
   { href: '/features', label: 'Features' },
+  { href: '/examples', label: 'Examples' },
   { href: '/pricing', label: 'Pricing' },
   { href: '/blog', label: 'Blog' },
-  { href: 'https://docs.prismalens.io', label: 'Docs' },
+  { href: import.meta.env.DEV ? 'http://localhost:4322' : 'https://docs.prismalens.io', label: 'Docs' },
   { href: '/about', label: 'About' },
 ]
 ---
 
-<header class="sticky top-0 z-50 border-b border-gray-800 bg-gray-950/80 backdrop-blur-lg">
+<header class="sticky top-0 z-50 backdrop-blur-lg header-bg">
   <nav class="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
-    <a href="/" class="text-xl font-bold text-white">
-      PrismaLens
+    <a href="/" class="flex items-center gap-2 text-xl font-bold">
+      <span style="color: var(--primary);">Prisma</span><span class="logo-lens">Lens</span>
     </a>
+
+    <!-- Desktop nav -->
     <div class="hidden items-center gap-8 md:flex">
-      {
-        navLinks.map((link) => (
-          <a
-            href={link.href}
-            class="text-sm text-gray-300 transition-colors hover:text-white"
-          >
-            {link.label}
-          </a>
-        ))
-      }
+      {navLinks.map((link) => (
+        <a
+          href={link.href}
+          class="text-sm transition-colors nav-link"
+        >
+          {link.label}
+        </a>
+      ))}
+
+      <ThemeToggle client:load />
+
       <a
-        href="https://app.prismalens.io"
-        class="rounded-lg bg-violet-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-violet-500"
+        href="https://github.com/prismalens"
+        target="_blank"
+        rel="noopener noreferrer"
+        class={buttonVariants({ variant: 'default', size: 'sm' })}
       >
-        Launch App
+        View on GitHub
       </a>
+    </div>
+
+    <!-- Mobile controls -->
+    <div class="flex items-center gap-2 md:hidden">
+      <ThemeToggle client:load />
+      <MobileNav client:load navLinks={navLinks} />
     </div>
   </nav>
 </header>
