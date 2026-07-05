@@ -1,0 +1,58 @@
+---
+title: "Slack Integration"
+description: Setup guide for the Slack integration in PrismaLens
+---
+
+# Slack Integration
+
+:::note[Auto-generated Documentation]
+This page is automatically generated from source code.
+- **Last updated:** 2026-03-10T17:31:21.835Z
+- **Source:** [templates/](https://github.com/prismalens/prismalens/blob/a457b79ffdf7b11c18176d39cc41201300b8e6d1/packages/@prismalens/integrations/src/templates/)
+:::
+
+## Overview
+
+| Property | Value |
+|----------|-------|
+| **Auth Mode** | OAuth 2.0 |
+| **Category** | Communication |
+| **Template ID** | `slack` |
+
+## Prerequisites
+
+Start here: [Slack setup page](https://api.slack.com/apps)
+
+1. Go to api.slack.com/apps and click 'Create New App'
+2. Choose 'From scratch' and name it 'PrismaLens'
+3. Select the workspace to install it in
+4. Go to 'OAuth & Permissions' in the sidebar
+5. Add the required Bot Token Scopes listed below
+6. Set the 'Redirect URL' to your PrismaLens callback URL (see below)
+7. Go to 'Basic Information' and note the Client ID and Client Secret
+
+## Required Permissions
+
+| Permission | Description |
+|------------|-------------|
+| `read` | List private channels the bot is in |
+| `write` | Send messages to channels |
+
+## Callback URL
+
+When configuring your Slack app, set the redirect/callback URL to:
+
+```
+{{origin}}/api/integrations/oauth/callback
+```
+
+Replace `{{origin}}` with your PrismaLens instance URL (e.g., `https://prismalens.example.com`).
+
+## Tips
+
+- The Redirect URL must exactly match your PrismaLens instance URL
+- The bot must be invited to channels where it should send notifications
+
+## Provider Documentation
+
+- [Slack API docs](https://api.slack.com/messaging/webhooks)

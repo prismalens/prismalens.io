@@ -1,0 +1,44 @@
+---
+title: "Render Integration"
+description: Setup guide for the Render integration in PrismaLens
+---
+
+# Render Integration
+
+:::note[Auto-generated Documentation]
+This page is automatically generated from source code.
+- **Last updated:** 2026-03-10T17:31:21.835Z
+- **Source:** [templates/](https://github.com/prismalens/prismalens/blob/a457b79ffdf7b11c18176d39cc41201300b8e6d1/packages/@prismalens/integrations/src/templates/)
+:::
+
+## Overview
+
+| Property | Value |
+|----------|-------|
+| **Auth Mode** | API Key |
+| **Category** | Observability |
+| **Template ID** | `render` |
+
+## Prerequisites
+
+Start here: [Render setup page](https://dashboard.render.com/u/settings#api-keys)
+
+1. Go to Render Dashboard → Account Settings → API Keys
+2. Click 'Create API Key'
+3. Give it a descriptive name like 'PrismaLens'
+4. Copy the generated key (starts with rnd_)
+
+## Credential Fields
+
+| Field | Label | Type | Required | Sensitive | Description |
+|-------|-------|------|----------|-----------|-------------|
+| `apiKey` | API Key | password | Yes | Yes | API Key — the key starting with rnd_, found in Account Settings → API Keys |
+
+## Tips
+
+- Render API keys have full account access — consider using a team-scoped key if available
+- PrismaLens uses the Render API to query service status during investigations
+
+## Provider Documentation
+
+- [Render API docs](https://docs.render.com/api)

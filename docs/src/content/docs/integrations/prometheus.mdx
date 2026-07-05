@@ -1,63 +1,48 @@
 ---
-title: Prometheus
-description: Connect Prometheus Alertmanager to PrismaLens for automatic alert ingestion.
+title: "Prometheus Integration"
+description: Setup guide for the Prometheus integration in PrismaLens
 ---
 
-PrismaLens natively supports Prometheus Alertmanager webhooks for automatic alert ingestion and incident creation.
+# Prometheus Integration
 
-## Setup
+:::note[Auto-generated Documentation]
+This page is automatically generated from source code.
+- **Last updated:** 2026-03-10T17:31:21.835Z
+- **Source:** [templates/](https://github.com/prismalens/prismalens/blob/a457b79ffdf7b11c18176d39cc41201300b8e6d1/packages/@prismalens/integrations/src/templates/)
+:::
 
-### 1. Add Webhook to Alertmanager
+## Overview
 
-Add PrismaLens as a webhook receiver in your `alertmanager.yml`:
+| Property | Value |
+|----------|-------|
+| **Auth Mode** | Basic Auth |
+| **Category** | Observability |
+| **Template ID** | `prometheus` |
 
-```yaml
-receivers:
-  - name: prismalens
-    webhook_configs:
-      - url: 'https://app.prismalens.io/api/webhooks/prometheus'
-        send_resolved: true
+## Prerequisites
+1. Ensure your Prometheus server is reachable from the PrismaLens instance
+2. If Prometheus is behind authentication, have your credentials ready
+3. Note the Prometheus server URL (default: http://localhost:9090)
 
-route:
-  receiver: prismalens
-  routes:
-    - match:
-        severity: critical
-      receiver: prismalens
-```
+## Credential Fields
 
-### 2. Configure in PrismaLens
+| Field | Label | Type | Required | Sensitive | Description |
+|-------|-------|------|----------|-----------|-------------|
+| `username` | Username | string | No | No | Username — only required if Prometheus has basic auth enabled |
+| `apiKey` | Password / API Key | password | No | Yes | Password / API Key — only required if Prometheus has basic auth enabled |
 
-Navigate to **Settings > Integrations > Prometheus** and enable the integration. PrismaLens will display the webhook URL to use.
+## Connection Fields
 
-## Severity Mapping
+| Field | Label | Type | Required | Sensitive | Description |
+|-------|-------|------|----------|-----------|-------------|
+| `baseUrl` | Prometheus URL | string | Yes | No | Prometheus URL — the base URL of your Prometheus server (e.g., http://prometheus:9090) |
 
-PrismaLens maps Prometheus severity labels:
+## Tips
 
-| Prometheus Label | PrismaLens Severity |
-|-----------------|-------------------|
-| `critical` | Critical |
-| `warning` | Warning |
-| `info` | Info |
+- Many Prometheus setups don't require authentication — leave username and password blank if yours doesn't
+- If using Prometheus behind a reverse proxy with TLS, use the https:// URL
+- PrismaLens uses the /api/v1/ query endpoints to fetch metrics during investigations
 
-## Service Mapping
+## Provider Documentation
 
-PrismaLens extracts the service name from alert labels. Configure the label key in the integration settings (default: `service`, `job`, or `instance`).
-
-You can also create **alert mapping rules** to override the default behavior for specific alert names.
-
-## Example Alert Rules
-
-```yaml
-groups:
-  - name: prismalens-examples
-    rules:
-      - alert: HighCPUUsage
-        expr: rate(process_cpu_seconds_total[5m]) > 0.9
-        for: 5m
-        labels:
-          severity: critical
-          service: api-gateway
-        annotations:
-          summary: "High CPU usage on {{ $labels.instance }}"
-```
+- [Prometheus API docs](https://prometheus.io/docs/prometheus/latest/querying/api/)

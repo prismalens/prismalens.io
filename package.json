@@ -18,7 +18,8 @@
     "build:site": "pnpm --filter site build",
     "build:docs": "pnpm --filter docs build",
     "docs:generate": "tsx scripts/generate-env-docs.ts",
-    "docs:generate:watch": "tsx watch scripts/generate-env-docs.ts"
+    "docs:generate:watch": "tsx watch scripts/generate-env-docs.ts",
+    "docs:generate:integrations": "tsx scripts/generate-integration-docs.ts"
   },
   "devDependencies": {
     "@types/node": "^22.10.5",

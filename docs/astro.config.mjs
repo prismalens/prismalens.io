@@ -58,7 +58,12 @@ export default defineConfig({
 				{
 					label: 'Integrations',
 					items: [
+						{ label: 'GitHub App', slug: 'integrations/github-app' },
+						{ label: 'GitHub PAT', slug: 'integrations/github-token' },
+						{ label: 'Slack', slug: 'integrations/slack' },
+						{ label: 'Slack Bot Token', slug: 'integrations/slack-token' },
 						{ label: 'Prometheus', slug: 'integrations/prometheus' },
+						{ label: 'Render', slug: 'integrations/render' },
 						{ label: 'Grafana', slug: 'integrations/grafana' },
 						{ label: 'Datadog', slug: 'integrations/datadog' },
 						{ label: 'New Relic', slug: 'integrations/newrelic' },
