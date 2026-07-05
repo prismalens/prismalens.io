@@ -1,0 +1,216 @@
+---
+title: Sandboxing & permissions
+description: What --sandbox and --mode actually guarantee when a rented harness investigates your repo, and how to read a run's honest fidelity report.
+---
+
+An investigation is supposed to be read-only, but "supposed to" and "enforced"
+are different guarantees. PrismaLens exposes that difference through two
+independent dials on `investigate`:
+
+- **`--mode`** — what the harness is *asked* to do (its permission posture).
+- **`--sandbox`** — what actually *stops* it if it tries something else
+  anyway (its isolation boundary).
+
+This page covers both, plus how to read the honest "here's what you asked
+for vs. what you actually got" report every run produces.
+
+## Permission modes (`--mode`)
+
+| Value | What it does |
+| --- | --- |
+| `read-only` (default) | The harness's default read-only guarantee for whichever backend you're renting — see the table below, since that guarantee isn't the same for every harness. |
+| `supervised` | Same guarantee as `read-only` today — both defer to the harness's own read-only mechanism. |
+| `auto` | Drops the read-only floor: writes are auto-accepted, with nothing programmatic stopping them. |
+| `dangerous` | Full access, no restrictions applied at all. |
+
+`--dangerouslySkipPermissions` is a shortcut for `--mode dangerous` — it wins
+over `--mode` if both are passed.
+
+`read-only`/`supervised` fidelity depends on the harness you rent, because
+PrismaLens doesn't build its own permission engine — it translates one dial
+into each harness's native mechanism and reports what actually resulted:
+
+| Harness | Fidelity | Mechanism |
+| --- | --- | --- |
+| `deepagents` | cooperative | ACP `session/request_permission` is auto-approved — prompt-only, no programmatic block. The harness has to actually respect the read-only ask. |
+| `claude-code` | enforced | Agent SDK `disallowedTools` deny-list (`Edit`, `Write`, `MultiEdit`, `NotebookEdit`) plus `permissionMode` — a real block, not just a prompt. |
+| `codex` | — | Not implemented yet; selecting this harness throws. |
+
+`auto` and `dangerous` don't consult that table at all — they're always
+**advisory**, on every harness, because neither applies a read-only floor in
+the first place.
+
+## Isolation boundaries (`--sandbox`)
+
+`--sandbox` controls where the harness process actually runs, independent of
+what it was asked to do. Four values, `auto` by default:
+
+| Value | Fidelity | Guarantee |
+| --- | --- | --- |
+| `process` | cooperative | The always-on floor. Not an OS boundary — no filesystem, network, or process isolation. |
+| `srt` | enforced | A real OS-level sandbox, via Anthropic's `@anthropic-ai/sandbox-runtime`. |
+| `e2b` | enforced | A cloud microVM (Firecracker), via E2B. |
+| `auto` | either | Prefers `srt`, but only once a self-check confirms it will actually work — otherwise falls back to `process` and says why. |
+
+### `process` — the cooperative floor
+
+This is the fallback every mode can land on, and the only thing it actually
+does is trim the harness's environment down to a safe allowlist (`PATH`,
+`HOME`, `USER`, `LOGNAME`, `SHELL`, `LANG`, `LC_ALL`, `LC_CTYPE`, `TERM`,
+`TMPDIR`, `TZ`, `PWD`) plus whatever BYO-key credentials you've configured —
+so PrismaLens's own secrets never reach the harness. That's it. There's no
+filesystem confinement and no network restriction: if the harness decides to
+write outside your repo or call out to some other host, nothing here stops
+it. The one thing every mode enforces, including this floor, is a wall-clock
+deadline — set `agent.limits.wall_clock_ms` and the child gets `SIGKILL`ed if
+it runs past it.
+
+### `srt` — the enforced local boundary
+
+`srt` wraps the harness in a real OS sandbox (`bwrap` + seccomp on Linux,
+`sandbox-exec` on macOS) with an egress proxy that only allows the domains
+you've configured (your `telemetry`/`logs` URLs in `prismalens.config.yaml`
+— configure nothing and the harness gets no network access at all).
+
+It's an **opt-in install**, not bundled with the CLI: run
+`npm install -g @anthropic-ai/sandbox-runtime` (or make sure an `srt` binary
+is on `PATH`). PrismaLens doesn't depend on the package directly — it
+resolves the binary lazily, only at the moment you actually select this
+mode, so a normal install stays light.
+
+Ask for `--sandbox srt` explicitly and it's a hard requirement: if `srt`
+can't be resolved, the run fails immediately with an error telling you to
+install it or pick a different mode. It never quietly substitutes the
+`process` floor for you — that honest fallback behavior belongs to `auto`
+alone.
+
+### `e2b` — the enforced cloud boundary
+
+`e2b` runs the harness in a remote microVM instead of on your machine, with
+its own egress allowlist enforced at the SDK level. It needs the `e2b`
+npm package installed and an `E2B_API_KEY` set.
+
+Because it's a remote, billed service, `e2b` is **explicit-only** — `auto`
+never reaches for it on its own. You have to ask for it by name.
+
+### `auto` — the default, and its egress self-check
+
+`auto` is the config default (`agent.sandbox: auto`). It wants to use `srt`,
+but checking whether the `srt` binary exists isn't enough to trust it: on
+some hosts `srt` starts up cleanly, logs that its relay is ready, and then
+silently drops every request the sandboxed harness makes.
+
+So before trusting `srt` for a run, `auto` runs a real check: it stands up a
+throwaway `srt` boundary and curls one of your actually-configured endpoints
+(the first parseable URL among `telemetry.prometheusUrl`,
+`telemetry.alertmanagerUrl`, `telemetry.apiUrl`, `logs.url`) through it. A
+real HTTP status code back means the boundary carries traffic, and `srt` is
+used for the run. A connection-refused response (or no configured URL to
+probe at all) means `auto` falls back to the `process` floor instead — and
+says so, both as a console warning during the run and as a `degradeReason`
+in the run's fidelity report. A healthy verdict is trusted for the rest of
+the process's life; an unhealthy one is re-checked after five minutes, so a
+one-off network blip doesn't disable `srt` for good.
+
+## Only some harnesses can be sandboxed at all
+
+`--sandbox srt`/`e2b`/`process` only apply to a harness PrismaLens spawns as
+a child process — today that's just `deepagents` (driven over ACP).
+`claude-code` runs in-process via the Agent SDK, so there's no child for a
+sandbox provider to wrap.
+
+Ask for an enforced boundary (`srt` or `e2b`) with `claude-code` and the
+command fails fast, before doing anything, rather than silently claiming an
+enforcement it can't deliver. `--sandbox auto` or `--sandbox process` with
+`claude-code` just runs with no boundary at all — no error, because nothing
+dishonest is being claimed either.
+
+## Requested vs. actual: the fidelity report
+
+Every investigation report carries a `fidelity` block recording exactly
+what was applied — not just what you asked for. It's part of the
+`InvestigationReport` (visible with `--json` or `--output`; the human
+terminal renderer doesn't print it today):
+
+```jsonc
+"fidelity": {
+  "harness": "deepagents",
+  "mode": "read-only",
+  "fidelity": "cooperative",
+  "mechanism": "ACP session/request_permission auto-approved (prompt-only); ...",
+  "sandbox": {
+    "requested": "auto",
+    "actual": "process-floor",
+    "fidelity": "cooperative"
+  }
+}
+```
+
+The `sandbox.requested`/`sandbox.actual` pair is what makes an `auto`
+degrade visible after the fact, not just in the moment. During the run
+itself, the CLI also prints a one-line warning whenever `auto` degrades
+(naming the reason), or an info line confirming `srt` was actually used.
+
+## The WSL caveat: mirrored networking breaks `srt`
+
+:::caution[WSL2 mirrored networking silently kills srt's egress]
+Under WSL2 running in **mirrored** networking mode (common with VPN or
+corporate setups), `srt` starts cleanly and logs that its relay bridges are
+ready — but every request the sandboxed harness makes comes back as a
+connection failure, on both of `srt`'s relay ports, even though the host
+itself has working internet. Mirrored mode's loopback interface isn't
+inherited by the isolated network namespace `srt` creates, so the sandboxed
+side of the relay has no path back to `srt`'s own proxy on the host.
+
+**Symptom:** with `--sandbox srt` (or `auto` landing on `srt`), every tool
+call the harness makes fails, and the run comes back with no evidence at
+all.
+
+**Fix:** switch WSL to NAT networking. Edit `.wslconfig` in your Windows user
+profile (`%UserProfile%\.wslconfig`):
+
+```ini
+[wsl2]
+networkingMode=nat
+```
+
+Then restart WSL from PowerShell so the change takes effect:
+
+```powershell
+wsl --shutdown
+```
+
+Under NAT, standard loopback semantics let the relay reach itself, and
+`srt`'s egress allowlist starts enforcing correctly — allowed hosts get a
+real response, everything else is blocked.
+:::
+
+This is exactly the failure `--sandbox auto`'s self-check exists to catch:
+on a mirrored-networking WSL host it degrades to the `process` floor and
+tells you why, instead of quietly running an investigation that can't reach
+anything. If you want the enforced boundary rather than the honest degrade,
+switching the networking mode is the real fix — the self-check can only
+detect the dead relay, not repair it.
+
+## Choosing in practice
+
+- Leave `--sandbox` at `auto` for local use. It gets you the enforced
+  boundary when one is actually available and working, and degrades
+  honestly (with a stated reason) when it isn't.
+- Force `--sandbox process` when you know your setup and would rather skip
+  the sandbox entirely than deal with installing `srt`.
+- Force `--sandbox srt` when you want a hard guarantee and would rather fail
+  loudly than run unsandboxed — install `@anthropic-ai/sandbox-runtime`
+  first.
+- Use `--sandbox e2b` for a cloud or CI placement where you don't want the
+  harness anywhere near your local machine at all.
+- Leave `--mode` at the default `read-only` unless you have a specific
+  reason to loosen it. `--dangerouslySkipPermissions` means exactly what it
+  says, on any harness.
+
+## Next steps
+
+- [Configuration](/cli/configuration/) — set `agent.sandbox`,
+  `agent.permissions.mode`, and `agent.limits` in `prismalens.config.yaml`.
+- [Commands](/cli/commands/) — the full `investigate` flag reference.
+- [Harnesses](/cli/harnesses/) — what each harness needs installed.
