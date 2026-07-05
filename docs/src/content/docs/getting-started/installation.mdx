@@ -1,13 +1,52 @@
 ---
 title: Installation
-description: Deploy PrismaLens with Docker Compose or run locally for development.
+description: Two ways to run PrismaLens — the CLI (npm) or a self-hosted server with Docker Compose.
 ---
 
-PrismaLens can be deployed in two ways: **Docker Compose** for production, or **locally** for development and testing.
+There are two ways to run PrismaLens, depending on what you need:
 
-## Docker Compose (Recommended)
+1. **CLI** — a single npm package you run from your terminal. No account, no
+   server, bring your own model provider key. The quickest way to try
+   PrismaLens.
+2. **Self-hosted server** — a Docker Compose stack with a web UI, webhook
+   intake, and integrations. For teams who want a shared Command Center.
 
-The fastest way to get PrismaLens running in production.
+## Option 1: CLI (quickest)
+
+The `prismalens` CLI (alias `pl`) investigates a firing alert straight from
+your terminal — no server required.
+
+### Prerequisites
+
+- Node.js 22+
+- A model provider credential (BYO-key — see the [CLI overview](/cli/) for
+  supported providers)
+
+### Try it without installing
+
+```bash
+npx prismalens doctor
+```
+
+`doctor` checks that a harness binary and an LLM credential are on your
+machine before you run anything.
+
+### Install it
+
+```bash
+npm install -g prismalens
+```
+
+This gives you both the `prismalens` and `pl` commands.
+
+Full command reference, configuration, and harness setup live under
+[CLI docs](/cli/) — start there for `investigate`, `serve`, `init`, and the
+`prismalens.config.yaml` reference.
+
+## Option 2: Self-hosted server (Docker Compose)
+
+Run the full PrismaLens stack — web UI, API, database, and webhook
+endpoints for Prometheus, Grafana, and other alert sources.
 
 ### Prerequisites
 
@@ -28,7 +67,8 @@ PrismaLens will be available at `http://localhost:3000`.
 
 ### Environment Variables
 
-Configure PrismaLens by editing the `.env` file. For a minimal setup, you only need:
+Configure PrismaLens by editing the `.env` file. For a minimal setup, you
+only need:
 
 | Variable | Description | Default |
 |----------|-------------|---------|
@@ -44,7 +84,7 @@ Configure PrismaLens by editing the `.env` file. For a minimal setup, you only n
 
 For a complete list of all 91 environment variables, see the [Configuration Reference](/reference/).
 
-## Health Check
+### Health Check
 
 Verify the installation:
 
@@ -58,9 +98,9 @@ Expected response:
 { "status": "ok" }
 ```
 
-## Troubleshooting
+### Troubleshooting
 
-### Health check returns connection refused
+#### Health check returns connection refused
 
 **Symptom**: `curl http://localhost:3000/health` fails with "Connection refused"
 
@@ -70,7 +110,7 @@ Expected response:
 
 ---
 
-### ANTHROPIC_API_KEY not found
+#### ANTHROPIC_API_KEY not found
 
 **Symptom**: API server fails to start with "ANTHROPIC_API_KEY environment variable not set"
 
@@ -85,7 +125,7 @@ docker compose restart
 
 ---
 
-### Out of memory errors
+#### Out of memory errors
 
 **Symptom**: Container crashes with OOMKilled or "JavaScript heap out of memory"
 
@@ -95,7 +135,7 @@ docker compose restart
 
 ---
 
-### Database connection errors
+#### Database connection errors
 
 **Symptom**: "Unable to connect to database" errors in logs
 
@@ -116,6 +156,7 @@ docker compose restart api
 
 ## Next Steps
 
-- Complete the [onboarding wizard](/getting-started/onboarding/)
+- Try the [CLI quick start](/cli/)
+- Or complete the [onboarding wizard](/getting-started/onboarding/) for the self-hosted server
 - Connect your first [integration](/integrations/prometheus/)
 - Explore the [command center](/guides/command-center/)

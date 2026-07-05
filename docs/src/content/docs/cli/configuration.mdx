@@ -1,0 +1,162 @@
+---
+title: Configuration
+description: How prismalens.config.yaml is resolved, scaffolded, and structured.
+---
+
+PrismaLens reads its settings from a `prismalens.config.yaml` file. Nothing is
+required to get started — every setting has a built-in default — but you'll
+usually want one to point the CLI at your telemetry stack and pick a harness.
+
+## Layered resolution
+
+Settings are merged from five layers, each one overriding the last (objects are
+deep-merged; arrays are replaced wholesale):
+
+1. **Built-in defaults** — baked into the CLI, so every field has a sane value
+   even with no config file at all.
+2. **Global layer** — an OS-specific config directory, e.g. on Linux/WSL
+   `~/.config/prismalens/config.yaml` (honors `XDG_CONFIG_HOME` if set). A good
+   home for BYO-key values you want on every project.
+3. **Project layer** — the file passed via `--config`, or, if that flag is
+   omitted, the nearest `prismalens.config.yaml` found by walking **up** from
+   the current directory to the filesystem root.
+4. **Project-local layer** — `prismalens.config.local.yaml`, sitting beside the
+   project config. Meant to be gitignored — a per-checkout override that
+   doesn't leak into the shared project file.
+5. **CLI flags** — `--model`, `--harness`, and similar flags on `investigate`
+   win over every file layer.
+
+## Scaffolding a config
+
+```bash
+prismalens init
+```
+
+Writes a commented `prismalens.config.yaml` into the current directory, with
+every value sourced live from the schema's defaults — it can't drift from what
+the CLI actually uses. If a config file already exists, `init` leaves it
+untouched and does nothing.
+
+Once you have a config, run `prismalens doctor` to check that it and your
+environment are ready for an investigation.
+
+## Environment-variable interpolation
+
+Any string value in the YAML can reference an environment variable with
+`${VAR_NAME}` syntax. It's resolved after all layers are merged and before the
+config is validated:
+
+```yaml
+telemetry:
+  apiUrl: ${PRISMALENS_API_URL}
+```
+
+If a referenced variable isn't set, loading the config fails with an error
+naming the missing variable — there's no silent fallback to an empty string.
+
+:::note[Where credentials go]
+Model-provider credentials (`OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, and so on)
+are read straight from the environment and are never written into the config
+file. `${VAR}` interpolation is for non-secret settings like URLs; see
+[Providers](/cli/providers/) for the credential list.
+:::
+
+## Annotated example
+
+```yaml
+# prismalens.config.yaml
+
+# Repository under investigation (owner/name). Auto-detected from the git
+# remote when omitted.
+# repo: owner/name
+
+# Tier-2 harness backend the supervisor rents.
+agent:
+  # Which agent harness to rent: deepagents | claude-code | codex
+  default: deepagents
+
+  # BARE model id, e.g. "gpt-oss:120b" — the chosen harness applies its own
+  # provider prefix. Omit to let the harness pick its own default.
+  # model: gpt-oss:120b
+
+  # Permission posture (the one dial PrismaLens exposes; it's translated into
+  # each harness's native settings): read-only | supervised | auto | dangerous
+  # permissions:
+  #   mode: read-only
+
+  # Isolation boundary the harness runs in: auto | process | srt | e2b
+  # - process: the always-on cooperative floor (no OS enforcement).
+  # - srt: an enforced OS-level sandbox boundary; fails loudly if unavailable.
+  # - auto (default): tries srt, but only after a self-check confirms its
+  #   network path is actually alive; otherwise degrades to the process floor
+  #   and says so — never a silent downgrade.
+  # - e2b: an enforced cloud sandbox (needs E2B_API_KEY); only used when
+  #   explicitly requested, never chosen by `auto`.
+  sandbox: auto
+
+  # Best-effort resource caps on the harness run. Every field is optional and
+  # unset means "no cap" — nothing here is enforced unless you set it.
+  # limits:
+  #   wall_clock_ms: 60000   # deadline, enforced by every sandbox mode
+  #   memory_mb: 512         # best-effort; only applied when sandbox is srt
+  #   cpu_cores: 2           # best-effort; only applied when sandbox is srt
+
+# Read-only telemetry + app endpoints the harness may query. Point these at
+# your stack; the defaults assume a local dev setup.
+telemetry:
+  prometheusUrl: http://localhost:9090
+  alertmanagerUrl: http://localhost:9093
+  apiUrl: http://localhost:5000
+
+# Read-only log-query system the harness may curl (Loki, Elasticsearch, ...).
+# logs:
+#   kind: loki
+#   url: http://localhost:3100
+
+# Service catalog. The alert's `service` label (else `namespace`/`job`)
+# selects an entry; the matched service's repo/tier/dependencies ride along
+# into the investigation so a single-alert run isn't context-free.
+# services:
+#   checkout:
+#     tier: tier-1
+#     repo: acme/checkout
+#     depends_on: [payments, inventory]
+
+# Where runs, events, and reports are stored on disk.
+workspace:
+  base_dir: ~/.prismalens
+
+# Per-harness native passthrough — untyped, forwarded straight to the rented
+# harness. For `deepagents` (the deepagents-acp binary, driven over ACP),
+# `args` is appended verbatim to its CLI invocation.
+# harnesses:
+#   deepagents:
+#     native:
+#       args: [--memory, ./AGENTS.md]
+```
+
+### `agent.sandbox`
+
+| Value | Meaning |
+| --- | --- |
+| `auto` (default) | Prefers the enforced `srt` boundary, but only after confirming its network path actually works — a known WSL networking mode can leave it looking healthy while silently blocking all traffic. Falls back to `process` when that check fails, and reports the fallback rather than hiding it. |
+| `process` | The cooperative floor — no OS-level enforcement, just the harness's own read-only behavior. |
+| `srt` | Requires the enforced sandbox; throws if it isn't available rather than quietly falling back. |
+| `e2b` | An enforced cloud sandbox. Requires `E2B_API_KEY` and must be selected explicitly — `auto` never reaches for it. |
+
+### `agent.limits`
+
+All three fields are optional, and an unset field means "no cap" — nothing is
+silently enforced. `wall_clock_ms` is enforced by every sandbox mode;
+`memory_mb` and `cpu_cores` only take effect under `sandbox: srt`.
+
+| Key | Type | Enforced by |
+| --- | --- | --- |
+| `wall_clock_ms` | integer, milliseconds | every sandbox mode |
+| `memory_mb` | integer, megabytes | `srt` only |
+| `cpu_cores` | number (fractional allowed) | `srt` only |
+
+## Next steps
+
+- [Commands](/cli/commands/) for the full flag reference on each command
+- [Harnesses](/cli/harnesses/) for what each `agent.default` value needs installed

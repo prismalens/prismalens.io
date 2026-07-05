@@ -1,0 +1,104 @@
+---
+title: PrismaLens CLI
+description: Run an AI root-cause investigation from your terminal — point it at a repo, hand it an alert, get an evidence-linked report back.
+---
+
+The PrismaLens CLI (`prismalens`, alias `pl`) investigates a firing alert the same
+way an on-call engineer would: it reads the repo, queries your read-only
+telemetry, and comes back with an **ordered-evidence report** — hypotheses
+ranked most to least plausible, each one backed by evidence it actually
+gathered. No PrismaLens account, no subscription — you bring your own model
+provider key.
+
+## Install
+
+Requires **Node.js 22 or newer**.
+
+Try it without installing anything:
+
+```bash
+npx prismalens doctor
+```
+
+Or install it globally:
+
+```bash
+npm install -g prismalens
+```
+
+Both `prismalens` and the shorter `pl` alias point at the same binary.
+
+## 3-minute quickstart
+
+There are two ways to hand the CLI something to investigate.
+
+### Pipe in an alert
+
+If you already have an alert payload — from Alertmanager, Grafana, or a
+generic webhook — pipe it straight in:
+
+```bash
+cat alert.json | pl investigate --repo ./my-service
+```
+
+The CLI accepts a raw `FiringAlert` JSON or a webhook/Alertmanager-shaped
+payload; it pulls `alertname`/`severity` from the top level or falls back to
+`labels`.
+
+### Or just describe the problem
+
+No alert handy? Describe what's wrong and let the CLI synthesize one:
+
+```bash
+pl investigate --repo . --query "checkout latency spike after 14:00 UTC"
+```
+
+`--repo` defaults to the current directory, so inside a repo you can drop it
+entirely.
+
+Either path streams a live one-line timeline as the investigation runs, then
+prints the report and saves a copy under `~/.prismalens/runs/<runId>/`.
+
+## Before your first run
+
+Two things need to be in place:
+
+1. **A harness binary on PATH.** The CLI doesn't investigate on its own — it
+   rents an agent harness to do the read-only legwork. The default,
+   `deepagents`, needs the `deepagents-acp` package's binary on PATH.
+2. **A model provider credential.** `deepagents` talks to any OpenAI-protocol
+   provider (Ollama, OpenAI, Groq, or your own OpenAI-compatible endpoint).
+   See [Providers](/cli/providers/) for the full setup.
+
+## Check your setup: `pl doctor`
+
+Before your first investigation, run:
+
+```bash
+pl doctor
+```
+
+It checks the things that would otherwise fail mid-run: the harness binary is
+on PATH, a model credential is set, and the run workspace is writable. It
+exits non-zero if anything required is missing, so it's a good fit for a CI
+smoke check too.
+
+## What a report looks like
+
+Every investigation ends with the same shape, whether you read it in the
+terminal or as JSON (`--json`):
+
+- A **root cause**, if one was found — otherwise "not determined," honestly.
+- **Hypotheses**, ranked most to least plausible, each with the evidence that
+  supports or contradicts it and where that evidence came from.
+- What was **ruled out**, and why.
+- **Coverage** — which sources were queried and which weren't.
+- **Next steps** to confirm or dig further.
+
+There are no numeric confidence scores — evidence is ordered, not scored.
+
+## Next steps
+
+- [Providers](/cli/providers/) — set up a model provider and harness binary for your setup.
+- [Commands](/cli/commands/) — the full flag reference for `investigate`, `serve`, `doctor`, and `init`.
+- [Configuration](/cli/configuration/) — `prismalens.config.yaml`, layering, and BYO-key environment variables.
