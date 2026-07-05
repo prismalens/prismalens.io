@@ -24,7 +24,7 @@ This page is automatically generated from source code.
 Start here: [GitHub setup page](https://github.com/settings/apps/new)
 
 1. Go to GitHub → Settings → Developer settings → GitHub Apps → New GitHub App
-2. Set 'GitHub App name' to something like 'PrismaLens - <your org>'
+2. Set 'GitHub App name' to something like 'PrismaLens - `<your org>`'
 3. Set 'Homepage URL' to your PrismaLens instance URL
 4. Under 'Webhook', uncheck 'Active' (PrismaLens does not require webhooks)
 5. Under 'Permissions', grant the permissions listed below
@@ -46,7 +46,7 @@ Start here: [GitHub setup page](https://github.com/settings/apps/new)
 
 | Field | Label | Type | Required | Sensitive | Description |
 |-------|-------|------|----------|-----------|-------------|
-| `installationId` | Installation ID | string | Yes | No | Installation ID — found in the URL after installing the App (github.com/settings/installations/<ID>) |
+| `installationId` | Installation ID | string | Yes | No | Installation ID — found in the URL after installing the App (`github.com/settings/installations/<ID>`) |
 | `organization` | Organization | string | No | No | GitHub organization name (auto-detected from installation) |
 
 ## Required Permissions
