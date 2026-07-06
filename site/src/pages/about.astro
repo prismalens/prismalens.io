@@ -29,10 +29,11 @@ import CTA from '../components/CTA.astro'
       </p>
 
       <p>
-        <strong class="text-foreground">PrismaLens automates that correlation.</strong> AI
-        agents follow investigation playbooks: query metrics for anomalies, search logs for
-        errors, trace requests through services, and build a timeline of what happened. The
-        same incident that took 90 minutes manually takes PrismaLens under 2 minutes.
+        <strong class="text-foreground">The PrismaLens CLI automates that correlation.</strong> Point
+        it at a repo, pipe in a firing alert (or describe the problem with <code>--query</code>), and it
+        rents a coding-agent harness to gather evidence read-only, then hands back a report:
+        hypotheses ranked most to least plausible, each backed by the evidence that supports or
+        contradicts it — no numeric confidence scores, just an ordered trail you can check.
       </p>
 
       <p>
@@ -44,17 +45,20 @@ import CTA from '../components/CTA.astro'
       <h3 class="text-xl font-bold text-foreground mt-8">Open Source by Design</h3>
 
       <p>
-        PrismaLens is open source because incident response tools should be transparent.
-        You should know exactly how investigations run, what data gets queried, and how
-        conclusions are reached. Self-host with Docker Compose and keep full control.
+        PrismaLens is open source (Apache-2.0) because incident response tools should be
+        transparent. You should know exactly how investigations run, what data gets queried, and
+        how conclusions are reached. Run it with your own model provider key — no PrismaLens
+        account, no subscription, and every run's events and report stay on your machine under
+        <code>~/.prismalens/runs/</code>.
       </p>
 
       <h3 class="text-xl font-bold text-foreground mt-8">Built for SREs, by SREs</h3>
 
       <p>
-        We're not building another observability platform. You already have Prometheus,
-        Grafana, Datadog, New Relic. PrismaLens sits on top, connecting those tools together
-        and automating the investigation work that wastes your team's time at 3am.
+        We're not building another observability platform. The CLI is a terminal-first tool
+        that reads your repo and investigates read-only — it doesn't ask you to migrate off
+        Prometheus, Grafana, Datadog, or New Relic. A self-hosted server that connects to those
+        tools directly is on the roadmap, but not released yet.
       </p>
     </div>
   </section>

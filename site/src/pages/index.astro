@@ -5,48 +5,51 @@ import FeatureGrid from '../components/FeatureGrid.astro'
 import CTA from '../components/CTA.astro'
 import Icon from '../components/Icon.astro'
 
+const docsBase = import.meta.env.DEV ? 'http://localhost:4322' : 'https://docs.prismalens.io'
+
 const features = [
   {
-    title: 'AI-Powered Root Cause Analysis',
-    description: 'LangGraph agents query Prometheus, parse logs, and trace requests — building a complete picture of what broke and why in under 2 minutes.',
+    title: 'Read-only AI investigation',
+    description: 'Point it at a repo, pipe in a firing alert (or describe the problem with --query). PrismaLens investigates the same way an on-call engineer would and returns a report.',
     icon: 'search',
   },
   {
-    title: 'Incident Command Center',
-    description: 'Real-time dashboard showing active incidents with severity, affected services, investigation status, and blast radius. One view, all your incidents.',
-    icon: 'command',
+    title: 'Ordered evidence, not guesses',
+    description: 'Hypotheses ranked most to least plausible, each backed by evidence it actually gathered — what was ruled out, what was covered, and what to check next. No numeric confidence scores.',
+    icon: 'activity',
   },
   {
-    title: 'Multi-Source Correlation',
-    description: 'Connect Prometheus, Grafana, Datadog, New Relic, and custom webhooks. One timeline, all your signals. No more tab switching.',
+    title: 'Bring your own model, no account',
+    description: 'Works with Ollama, OpenAI, Groq, any OpenAI-compatible endpoint, or a Claude Code install. No PrismaLens account, no subscription — your keys, your provider.',
     icon: 'link',
   },
   {
-    title: 'Automated Investigation Playbooks',
-    description: 'Define investigation steps once. AI agents execute them every time: check these metrics, search these logs, trace these endpoints.',
-    icon: 'bot',
+    title: 'An enforced sandbox, honestly reported',
+    description: '--sandbox runs the investigation behind an OS-level egress boundary when one is available, and every report states what was requested vs. what was actually applied.',
+    icon: 'shield',
   },
   {
-    title: 'Service Dependency Graphs',
-    description: 'Auto-discover service relationships from distributed traces. Instantly understand blast radius when a service fails.',
-    icon: 'map',
-  },
-  {
-    title: 'Self-Hosted & Open Source',
-    description: 'Deploy with Docker Compose in under 5 minutes. Your data stays on your infrastructure. No vendor lock-in, ever.',
+    title: 'Every run saved locally',
+    description: 'Reports and full event streams persist to ~/.prismalens/runs/. Use --json to pipe results into your own scripts and dashboards.',
     icon: 'unlock',
+  },
+  {
+    title: '`pl doctor` before you run anything',
+    description: 'Preflights your setup — harness binary on PATH, a model credential set, a writable workspace — so failures surface before an investigation starts, not mid-run.',
+    icon: 'check',
   },
 ]
 ---
 
-<BaseLayout title="AI-Powered Incident Investigation">
+<BaseLayout title="PrismaLens CLI — AI root-cause investigation from your terminal">
   <Hero
-    title="Stop searching. Start fixing."
-    subtitle="Turn 2-hour incident investigations into 2-minute root cause discoveries. PrismaLens AI agents automatically correlate signals across your entire observability stack."
-    primaryCta={{ href: 'https://github.com/prismalens', label: 'Star on GitHub' }}
+    title="Point it at a repo. Get an ordered root cause back."
+    subtitle="The PrismaLens CLI investigates a firing alert the way an on-call engineer would — it reads the repo, queries your read-only telemetry, and returns hypotheses ranked most to least plausible, each linked to the evidence behind it."
+    code="npx prismalens doctor"
+    primaryCta={{ href: `${docsBase}/cli/`, label: 'Read the CLI docs' }}
     secondaryCta={{
-      href: '/examples',
-      label: 'See Example Investigations',
+      href: 'https://github.com/prismalens/prismalens',
+      label: 'View on GitHub',
     }}
   />
   <FeatureGrid features={features} />
@@ -64,24 +67,24 @@ const features = [
 
         <div class="space-y-6" style="color: var(--muted-foreground);">
           <p class="text-lg sm:text-xl leading-relaxed">
-            At <span class="font-mono font-bold" style="color: var(--destructive);">2:47am</span>, your payment API times out. Revenue drops to zero. You spend
-            <span class="font-bold" style="color: var(--foreground);">90 minutes</span> jumping between Prometheus dashboards, grepping logs, and
-            correlating deployment times before finding the cause: a database migration
-            that added an unindexed column.
+            At <span class="font-mono font-bold" style="color: var(--destructive);">2:47am</span>, your payment API times out. You spend the next
+            <span class="font-bold" style="color: var(--foreground);">90 minutes</span> jumping between dashboards, grepping logs, and
+            correlating deployment times before finding the cause.
           </p>
 
           <p class="text-lg leading-relaxed">
-            You had all the right tools — Prometheus, Grafana, distributed tracing,
-            structured logs. The problem wasn't <em style="color: var(--muted-foreground);">observability</em>. It was
-            <span class="font-bold text-xl" style="color: var(--primary);">correlation</span>.
+            You had all the right tools — metrics, logs, traces. The problem wasn't
+            <em style="color: var(--muted-foreground);">observability</em>. It was
+            <span class="font-bold text-xl" style="color: var(--primary);">correlation</span> — connecting the dots
+            takes time and drains focus, especially at 3am.
           </p>
 
           <div class="my-8 p-6 rounded-xl" style="background: color-mix(in srgb, var(--primary) 10%, transparent); border: 1px solid color-mix(in srgb, var(--primary) 30%, transparent);">
             <p class="text-lg leading-relaxed">
-              <strong class="text-xl" style="color: var(--foreground);">PrismaLens automates that correlation.</strong> AI
-              agents follow investigation playbooks: query metrics for anomalies, search logs
-              for errors, trace requests through services, and build a timeline of what happened.
-              The same incident that took <span class="line-through" style="color: var(--muted-foreground);">90 minutes</span> manually takes PrismaLens <span class="font-bold text-xl" style="color: var(--primary);">under 2 minutes</span>.
+              <strong class="text-xl" style="color: var(--foreground);">The PrismaLens CLI does that legwork for you.</strong> It reads your
+              repo, rents a coding-agent harness to gather evidence read-only, and hands back
+              a report with hypotheses ordered by plausibility — not a black-box score, a trail
+              you can actually check.
             </p>
           </div>
 
@@ -103,10 +106,22 @@ const features = [
     </div>
   </section>
 
+  <!-- In development notice -->
+  <section class="px-4 py-16 sm:px-6 lg:px-8">
+    <div class="mx-auto max-w-3xl rounded-2xl p-8 text-center" style="border: 1px dashed var(--border); background: color-mix(in srgb, var(--card) 60%, transparent);">
+      <h2 class="text-xl font-bold mb-2" style="color: var(--foreground);">A self-hosted server is in development</h2>
+      <p class="text-base leading-relaxed" style="color: var(--muted-foreground);">
+        Today, PrismaLens ships as a CLI you run from your terminal. A self-hosted server —
+        a web UI and webhook alert intake for triggering investigations from your existing
+        monitoring stack — is on the roadmap, not yet released.
+      </p>
+    </div>
+  </section>
+
   <CTA
-    title="Ready to stop firefighting blind?"
-    description="Deploy PrismaLens locally in under 5 minutes. Run your first AI-powered investigation before your next standup."
-    href="https://docs.prismalens.io/getting-started/quick-start"
-    label="Quick Start Guide →"
+    title="Ready to try it on a real alert?"
+    description="Install the CLI, run pl doctor to check your setup, and investigate your first firing alert in a few minutes."
+    href={`${docsBase}/cli/`}
+    label="Get Started →"
   />
 </BaseLayout>

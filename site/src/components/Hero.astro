@@ -4,11 +4,12 @@ import Icon from './Icon.astro'
 interface Props {
   title: string
   subtitle: string
+  code?: string
   primaryCta?: { href: string; label: string }
   secondaryCta?: { href: string; label: string }
 }
 
-const { title, subtitle, primaryCta, secondaryCta } = Astro.props
+const { title, subtitle, code, primaryCta, secondaryCta } = Astro.props
 ---
 
 <section class="relative overflow-hidden px-4 py-24 sm:px-6 sm:py-32 lg:px-8">
@@ -33,6 +34,22 @@ const { title, subtitle, primaryCta, secondaryCta } = Astro.props
     <p class="mx-auto max-w-2xl text-xl sm:text-2xl leading-relaxed hero-subtitle">
       {subtitle}
     </p>
+
+    {code && (
+      <div
+        class="terminal-glow mx-auto mt-10 max-w-md rounded-xl px-6 py-4 text-left backdrop-blur-sm"
+        style="border: 1px solid var(--border); background: color-mix(in srgb, var(--card) 70%, transparent);"
+      >
+        <div class="flex items-center gap-1.5 mb-3">
+          <span class="h-2.5 w-2.5 rounded-full" style="background: var(--destructive);"></span>
+          <span class="h-2.5 w-2.5 rounded-full" style="background: var(--warning, #eab308);"></span>
+          <span class="h-2.5 w-2.5 rounded-full" style="background: var(--success);"></span>
+        </div>
+        <code class="font-mono text-base sm:text-lg" style="color: var(--foreground);">
+          <span style="color: var(--muted-foreground);">$</span> {code}
+        </code>
+      </div>
+    )}
 
     {(primaryCta || secondaryCta) && (
       <div class="mt-12 flex flex-col items-center justify-center gap-4 sm:flex-row">
