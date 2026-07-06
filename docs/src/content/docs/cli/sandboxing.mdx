@@ -23,7 +23,7 @@ for vs. what you actually got" report every run produces.
 | `auto` | Drops the read-only floor: writes are auto-accepted, with nothing programmatic stopping them. |
 | `dangerous` | Full access, no restrictions applied at all. |
 
-`--dangerouslySkipPermissions` is a shortcut for `--mode dangerous` — it wins
+`--dangerously-skip-permissions` is a shortcut for `--mode dangerous` — it wins
 over `--mode` if both are passed.
 
 `read-only`/`supervised` fidelity depends on the harness you rent, because
@@ -205,7 +205,7 @@ detect the dead relay, not repair it.
 - Use `--sandbox e2b` for a cloud or CI placement where you don't want the
   harness anywhere near your local machine at all.
 - Leave `--mode` at the default `read-only` unless you have a specific
-  reason to loosen it. `--dangerouslySkipPermissions` means exactly what it
+  reason to loosen it. `--dangerously-skip-permissions` means exactly what it
   says, on any harness.
 
 ## Next steps
@@ -213,4 +213,4 @@ detect the dead relay, not repair it.
 - [Configuration](/cli/configuration/) — set `agent.sandbox`,
   `agent.permissions.mode`, and `agent.limits` in `prismalens.config.yaml`.
 - [Commands](/cli/commands/) — the full `investigate` flag reference.
-- [Harnesses](/cli/harnesses/) — what each harness needs installed.
+- [Providers & harnesses](/cli/providers/) — what each harness needs installed.

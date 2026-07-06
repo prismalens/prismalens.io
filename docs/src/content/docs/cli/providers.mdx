@@ -83,7 +83,7 @@ Or set them in `prismalens.config.yaml`:
 ```yaml
 agent:
   default: deepagents            # deepagents | claude-code | codex
-  model: openai:gpt-oss:120b     # provider-prefixed in config; --model takes a bare id
+  model: gpt-oss:120b            # a BARE id — the chosen harness applies its own provider prefix
 ```
 
 `--harness` and `agent.default` accept `codex`, but selecting it throws immediately — it isn't wired up yet.

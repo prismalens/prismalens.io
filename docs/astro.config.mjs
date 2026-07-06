@@ -31,6 +31,17 @@ export default defineConfig({
 					],
 				},
 				{
+					label: 'CLI',
+					items: [
+						{ label: 'Overview & Install', slug: 'cli' },
+						{ label: 'Commands', slug: 'cli/commands' },
+						{ label: 'Configuration', slug: 'cli/configuration' },
+						{ label: 'Providers & Harnesses', slug: 'cli/providers' },
+						{ label: 'Sandboxing & Permissions', slug: 'cli/sandboxing' },
+						{ label: 'Troubleshooting', slug: 'cli/troubleshooting' },
+					],
+				},
+				{
 					label: 'Guides',
 					items: [
 						{ label: 'Command Center', slug: 'guides/command-center' },
