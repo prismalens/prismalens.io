@@ -16,7 +16,7 @@ This page is the compatibility matrix for both, plus how to point PrismaLens at 
 
 | Harness | Binary on PATH | Install | Read-only guarantee | Status |
 | --- | --- | --- | --- | --- |
-| `deepagents` (default) | `deepagents-acp` | `npm install -g deepagents-acp` | Cooperative — the harness auto-approves its own permission prompts; no OS-level enforcement yet | Available |
+| `deepagents` (default) | `deepagents-acp` | `npm install -g deepagents-acp @langchain/openai` | Cooperative — the harness auto-approves its own permission prompts; no OS-level enforcement yet | Available |
 | `claude-code` | `claude` | `npm install -g @anthropic-ai/claude-code` | Enforced — a tool deny-list blocks write/edit tools at the SDK level | Available |
 | `codex` | `codex` | — | Enforced (planned) | **Not yet available** — selecting it exits with an error |
 
