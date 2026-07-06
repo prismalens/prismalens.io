@@ -8,7 +8,6 @@ on:
       - main
     paths:
       - 'docs/**'
-      - 'site/**'
   workflow_dispatch:
 
 permissions:
@@ -34,20 +33,24 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Build docs
-        run: pnpm build:docs
+        run: pnpm --filter docs build
 
-      - name: Build site
-        run: pnpm build:site
+      # Same VPS as deploy-site.yml; Caddy serves /srv/docs at docs.prismalens.io
+      # (see the org VPS_SETUP.md runbook — secrets land when the VPS is provisioned).
+      - name: Deploy to VPS
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.VPS_SSH_KEY }}
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_KNOWN_HOSTS: ${{ secrets.VPS_KNOWN_HOSTS }}
+        run: |
+          mkdir -p ~/.ssh
+          echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          echo "$VPS_KNOWN_HOSTS" >> ~/.ssh/known_hosts
 
-      # Add deployment step based on hosting provider
-      # Example for Vercel:
-      # - name: Deploy to Vercel
-      #   uses: amondnet/vercel-action@v25
-      #   with:
-      #     vercel-token: ${{ secrets.VERCEL_TOKEN }}
-      #     vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
-      #     vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
-      #     vercel-args: '--prod'
+          rsync -avz --delete \
+            docs/dist/ \
+            "${VPS_USER}@${VPS_HOST}:/srv/docs/"
 
-      - name: Deploy notification
-        run: echo "Documentation built successfully"
+          rm -f ~/.ssh/id_ed25519
