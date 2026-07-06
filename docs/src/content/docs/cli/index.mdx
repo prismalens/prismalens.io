@@ -10,6 +10,17 @@ ranked most to least plausible, each one backed by evidence it actually
 gathered. No PrismaLens account, no subscription — you bring your own model
 provider key.
 
+## See it in action
+
+A real, unscripted recording: a p99-latency alert from a live demo stack is
+piped into `pl investigate`. The CLI streams the investigation as it happens,
+then prints the report — here it traces the alert to a config change that
+disabled the service's response cache.
+
+<img src="/cli-demo.svg" alt="Animated terminal recording: a firing alert is piped into pl investigate, the live investigation timeline streams tool calls, and the final report names a disabled response cache (CACHE_TYPE=NullCache) as the confirmed root cause" style="width:100%;border-radius:8px" loading="lazy" />
+
+The raw [asciinema recording](/cli-demo.cast) is also available.
+
 ## Install
 
 Requires **Node.js 22 or newer**.

@@ -52,6 +52,23 @@ const features = [
       label: 'View on GitHub',
     }}
   />
+
+  <!-- Live demo: real recorded run (condensed) against a live incident stack -->
+  <section class="px-4 pb-24 sm:px-6 lg:px-8">
+    <div class="mx-auto max-w-4xl">
+      <p class="mb-4 text-center text-sm" style="color: var(--muted-foreground);">
+        A real recorded run — a firing latency alert piped in, root cause out (condensed):
+      </p>
+      <img
+        src="/cli-demo.svg"
+        alt="Terminal recording: a firing alert is piped into pl investigate, the investigation timeline streams, and the report names a disabled response cache as the confirmed root cause"
+        class="w-full rounded-xl"
+        style="border: 1px solid var(--border); box-shadow: 0 20px 60px color-mix(in srgb, var(--primary) 10%, transparent);"
+        loading="lazy"
+      />
+    </div>
+  </section>
+
   <FeatureGrid features={features} />
 
   <!-- Why We Built This Section -->
