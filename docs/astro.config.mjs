@@ -22,12 +22,13 @@ export default defineConfig({
 				baseUrl: 'https://github.com/prismalens/prismalens.io/edit/main/docs/',
 			},
 			sidebar: [
+				// Server-app sections (Guides, Configuration Reference, Integrations, API,
+				// Quick Start, Onboarding) are staged in src/content/unreleased/ until the
+				// self-hosted server ships — the 0.0.1 launch is CLI-only.
 				{
 					label: 'Getting Started',
 					items: [
 						{ label: 'Installation', slug: 'getting-started/installation' },
-						{ label: 'Quick Start', slug: 'getting-started/quick-start' },
-						{ label: 'Onboarding', slug: 'getting-started/onboarding' },
 					],
 				},
 				{
@@ -39,52 +40,6 @@ export default defineConfig({
 						{ label: 'Providers & Harnesses', slug: 'cli/providers' },
 						{ label: 'Sandboxing & Permissions', slug: 'cli/sandboxing' },
 						{ label: 'Troubleshooting', slug: 'cli/troubleshooting' },
-					],
-				},
-				{
-					label: 'Guides',
-					items: [
-						{ label: 'Command Center', slug: 'guides/command-center' },
-						{ label: 'Incidents', slug: 'guides/incidents' },
-						{ label: 'Investigations', slug: 'guides/investigations' },
-						{ label: 'Services', slug: 'guides/services' },
-						{ label: 'Settings', slug: 'guides/settings' },
-					],
-				},
-				{
-					label: 'Configuration Reference',
-					items: [
-						{ label: 'Overview', slug: 'reference' },
-						{ label: 'Global Configuration', slug: 'reference/config-global' },
-						{ label: 'Database', slug: 'reference/config-database' },
-						{ label: 'Logging', slug: 'reference/config-logging' },
-						{ label: 'LLM Providers', slug: 'reference/config-llm' },
-						{ label: 'LangSmith', slug: 'reference/config-langsmith' },
-						{ label: 'Skills & MCP', slug: 'reference/config-skills' },
-						{ label: 'MCP Servers', slug: 'reference/config-mcp' },
-						{ label: 'Queue Configuration', slug: 'reference/config-queue' },
-						{ label: 'Deployment Settings', slug: 'reference/config-deployment' },
-					],
-				},
-				{
-					label: 'Integrations',
-					items: [
-						{ label: 'GitHub App', slug: 'integrations/github-app' },
-						{ label: 'GitHub PAT', slug: 'integrations/github-token' },
-						{ label: 'Slack', slug: 'integrations/slack' },
-						{ label: 'Slack Bot Token', slug: 'integrations/slack-token' },
-						{ label: 'Prometheus', slug: 'integrations/prometheus' },
-						{ label: 'Render', slug: 'integrations/render' },
-						{ label: 'Grafana', slug: 'integrations/grafana' },
-						{ label: 'Datadog', slug: 'integrations/datadog' },
-						{ label: 'New Relic', slug: 'integrations/newrelic' },
-						{ label: 'Generic Webhook', slug: 'integrations/generic' },
-					],
-				},
-				{
-					label: 'API',
-					items: [
-						{ label: 'API Reference', slug: 'api/reference' },
 					],
 				},
 			],

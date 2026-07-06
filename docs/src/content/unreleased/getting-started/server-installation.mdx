@@ -1,0 +1,126 @@
+---
+title: Self-hosted server installation
+description: Run the full PrismaLens stack — web UI, API, database, and webhook endpoints — with Docker Compose.
+---
+
+{/* STAGED (2026-07-06): server-app content hidden for the CLI-only 0.0.1
+    launch — this page returns when the server ships. Formerly the "Option 2"
+    half of getting-started/installation.mdx. Known-stale bits flagged in the
+    2026-07-05 docs review: PRISMALENS_PORT default 3001 vs the app at :3000,
+    ".env.example" does not exist at the repo root, and the "LangGraph agents"
+    mention is pre-pivot. Fix before unhiding. */}
+
+Run the full PrismaLens stack — web UI, API, database, and webhook
+endpoints for Prometheus, Grafana, and other alert sources.
+
+## Prerequisites
+
+- Docker Engine 24+
+- Docker Compose v2+
+- 2 GB RAM minimum
+
+## Steps
+
+```bash
+git clone https://github.com/prismalens/prismalens
+cd prismalens
+cp .env.example .env
+docker compose up -d
+```
+
+PrismaLens will be available at `http://localhost:3000`.
+
+## Environment Variables
+
+Configure PrismaLens by editing the `.env` file. For a minimal setup, you
+only need:
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `PRISMALENS_PORT` | API server port | `3001` |
+| `PRISMALENS_DB_TYPE` | Database type (sqlite or postgresql) | `sqlite` |
+| `ANTHROPIC_API_KEY` | Anthropic API key (for Claude) | — |
+
+**Complete Configuration Reference:**
+- **[Configuration Overview](/reference/)** - All configuration categories
+- **[Global Configuration](/reference/config-global)** - Essential server settings
+- **[Database Configuration](/reference/config-database)** - SQLite and PostgreSQL options
+- **[LLM Providers](/reference/config-llm)** - AI provider configuration
+
+For a complete list of all 91 environment variables, see the [Configuration Reference](/reference/).
+
+## Health Check
+
+Verify the installation:
+
+```bash
+curl http://localhost:3000/health
+```
+
+Expected response:
+
+```json
+{ "status": "ok" }
+```
+
+## Troubleshooting
+
+### Health check returns connection refused
+
+**Symptom**: `curl http://localhost:3000/health` fails with "Connection refused"
+
+**Cause**: The API server takes 15-30 seconds to initialize after `docker compose up`.
+
+**Solution**: Wait 30 seconds, then retry. Check logs with `docker compose logs api`.
+
+---
+
+### ANTHROPIC_API_KEY not found
+
+**Symptom**: API server fails to start with "ANTHROPIC_API_KEY environment variable not set"
+
+**Cause**: You didn't create a `.env` file or didn't set the API key.
+
+**Solution**:
+```bash
+cp .env.example .env
+# Edit .env and add your Anthropic API key
+docker compose restart
+```
+
+---
+
+### Out of memory errors
+
+**Symptom**: Container crashes with OOMKilled or "JavaScript heap out of memory"
+
+**Cause**: LangGraph agents need at least 2GB RAM. Default Docker limits may be too low.
+
+**Solution**: Check `docker stats` to verify memory allocation. Increase Docker Desktop memory limit to 4GB minimum.
+
+---
+
+### Database connection errors
+
+**Symptom**: "Unable to connect to database" errors in logs
+
+**Cause**: PostgreSQL container not ready when API starts, or incorrect credentials.
+
+**Solution**:
+```bash
+# Check PostgreSQL container is running
+docker compose ps
+
+# If postgres is down, check logs
+docker compose logs postgres
+
+# Restart services in correct order
+docker compose restart postgres
+docker compose restart api
+```
+
+## Next Steps
+
+- Complete the [onboarding wizard](/getting-started/onboarding/)
+- Connect your first [integration](/integrations/prometheus/)
+- Explore the [command center](/guides/command-center/)

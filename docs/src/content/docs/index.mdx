@@ -1,12 +1,12 @@
 ---
 title: PrismaLens Documentation
-description: Learn how to deploy, configure, and use PrismaLens for AI-powered incident investigation.
+description: Learn how to install and use the PrismaLens CLI for AI-powered root-cause investigation.
 template: splash
 hero:
-  tagline: AI-powered root cause analysis for production incidents. Open source, self-hosted.
+  tagline: AI root-cause investigation from your terminal. Open source, BYO-key, local-first.
   actions:
-    - text: Quick Start
-      link: /getting-started/quick-start/
+    - text: Get started with the CLI
+      link: /cli/
       icon: right-arrow
     - text: View on GitHub
       link: https://github.com/prismalens
@@ -19,16 +19,22 @@ import { Card, CardGrid } from '@astrojs/starlight/components';
 ## Get started
 
 <CardGrid stagger>
-  <Card title="Install PrismaLens" icon="laptop">
-    Try it in minutes with `npx prismalens`, or self-host the full server. See the [CLI docs](/cli/) and the [installation guide](/getting-started/installation/).
-  </Card>
-  <Card title="Connect your tools" icon="setting">
-    Integrate Prometheus, Grafana, Datadog, New Relic, or any webhook-compatible source.
+  <Card title="Install the CLI" icon="laptop">
+    Try it in minutes with `npx prismalens` — no account, no subscription. See [installation](/getting-started/installation/).
   </Card>
   <Card title="Run an investigation" icon="magnifier">
-    Let AI agents automatically investigate incidents and surface root causes. Learn about [investigations](/guides/investigations/).
+    Point it at a repo, pipe it a firing alert or ask a question, and get a report of evidence-linked hypotheses. Start at the [CLI overview](/cli/).
   </Card>
-  <Card title="Manage services" icon="list-format">
-    Build a service catalog with ownership, dependencies, and per-tier investigation policies. See the [services guide](/guides/services/).
+  <Card title="Bring your own model" icon="setting">
+    Works with Ollama, OpenAI, Groq, any OpenAI-compatible endpoint, or your Claude Code install. See [providers & harnesses](/cli/providers/).
+  </Card>
+  <Card title="Contained by design" icon="approve-check">
+    Investigations run read-only, optionally behind an enforced sandbox. See [sandboxing & permissions](/cli/sandboxing/).
   </Card>
 </CardGrid>
+
+:::note[What about the web UI?]
+The self-hosted PrismaLens server — web UI, webhook alert intake, and team
+features on top of the same engine — is in development and not released yet.
+These docs cover the CLI, which is available on npm today.
+:::

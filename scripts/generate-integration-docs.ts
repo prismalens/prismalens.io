@@ -13,7 +13,10 @@ const PRISMALENS_REPO = path.resolve(
   process.env.PRISMALENS_REPO_PATH || path.join(__dirname, '../../prismalens')
 )
 const TEMPLATES_PATH = path.join(PRISMALENS_REPO, 'packages/@prismalens/integrations/src/templates')
-const OUTPUT_PATH = path.join(__dirname, '../docs/src/content/docs/integrations')
+// Integrations docs are staged out of the live collection until the
+// self-hosted server ships (CLI-only 0.0.1 launch) — write to the staging dir
+// so a generator rerun cannot resurrect the section on the live site.
+const OUTPUT_PATH = path.join(__dirname, '../docs/src/content/unreleased/integrations')
 const REPO_URL = 'https://github.com/prismalens/prismalens'
 
 async function main() {
