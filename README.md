@@ -1,18 +1,17 @@
 # PrismaLens Marketing Website & Documentation
 
-This repository contains the marketing website and documentation for **PrismaLens**, an AI-powered incident investigation platform.
+This repository contains the marketing website and documentation for **PrismaLens**, an open-source AI root-cause investigation CLI.
 
 > **Project Status:** PrismaLens is currently in active development. This repository hosts the marketing site and documentation—not the application itself.
 
 ## What is PrismaLens?
 
-PrismaLens is an open-source incident investigation platform that uses AI agents to automatically:
+PrismaLens is an open-source CLI that uses AI agents to automatically:
 
-- **Investigate production incidents** using LangGraph-powered agents
+- **Investigate production incidents** using your own model key
 - **Correlate signals** across metrics, logs, and traces from multiple observability platforms
 - **Surface root causes** automatically, reducing mean time to resolution (MTTR)
 - **Map service dependencies** to understand blast radius instantly
-- **Self-host with Docker Compose** for full data control and no vendor lock-in
 
 ## Monorepo Structure
 
@@ -47,7 +46,7 @@ The documentation site built with:
 
 ### Prerequisites
 
-- **Node.js** 18+ or 20+
+- **Node.js** 22+
 - **pnpm** 10.26.2 or later
 
 ### Quick Start
@@ -107,21 +106,14 @@ pnpm build:docs
 
 ## Contributing
 
-We welcome contributions! Whether it's:
+We're not set up for external code contributions yet — that opens up a little
+later. In the meantime, feedback is very welcome:
 
-- Fixing typos in documentation
-- Improving the marketing site design
-- Adding new documentation pages
-- Suggesting features
+- Open an issue for typos, broken links, or unclear docs
+- Open an issue to suggest content or site improvements
+- Comment on existing issues
 
-Please:
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/your-feature`)
-3. Make your changes
-4. Submit a pull request
-
-For major changes, please open an issue first to discuss what you'd like to change.
+Watch the repo if you want to catch the moment PRs open up.
 
 ## Tech Stack
 
@@ -130,11 +122,11 @@ For major changes, please open an issue first to discuss what you'd like to chan
 - **Language:** TypeScript
 - **Package Manager:** pnpm
 - **Documentation:** Astro Starlight
-- **Deployment:** Vercel (planned)
+- **Deployment:** Cloudflare Pages
 
 ## License
 
-MIT License - see LICENSE file for details
+Apache-2.0 — see the [LICENSE](https://github.com/prismalens/prismalens/blob/main/LICENSE) file in the main [PrismaLens](https://github.com/prismalens/prismalens) repository.
 
 ## Community & Support
 

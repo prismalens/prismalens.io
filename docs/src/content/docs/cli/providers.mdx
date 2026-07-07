@@ -26,9 +26,15 @@ Pick a harness with `--harness` on `prismalens investigate`, or set `agent.defau
 
 Model credentials are separate from the harness. PrismaLens never stores a key — it reads it fresh from the environment on every run (ADR-0006).
 
+### What a run costs
+
+An investigation drives a coding-agent harness through multiple tool calls, so a single run can burn a large number of tokens — and that cost accrues on your own provider bill, not PrismaLens's (there's no PrismaLens account or subscription to meter it). If you want to try PrismaLens before spending real money, local Ollama or Ollama Cloud's free tier are the cheapest way in.
+
 ### `deepagents` — OpenAI-protocol only
 
 `deepagents` speaks the OpenAI API shape, so it works with anything that exposes that protocol: Ollama, OpenAI itself, Groq, or a self-hosted OpenAI-compatible endpoint.
+
+<div class="providers-table">
 
 | Provider | API key env var | Base URL env var | Notes |
 | --- | --- | --- | --- |
@@ -36,6 +42,8 @@ Model credentials are separate from the harness. PrismaLens never stores a key �
 | Local Ollama | `OLLAMA_API_KEY` (usually unneeded) | `OLLAMA_BASE_URL=http://localhost:11434/v1` | The default base URL points at Ollama Cloud, not localhost — you must set this to run against a local server |
 | OpenAI | `OPENAI_API_KEY` | `OPENAI_BASE_URL=https://api.openai.com/v1` | Set **both** — without the base URL override, your OpenAI key is sent to the Ollama Cloud endpoint by default |
 | Groq / other OpenAI-compatible | `OPENAI_API_KEY` (the endpoint's key) | `OPENAI_BASE_URL=<endpoint>` | For Groq: `https://api.groq.com/openai/v1` |
+
+</div>
 
 `OLLAMA_API_KEY`/`OLLAMA_BASE_URL` win over `OPENAI_API_KEY`/`OPENAI_BASE_URL` when both are set. Set only the pair for the provider you actually want.
 
@@ -51,6 +59,8 @@ export OPENAI_BASE_URL=https://api.openai.com/v1
 export OPENAI_API_KEY=gsk_...
 export OPENAI_BASE_URL=https://api.groq.com/openai/v1
 ```
+
+These exports apply to the current shell only; add them to your shell profile (`~/.bashrc`, `~/.zshrc`) to persist them.
 
 ### `claude-code` — an Anthropic account
 

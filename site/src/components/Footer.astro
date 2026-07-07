@@ -4,15 +4,13 @@ const currentYear = new Date().getFullYear()
 const footerLinks = {
   Product: [
     { href: '/features', label: 'Features' },
-    { href: 'https://docs.prismalens.io', label: 'Documentation' },
+    { href: import.meta.env.DEV ? 'http://localhost:4322' : 'https://docs.prismalens.io', label: 'Documentation' },
   ],
   Company: [
     { href: '/about', label: 'About' },
-    { href: '/blog', label: 'Blog' },
   ],
   Resources: [
     { href: 'https://github.com/prismalens/prismalens', label: 'GitHub' },
-    { href: '/rss.xml', label: 'RSS Feed' },
   ],
 }
 ---
