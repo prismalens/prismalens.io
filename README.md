@@ -1,3 +1,10 @@
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="brand/banner-dark.png">
+    <img alt="PrismaLens — AI root-cause investigation, in your terminal" src="brand/banner-light.png" width="830">
+  </picture>
+</p>
+
 # PrismaLens Marketing Website & Documentation
 
 This repository contains the marketing website and documentation for **PrismaLens**, an open-source AI root-cause investigation CLI.
@@ -6,12 +13,11 @@ This repository contains the marketing website and documentation for **PrismaLen
 
 ## What is PrismaLens?
 
-PrismaLens is an open-source CLI that uses AI agents to automatically:
+PrismaLens is an open-source (Apache-2.0), local-first CLI. Point it at a repo, pipe in a firing alert, and it:
 
-- **Investigate production incidents** using your own model key
-- **Correlate signals** across metrics, logs, and traces from multiple observability platforms
-- **Surface root causes** automatically, reducing mean time to resolution (MTTR)
-- **Map service dependencies** to understand blast radius instantly
+- **Investigates the way an on-call engineer would** — a coding agent it drives locally gathers evidence with read-only commands through your existing tooling and auth context
+- **Returns an ordered-evidence report** — hypotheses ranked most to least plausible, each linked to the evidence behind it, no numeric confidence scores
+- **Uses your own model key** — any OpenAI-compatible provider or Claude Code; no PrismaLens account, no subscription
 
 ## Monorepo Structure
 
@@ -21,6 +27,8 @@ This repository is organized as a pnpm monorepo with two main workspaces:
 prismalens.io/
 ├── site/          # Marketing website (Astro)
 ├── docs/          # Documentation site (Astro Starlight)
+├── brand/         # Canonical brand assets (logomark SVGs, banners) — see brand/README.md
+├── mage/          # Link marker to the org knowledge hub (see AGENTS.md)
 └── package.json   # Root workspace configuration
 ```
 
@@ -101,8 +109,7 @@ pnpm build:docs
 
 ## Related Repositories
 
-- **[PrismaLens Core](https://github.com/prismalens/prismalens)** - Main application repository (coming soon)
-- **[PrismaLens Integrations](https://github.com/prismalens/integrations)** - Observability integrations (coming soon)
+- **[PrismaLens](https://github.com/prismalens/prismalens)** - The main monorepo: the `prismalens` CLI, investigation engine, and the in-development server app
 
 ## Contributing
 
@@ -122,7 +129,7 @@ Watch the repo if you want to catch the moment PRs open up.
 - **Language:** TypeScript
 - **Package Manager:** pnpm
 - **Documentation:** Astro Starlight
-- **Deployment:** Cloudflare Pages
+- **Deployment:** Cloudflare Pages — see [DEPLOY.md](DEPLOY.md)
 
 ## License
 
