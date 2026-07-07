@@ -93,7 +93,7 @@ agent:
 `prismalens doctor` runs before every investigation and checks:
 
 - the configured harness's binary is on `PATH`,
-- **some** LLM credential is present — any of `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, `OLLAMA_API_KEY`, `GOOGLE_API_KEY`, `GROQ_API_KEY`, `CUSTOM_LLM_API_KEY`, or a signed-in Claude Code session,
+- **some** LLM credential is present — any of `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, `GOOGLE_API_KEY`, `OLLAMA_API_KEY`, `GROQ_API_KEY`, `CUSTOM_LLM_API_KEY`, or a signed-in Claude Code session,
 - the workspace directory is writable.
 
 That credential check is intentionally broad — it's a smoke test, not a guarantee your chosen harness will actually work. Only `OLLAMA_API_KEY`/`OPENAI_API_KEY` (for `deepagents` and the report-synthesis step) and `ANTHROPIC_API_KEY`/Claude Code login (for `claude-code`) are ever actually read during a run. Setting `GOOGLE_API_KEY`, for example, satisfies `doctor` but won't make anything work.
