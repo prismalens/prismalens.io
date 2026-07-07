@@ -46,7 +46,7 @@ export default function MobileNav({ navLinks }: Props) {
             </a>
           ))}
           <a
-            href="https://github.com/prismalens"
+            href="https://github.com/prismalens/prismalens"
             target="_blank"
             rel="noopener noreferrer"
             className="mt-4 inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-all hover:bg-primary/90"

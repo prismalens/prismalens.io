@@ -17,7 +17,7 @@ export default defineConfig({
 			components: {
 				Header: './src/components/CustomHeader.astro',
 			},
-			social: [{ icon: 'github', label: 'GitHub', href: 'https://github.com/prismalens' }],
+			social: [{ icon: 'github', label: 'GitHub', href: 'https://github.com/prismalens/prismalens' }],
 			editLink: {
 				baseUrl: 'https://github.com/prismalens/prismalens.io/edit/main/docs/',
 			},

@@ -19,13 +19,10 @@ const { title, subtitle, code, primaryCta, secondaryCta } = Astro.props
   </div>
 
   <div class="mx-auto max-w-4xl text-center">
-    <!-- Status indicator badge -->
+    <!-- Project badge (static — this is a marketing page, not a live status page) -->
     <div class="mb-8 inline-flex items-center gap-2 rounded-full px-4 py-2 backdrop-blur-sm" style="border: 1px solid color-mix(in srgb, var(--success) 30%, transparent); background: color-mix(in srgb, var(--success) 5%, transparent); box-shadow: 0 4px 6px color-mix(in srgb, var(--success) 10%, transparent);">
-      <span class="relative flex h-3 w-3">
-        <span class="absolute inline-flex h-full w-full animate-ping rounded-full" style="background-color: var(--success); opacity: 0.75;"></span>
-        <span class="relative inline-flex h-3 w-3 rounded-full" style="background-color: var(--success);"></span>
-      </span>
-      <span class="text-sm font-mono font-medium" style="color: var(--success);">System Operational</span>
+      <span class="inline-flex h-2.5 w-2.5 rounded-full" style="background-color: var(--success);"></span>
+      <span class="text-sm font-mono font-medium" style="color: var(--success);">Open source · Apache-2.0</span>
     </div>
 
     <h1 class="text-5xl font-bold tracking-tight sm:text-6xl lg:text-7xl mb-6 hero-title">
