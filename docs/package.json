@@ -15,7 +15,6 @@
     "@astrojs/starlight-tailwind": "^4.0.2",
     "@fontsource-variable/inter": "^5.1.0",
     "@fontsource-variable/jetbrains-mono": "^5.1.0",
-    "@prismalens/design-tokens": "link:../../prismalens/packages/@prismalens/design-tokens",
     "@radix-ui/react-slot": "^1.2.4",
     "@tailwindcss/vite": "^4.1.18",
     "astro": "^5.6.1",

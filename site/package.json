@@ -15,7 +15,6 @@
     "@astrojs/sitemap": "^3.7.0",
     "@fontsource-variable/inter": "^5.1.0",
     "@fontsource-variable/jetbrains-mono": "^5.1.0",
-    "@prismalens/design-tokens": "link:../../prismalens/packages/@prismalens/design-tokens",
     "@radix-ui/react-slot": "^1.2.4",
     "@tailwindcss/typography": "^0.5.19",
     "@tailwindcss/vite": "^4.1.18",

@@ -13,7 +13,7 @@
 /* Fonts + design tokens */
 @import "@fontsource-variable/inter";
 @import "@fontsource-variable/jetbrains-mono";
-@import "@prismalens/design-tokens/starlight.css";
+@import "./design-tokens/starlight.css";
 
 /* Theme synchronization */
 :root {

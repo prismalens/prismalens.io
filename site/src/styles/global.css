@@ -6,8 +6,8 @@
 @import "@fontsource-variable/jetbrains-mono";
 
 /* Shared design tokens (light :root + .dark overrides) */
-@import "@prismalens/design-tokens/tokens.css";
-@import "@prismalens/design-tokens/tailwind-preset.css";
+@import "./design-tokens/tokens.css";
+@import "./design-tokens/tailwind-preset.css";
 
 /* Theme-aware body styles */
 body {

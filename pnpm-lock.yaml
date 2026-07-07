@@ -38,9 +38,6 @@ importers:
       '@fontsource-variable/jetbrains-mono':
         specifier: ^5.1.0
         version: 5.2.8
-      '@prismalens/design-tokens':
-        specifier: link:../../prismalens/packages/@prismalens/design-tokens
-        version: link:../../prismalens/packages/@prismalens/design-tokens
       '@radix-ui/react-slot':
         specifier: ^1.2.4
         version: 1.2.4(@types/react@19.2.14)(react@19.2.4)
@@ -105,9 +102,6 @@ importers:
       '@fontsource-variable/jetbrains-mono':
         specifier: ^5.1.0
         version: 5.2.8
-      '@prismalens/design-tokens':
-        specifier: link:../../prismalens/packages/@prismalens/design-tokens
-        version: link:../../prismalens/packages/@prismalens/design-tokens
       '@radix-ui/react-slot':
         specifier: ^1.2.4
         version: 1.2.4(@types/react@19.2.14)(react@19.2.4)
