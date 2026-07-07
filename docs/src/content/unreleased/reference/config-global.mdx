@@ -1,0 +1,81 @@
+---
+title: Global Configuration
+description: Environment variables for global configuration schema.
+---
+
+# Global Configuration
+
+:::note[Auto-generated Documentation]
+This page is automatically generated from source code.
+- **Last updated:** 2026-02-06T12:07:30.005Z
+- **Source:** [global.ts](https://github.com/prismalens/prismalens/blob/20ebbb27b1a8e3908ead47dcf1092a22df48ed6e/packages/@prismalens/config/src/schemas/global.ts)
+:::
+
+## Overview
+
+Global configuration schema.
+
+Configure the API server binding, public URLs, security settings, and CORS policies for your PrismaLens instance.
+
+## Environment Variables
+
+| Variable | Type | Required | Default | Description |
+|----------|------|----------|---------|-------------|
+| `PRISMALENS_HOST` | string | Yes | `0.0.0.0` | API server bind address |
+| `PRISMALENS_PORT` | number | Yes | `3001` | API server port (internal, behind reverse proxy) |
+| `PRISMALENS_PROTOCOL` | enum: `http`, `https` | Yes | `http` | API protocol (use http when behind Caddy reverse proxy) |
+| `PRISMALENS_SSL_KEY` | string | No | - | SSL key path (only for direct API access without proxy) |
+| `PRISMALENS_SSL_CERT` | string | No | - | SSL cert path (only for direct API access without proxy) |
+| `PRISMALENS_PUBLIC_URL` | string | No | - | Public URL where PrismaLens is accessible (e.g., https://prismalens.example.com). Used for OAuth callbacks and emails. |
+| `PRISMALENS_WEBHOOK_URL` | string | No | - | Public URL for webhook callbacks (defaults to PRISMALENS_PUBLIC_URL if not set) |
+| `PRISMALENS_DOMAIN` | string | No | - | Domain for SSL certificate (used by Caddy reverse proxy for Let's Encrypt) |
+| `PRISMALENS_CORS_ORIGIN` | string | No | - | Allowed CORS origins for API (comma-separated). Defaults to PRISMALENS_PUBLIC_URL + localhost:3000 |
+| `PRISMALENS_CORS_WEBHOOK_OPEN` | boolean | Yes | `true` | Allow any origin for webhook endpoints (for browser-based testing tools) |
+| `PRISMALENS_MAX_CONCURRENT_INVESTIGATIONS` | number | No | - | Maximum concurrent investigations in regular mode. If not set, unlimited. Only applies when PRISMALENS_MODE=regular. |
+
+## Docker Secrets Support
+
+All environment variables support Docker and Kubernetes secrets via the `_FILE` suffix pattern. This allows you to mount secrets as files instead of passing them directly as environment variables.
+
+**Example:**
+
+```bash
+# Direct value (less secure for secrets)
+ANTHROPIC_API_KEY=sk-ant-xxx
+
+# Or via mounted secret file (recommended for production)
+ANTHROPIC_API_KEY_FILE=/run/secrets/anthropic_key
+```
+
+When a `_FILE` variable is provided, PrismaLens will read the secret from that file path. This is the recommended approach for sensitive values in containerized environments.
+
+## Example Configuration
+
+```bash title=".env"
+# API server bind address
+PRISMALENS_HOST=0.0.0.0
+
+# API server port (internal, behind reverse proxy)
+PRISMALENS_PORT=3001
+
+# API protocol (use http when behind Caddy reverse proxy)
+PRISMALENS_PROTOCOL=http
+
+# Allow any origin for webhook endpoints (for browser-based testing tools)
+PRISMALENS_CORS_WEBHOOK_OPEN=true
+```
+
+
+
+## Configuration Precedence
+
+Environment variables have the highest priority and override any values stored in the database (configured via the Settings UI). Default values defined in the schema are used when neither an environment variable nor a database value is set.
+
+## Related Configuration
+
+- [Database](/reference/config-database)
+- [Logging](/reference/config-logging)
+- [LLM Providers](/reference/config-llm)
+- [Queue](/reference/config-queue)
+- [Configuration Overview](/reference/)
+

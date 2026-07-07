@@ -3,12 +3,27 @@
   "private": true,
   "packageManager": "pnpm@10.26.2",
   "pnpm": {
-    "onlyBuiltDependencies": ["esbuild", "sharp"]
+    "onlyBuiltDependencies": [
+      "esbuild",
+      "sharp"
+    ],
+    "overrides": {
+      "fast-xml-parser": ">=5.3.6"
+    }
   },
   "scripts": {
+    "dev": "concurrently \"pnpm dev:site\" \"pnpm dev:docs\" --names \"site,docs\" --prefix-colors \"cyan,magenta\"",
     "dev:site": "pnpm --filter site dev",
     "dev:docs": "pnpm --filter docs dev",
     "build:site": "pnpm --filter site build",
-    "build:docs": "pnpm --filter docs build"
+    "build:docs": "pnpm --filter docs build",
+    "docs:generate": "tsx scripts/generate-env-docs.ts",
+    "docs:generate:watch": "tsx watch scripts/generate-env-docs.ts",
+    "docs:generate:integrations": "tsx scripts/generate-integration-docs.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.5",
+    "concurrently": "^9.2.1",
+    "tsx": "^4.19.2"
   }
 }

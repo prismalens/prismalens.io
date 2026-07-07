@@ -1,4 +1,7 @@
 ---
+import { badgeVariants } from '@/components/ui/badge'
+import { cn } from '@/lib/utils'
+
 interface Props {
   title: string
   description: string
@@ -19,7 +22,7 @@ function formatDate(date: Date): string {
 }
 ---
 
-<article class="group rounded-xl border border-gray-800 bg-gray-900/50 transition-colors hover:border-gray-700">
+<article class="group rounded-xl border border-border bg-card/50 shadow-sm transition-colors hover:border-primary/40">
   <a href={`/blog/${slug}`} class="block p-6">
     {
       heroImage && (
@@ -33,17 +36,17 @@ function formatDate(date: Date): string {
     <div class="mb-2 flex flex-wrap gap-2">
       {
         tags.map((tag) => (
-          <span class="rounded-full bg-violet-500/10 px-2 py-0.5 text-xs text-violet-400">
+          <span class={cn(badgeVariants({ variant: 'secondary' }), 'bg-primary/10 text-primary')}>
             {tag}
           </span>
         ))
       }
     </div>
-    <h3 class="mb-2 text-lg font-semibold text-white group-hover:text-violet-400 transition-colors">
+    <h3 class="mb-2 text-lg font-semibold text-foreground group-hover:text-primary transition-colors">
       {title}
     </h3>
-    <p class="mb-3 text-sm text-gray-400 line-clamp-2">{description}</p>
-    <time datetime={pubDate.toISOString()} class="text-xs text-gray-500">
+    <p class="mb-3 text-sm text-muted-foreground line-clamp-2">{description}</p>
+    <time datetime={pubDate.toISOString()} class="text-xs text-muted-foreground">
       {formatDate(pubDate)}
     </time>
   </a>

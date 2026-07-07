@@ -1,0 +1,186 @@
+---
+title: Troubleshooting
+description: Diagnose and fix common PrismaLens CLI problems, starting with pl doctor.
+---
+
+Most CLI problems trace back to one of three things: the harness binary isn't
+installed, no model credential is set, or the run workspace can't be written to.
+Start with `pl doctor` — it checks all three before you spend time on an
+investigation that was never going to finish.
+
+## Run `pl doctor` first
+
+```bash
+pl doctor
+```
+
+`doctor` runs three checks and prints a pass/fail line for each:
+
+| Check | Severity | What it means |
+| --- | --- | --- |
+| Harness binary | Hard | Is the Tier-2 harness binary for your configured `agent.default` on `PATH`? |
+| LLM credential | Hard | Is there a model credential in the environment (or a signed-in Claude Code session)? |
+| Workspace | Soft | Can `workspace.base_dir` (`~/.prismalens` by default) be created and written to? |
+
+A **hard** check failing makes `doctor` exit `1` — fix it before running
+`investigate`. A **soft** check only warns; runs can still complete, but nothing
+will be saved to disk.
+
+### Harness binary not found
+
+Each harness shells out to a different binary. `doctor` tells you which one it
+was looking for and for which harness:
+
+| `--harness` | Binary it looks for | Install it |
+| --- | --- | --- |
+| `deepagents` (default) | `deepagents-acp` | `npm install -g deepagents-acp @langchain/openai` |
+| `claude-code` | `claude` | Install Claude Code, then run `claude` once to sign in |
+| `codex` | `codex` | Not available yet — selecting `--harness codex` fails immediately |
+
+If you just installed the binary and `doctor` still can't see it, open a new
+shell (or re-source your profile) so the updated `PATH` takes effect.
+
+### deepagents fails with "Unable to import @langchain/openai"
+
+`deepagents-acp` loads its model provider dynamically and does not declare
+`@langchain/openai` as a dependency, so a bare `npm install -g deepagents-acp`
+cannot run `openai:*` models (Ollama, OpenAI, Groq, and every other
+OpenAI-protocol provider) — the first investigation step fails. Install the
+provider package next to it:
+
+```bash
+npm install -g @langchain/openai
+```
+
+### No LLM credential found
+
+`doctor` passes this check as soon as it finds **any** of these set in the
+environment: `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, `GOOGLE_API_KEY`,
+`OLLAMA_API_KEY`, `GROQ_API_KEY`, or `CUSTOM_LLM_API_KEY`. For `claude-code` it
+also accepts a signed-in session (`~/.claude/.credentials.json`, created by
+running `claude` once).
+
+That check only confirms *something* is set — it doesn't confirm the right
+credential for what you're about to run. Two things actually consume a
+credential, and they can fail independently even after `doctor` passes:
+
+- **The Tier-1 synthesis step** (the report writer) always uses an
+  OpenAI-protocol endpoint: `OLLAMA_API_KEY` or `OPENAI_API_KEY`, with
+  `OLLAMA_BASE_URL` / `OPENAI_BASE_URL` if you're pointing at something other
+  than the default. If neither is set, `investigate` warns up front that
+  synthesis will likely fail.
+- **The `deepagents` harness** needs the same OpenAI-protocol credential
+  (Ollama, OpenAI, Groq, or any OpenAI-compatible `baseUrl`).
+- **The `claude-code` harness** needs `ANTHROPIC_API_KEY` or a signed-in
+  Claude Code session — an `OPENAI_API_KEY` alone will pass `doctor` but won't
+  help this harness run.
+
+### Workspace not writable
+
+`workspace.base_dir` (`~/.prismalens` unless you've changed it) needs to be
+creatable and writable — every run's events and report are persisted there.
+This is a soft check: the investigation still runs, but nothing is saved to
+disk and you lose the run's history. Fix the directory's permissions, or point
+`workspace.base_dir` somewhere writable in your config.
+
+## Common `investigate` failures
+
+### Exit codes
+
+| Exit code | Meaning |
+| --- | --- |
+| `0` | A report was synthesized and printed/written. |
+| `1` | A hard input error, a mid-stream failure, or a **no-evidence** run. |
+
+A hard input error means `investigate` couldn't even start — no `FiringAlert`
+JSON on stdin and no `--query`, or a harness that isn't wired up yet
+(`--harness codex`). Invalid JSON piped on stdin isn't a hard error by itself:
+it's logged as a warning and ignored, so pair `--query` with a pipe if you're
+not sure the upstream payload is well-formed.
+
+### What a "no-evidence" run means
+
+Sometimes the harness runs but every investigation branch fails or comes back
+empty — no tool succeeded, so there's nothing to reason about. Rather than
+have the model invent a root cause from nothing, `investigate` reports that
+failure honestly instead of printing a fabricated report:
+
+```
+investigation produced no evidence
+```
+
+That message (or whatever transport error caused it) goes to stderr, exit
+code is `1`, and nothing is written to `--output`. This usually means the
+harness couldn't reach the telemetry endpoints it needed — check
+`telemetry.prometheusUrl` / `alertmanagerUrl` / `apiUrl` in your config, and
+whether the sandbox boundary the harness is running in has egress to them
+(see [Sandboxing](#sandbox-falls-back-to-the-process-floor-on-wsl) below).
+
+## JSON output for scripting
+
+Three flags control what `investigate` prints, useful together in scripts and CI:
+
+- `--json` — prints the `InvestigationReport` as JSON to stdout instead of the
+  human-readable renderer (this also suppresses progress output).
+- `--output <file>` — writes the same JSON report to a file, in addition to
+  whatever else is printed.
+- `--quiet` — suppresses progress lines and the human renderer, but errors
+  still go to stderr.
+
+```bash
+pl investigate -q "OOMKilled in payments pod" --json --output report.json
+```
+
+For scripting, check the exit code before trusting stdout — on exit `1`
+(input error or no-evidence run) stdout carries no report even with `--json`;
+the failure reason is on stderr.
+
+## Config doesn't seem to be applying
+
+If a flag or setting you expect isn't taking effect, the CLI may be reading a
+different config file than you think — there are several layers, and later
+ones override earlier ones. See [Configuration](/cli/configuration/) for the
+full resolution order and file locations.
+
+## Sandbox falls back to the process floor on WSL
+
+If `agent.sandbox` is `auto` (the default) and you see a warning like:
+
+```
+Sandbox 'auto' degraded to the process-floor (cooperative, not an OS boundary):
+srt egress bridge unhealthy — WSL mirrored networking? Using the process floor.
+```
+
+this is WSL2's **mirrored networking** mode breaking the enforced sandbox's
+in-namespace network bridge — the sandbox binary is present, but traffic
+through it silently dies. `auto` detects this and degrades to the
+cooperative `process` floor rather than claiming an enforced boundary that
+doesn't actually have egress, so the run still completes. If you explicitly
+force `--sandbox srt` on an affected host instead, tool calls that need
+network access will fail outright with no such warning.
+
+The fix is switching your WSL networking mode to NAT: remove
+`networkingMode=mirrored` from `%UserProfile%\.wslconfig`, then run
+`wsl --shutdown` and restart your WSL session. See
+[Sandboxing](/cli/sandboxing/) for the full picture of sandbox modes and how
+`auto` chooses between them.
+
+## Filing a good bug report
+
+Before opening an issue, grab two things:
+
+```bash
+pl doctor
+pl --version
+```
+
+Include both outputs verbatim in your report, along with the command you ran
+and, if you're comfortable sharing it, the run's `report.json` /
+`events.jsonl` from `~/.prismalens/runs/<runId>/`. Open the issue at
+[github.com/prismalens/prismalens/issues](https://github.com/prismalens/prismalens/issues).
+
+## Next steps
+
+- [CLI Overview](/cli/) — start here if you're new to `investigate`.
+- [Commands](/cli/commands/) — the full `investigate` flag reference.
+- [Sandboxing](/cli/sandboxing/) — how `--sandbox` and `--mode` fidelity works.

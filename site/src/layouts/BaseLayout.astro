@@ -19,18 +19,20 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site)
 ---
 
 <!doctype html>
-<html lang="en" class="scroll-smooth">
+<html lang="en" class="dark scroll-smooth">
   <head>
+    <script is:inline>
+      (function () {
+        var t = localStorage.getItem('prismalens-theme');
+        if (t === 'light') document.documentElement.classList.remove('dark');
+      })();
+    </script>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" sizes="32x32" href="/favicon.ico" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="sitemap" href="/sitemap-index.xml" />
-    <link
-      rel="alternate"
-      type="application/rss+xml"
-      title="PrismaLens Blog"
-      href="/rss.xml"
-    />
     <meta name="generator" content={Astro.generator} />
     <title>{title} | PrismaLens</title>
     <meta name="description" content={description} />
@@ -42,7 +44,7 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site)
     <meta property="og:image" content={new URL(ogImage, Astro.site)} />
     <meta name="twitter:card" content="summary_large_image" />
   </head>
-  <body class="min-h-screen bg-gray-950 text-gray-100 antialiased">
+  <body class="min-h-screen bg-background text-foreground antialiased font-sans">
     <Header />
     <main>
       <slot />

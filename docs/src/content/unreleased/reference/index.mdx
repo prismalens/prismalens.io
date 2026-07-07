@@ -1,0 +1,114 @@
+---
+title: Configuration Reference
+description: Complete reference for configuring PrismaLens
+---
+
+# Configuration Reference
+
+PrismaLens is configured entirely through environment variables, organized into logical categories for easy management. All configuration is validated on startup using Zod schemas to ensure correctness.
+
+## Configuration Categories
+
+### Core Configuration
+
+- **[Global Configuration](/reference/config-global)** - API server binding, public URLs, CORS, and security settings (11 variables)
+- **[Database](/reference/config-database)** - SQLite and PostgreSQL database configuration (15 variables)
+- **[Logging](/reference/config-logging)** - Log levels, formats, rotation, and output configuration (12 variables)
+
+### AI & Integrations
+
+- **[LLM Providers](/reference/config-llm)** - API keys and settings for Anthropic, OpenAI, Google Gemini, and other providers (8 variables)
+- **[LangSmith](/reference/config-langsmith)** - Tracing and evaluation configuration (4 variables)
+- **[Skills & MCP](/reference/config-skills)** - Custom skill directories and extension paths (10 variables)
+- **[MCP Servers](/reference/config-mcp)** - Model Context Protocol server configurations (11 variables)
+
+### Production Deployment
+
+- **[Queue Configuration](/reference/config-queue)** - Redis and queue-based processing settings (8 variables)
+- **[Deployment Settings](/reference/config-deployment)** - Encryption keys, SMTP, secrets management (12 variables)
+
+## Configuration Principles
+
+### 1. Environment Variables First
+
+All configuration is done via environment variables. Values stored in the database (via the Settings UI) take precedence over defaults but environment variables always win.
+
+**Precedence Order:**
+1. Environment variables (highest priority)
+2. Database-stored values (Settings UI)
+3. Default values from schemas (lowest priority)
+
+### 2. Docker Secrets Support
+
+Every environment variable supports Docker and Kubernetes secrets via the `_FILE` suffix pattern:
+
+```bash
+# Direct value (less secure for sensitive data)
+ANTHROPIC_API_KEY=sk-ant-xxx
+
+# Or via mounted secret file (recommended for production)
+ANTHROPIC_API_KEY_FILE=/run/secrets/anthropic_key
+```
+
+When a `_FILE` variable is set, PrismaLens reads the secret from the specified file path instead of using the direct value.
+
+### 3. Validation on Startup
+
+All configuration is validated against Zod schemas when the application starts. Invalid values will cause startup to fail with clear, actionable error messages indicating what needs to be fixed.
+
+### 4. Sensible Defaults
+
+PrismaLens can run with **zero required configuration** using built-in defaults:
+- SQLite database (created automatically)
+- localhost binding
+- Default ports and protocols
+- Reasonable timeouts and limits
+
+Only LLM provider API keys are required for full AI functionality.
+
+## Quick Start
+
+For a minimal setup, you only need:
+
+```bash title=".env"
+# Database (defaults to SQLite)
+PRISMALENS_DB_TYPE=sqlite  # or postgresql
+
+# LLM Provider (at least one required for AI features)
+ANTHROPIC_API_KEY=sk-ant-xxxxx
+```
+
+That's it! PrismaLens will use defaults for everything else.
+
+## Common Deployment Scenarios
+
+### Development / Testing
+- SQLite database (default)
+- Regular mode (no Redis required)
+- Log to console
+- Default localhost binding
+
+### Production - Single Server
+- PostgreSQL database
+- Regular mode with concurrency limits
+- Log rotation enabled
+- Reverse proxy (Caddy/Nginx)
+
+### Production - High Availability
+- PostgreSQL with replication
+- Queue mode with Redis
+- Multiple worker processes
+- Load balancer
+- Centralized logging
+
+## Complete Variable List
+
+**Total: 91 environment variables across 9 categories**
+
+Browse by category using the links above, or see the complete alphabetical list in the navigation sidebar.
+
+## Additional Resources
+
+- [Installation Guide](/getting-started/installation) - Step-by-step setup instructions
+- [Quick Start](/getting-started/quick-start) - Get running in 5 minutes
+- [Docker Deployment](https://github.com/prismalens/prismalens/blob/main/docker-compose.yml) - Example docker-compose configuration

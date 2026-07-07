@@ -1,0 +1,103 @@
+---
+title: Logging Configuration
+description: Environment variables for log level configuration.
+---
+
+# Logging Configuration
+
+:::note[Auto-generated Documentation]
+This page is automatically generated from source code.
+- **Last updated:** 2026-02-06T12:07:30.005Z
+- **Source:** [logging.ts](https://github.com/prismalens/prismalens/blob/20ebbb27b1a8e3908ead47dcf1092a22df48ed6e/packages/@prismalens/config/src/schemas/logging.ts)
+:::
+
+## Overview
+
+Log level configuration.
+
+Control log output levels, formats, rotation policies, and where logs are written. PrismaLens uses structured logging with support for JSON output and log file rotation.
+
+## Environment Variables
+
+| Variable | Type | Required | Default | Description |
+|----------|------|----------|---------|-------------|
+| `PRISMALENS_LOG_OUTPUT` | string | Yes | `console` | Log output targets, comma-separated (console, file). Default: console |
+| `PRISMALENS_LOG_FILE_LOCATION` | string | No | - | Directory path for log files. Defaults to PRISMALENS_PATH/logs (~/.prismalens/logs) |
+| `PRISMALENS_LOG_FILE_COUNT_MAX` | number | Yes | `100` | Maximum number of rotated log files to retain. Default: 100 |
+| `PRISMALENS_LOG_FILE_SIZE_MAX` | number | Yes | `16` | Maximum size per log file in MB before rotation. Default: 16 |
+| `PRISMALENS_LOG_FILE_NAME` | string | Yes | `prismalens.log` | Base filename for log files. Default: prismalens.log |
+| `PRISMALENS_DB_LOGGING_ENABLED` | enum: `true`, `false` | Yes | `false` | Enable database query logging for debugging. Default: false |
+| `PRISMALENS_DB_LOGGING_MAX_EXECUTION_TIME` | number | Yes | `1000` | Threshold in milliseconds for slow query warnings. Queries exceeding this are always logged. Default: 1000 |
+| `PRISMALENS_LOG_SAMPLING_ENABLED` | enum: `true`, `false` | Yes | `true` | Enable tail sampling for wide events. When enabled, only errors, slow requests, and sampled normal traffic are retained. Default: true |
+| `PRISMALENS_LOG_SAMPLING_RATE` | number | Yes | `5` | Percentage of normal (non-error, non-slow) traffic to sample (0-100). Errors and slow requests are always retained. Default: 5 |
+| `PRISMALENS_LOG_SAMPLING_LATENCY_THRESHOLD` | number | Yes | `5000` | Latency threshold in milliseconds. Requests exceeding this duration are always retained regardless of sampling. Default: 5000 |
+| `PRISMALENS_LOG_INCLUDE_STACK_TRACE` | enum: `true`, `false` | Yes | `true` | Include stack traces in error logs. Disable for reduced log size in production. Default: true |
+| `PRISMALENS_LOG_MAX_PAYLOAD_SIZE` | number | Yes | `65536` | Maximum size in bytes for logged payloads (request/response bodies). Larger payloads are truncated. Default: 65536 (64KB) |
+
+## Docker Secrets Support
+
+All environment variables support Docker and Kubernetes secrets via the `_FILE` suffix pattern. This allows you to mount secrets as files instead of passing them directly as environment variables.
+
+**Example:**
+
+```bash
+# Direct value (less secure for secrets)
+ANTHROPIC_API_KEY=sk-ant-xxx
+
+# Or via mounted secret file (recommended for production)
+ANTHROPIC_API_KEY_FILE=/run/secrets/anthropic_key
+```
+
+When a `_FILE` variable is provided, PrismaLens will read the secret from that file path. This is the recommended approach for sensitive values in containerized environments.
+
+## Example Configuration
+
+```bash title=".env"
+# Log output targets, comma-separated (console, file). Default: console
+PRISMALENS_LOG_OUTPUT=console
+
+# Maximum number of rotated log files to retain. Default: 100
+PRISMALENS_LOG_FILE_COUNT_MAX=100
+
+# Maximum size per log file in MB before rotation. Default: 16
+PRISMALENS_LOG_FILE_SIZE_MAX=16
+
+# Base filename for log files. Default: prismalens.log
+PRISMALENS_LOG_FILE_NAME=prismalens.log
+
+# Enable database query logging for debugging. Default: false
+PRISMALENS_DB_LOGGING_ENABLED=false
+
+# Threshold in milliseconds for slow query warnings. Queries exceeding this are always logged. Default: 1000
+PRISMALENS_DB_LOGGING_MAX_EXECUTION_TIME=1000
+
+# Enable tail sampling for wide events. When enabled, only errors, slow requests, and sampled normal traffic are retained. Default: true
+PRISMALENS_LOG_SAMPLING_ENABLED=true
+
+# Percentage of normal (non-error, non-slow) traffic to sample (0-100). Errors and slow requests are always retained. Default: 5
+PRISMALENS_LOG_SAMPLING_RATE=5
+
+# Latency threshold in milliseconds. Requests exceeding this duration are always retained regardless of sampling. Default: 5000
+PRISMALENS_LOG_SAMPLING_LATENCY_THRESHOLD=5000
+
+# Include stack traces in error logs. Disable for reduced log size in production. Default: true
+PRISMALENS_LOG_INCLUDE_STACK_TRACE=true
+
+# Maximum size in bytes for logged payloads (request/response bodies). Larger payloads are truncated. Default: 65536 (64KB)
+PRISMALENS_LOG_MAX_PAYLOAD_SIZE=65536
+```
+
+
+
+## Configuration Precedence
+
+Environment variables have the highest priority and override any values stored in the database (configured via the Settings UI). Default values defined in the schema are used when neither an environment variable nor a database value is set.
+
+## Related Configuration
+
+- [Global Configuration](/reference/config-global)
+- [Database](/reference/config-database)
+- [LLM Providers](/reference/config-llm)
+- [Queue](/reference/config-queue)
+- [Configuration Overview](/reference/)
+

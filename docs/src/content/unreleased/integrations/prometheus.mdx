@@ -1,0 +1,48 @@
+---
+title: "Prometheus Integration"
+description: Setup guide for the Prometheus integration in PrismaLens
+---
+
+# Prometheus Integration
+
+:::note[Auto-generated Documentation]
+This page is automatically generated from source code.
+- **Last updated:** 2026-03-10T17:31:21.835Z
+- **Source:** [templates/](https://github.com/prismalens/prismalens/blob/a457b79ffdf7b11c18176d39cc41201300b8e6d1/packages/@prismalens/integrations/src/templates/)
+:::
+
+## Overview
+
+| Property | Value |
+|----------|-------|
+| **Auth Mode** | Basic Auth |
+| **Category** | Observability |
+| **Template ID** | `prometheus` |
+
+## Prerequisites
+1. Ensure your Prometheus server is reachable from the PrismaLens instance
+2. If Prometheus is behind authentication, have your credentials ready
+3. Note the Prometheus server URL (default: http://localhost:9090)
+
+## Credential Fields
+
+| Field | Label | Type | Required | Sensitive | Description |
+|-------|-------|------|----------|-----------|-------------|
+| `username` | Username | string | No | No | Username — only required if Prometheus has basic auth enabled |
+| `apiKey` | Password / API Key | password | No | Yes | Password / API Key — only required if Prometheus has basic auth enabled |
+
+## Connection Fields
+
+| Field | Label | Type | Required | Sensitive | Description |
+|-------|-------|------|----------|-----------|-------------|
+| `baseUrl` | Prometheus URL | string | Yes | No | Prometheus URL — the base URL of your Prometheus server (e.g., http://prometheus:9090) |
+
+## Tips
+
+- Many Prometheus setups don't require authentication — leave username and password blank if yours doesn't
+- If using Prometheus behind a reverse proxy with TLS, use the https:// URL
+- PrismaLens uses the /api/v1/ query endpoints to fetch metrics during investigations
+
+## Provider Documentation
+
+- [Prometheus API docs](https://prometheus.io/docs/prometheus/latest/querying/api/)

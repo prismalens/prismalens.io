@@ -3,62 +3,126 @@ import BaseLayout from '../layouts/BaseLayout.astro'
 import Hero from '../components/Hero.astro'
 import FeatureGrid from '../components/FeatureGrid.astro'
 import CTA from '../components/CTA.astro'
+import Icon from '../components/Icon.astro'
+
+const docsBase = import.meta.env.DEV ? 'http://localhost:4322' : 'https://docs.prismalens.io'
 
 const features = [
   {
-    title: 'AI-Powered Root Cause Analysis',
-    description:
-      'LangGraph agents automatically investigate incidents, correlate signals across services, and surface the root cause.',
-    icon: '🔍',
+    title: 'Read-only AI investigation',
+    description: 'Point it at a repo, pipe in a firing alert (or describe the problem with --query). PrismaLens investigates the same way an on-call engineer would and returns a report.',
+    icon: 'search',
   },
   {
-    title: 'Unified Command Center',
-    description:
-      'A single pane of glass for all your incidents — severity, status, affected services, and investigation timeline.',
-    icon: '🎛️',
+    title: 'Ordered evidence, not guesses',
+    description: 'Hypotheses ranked most to least plausible, each backed by evidence it actually gathered — what was ruled out, what was covered, and what to check next. No numeric confidence scores.',
+    icon: 'activity',
   },
   {
-    title: 'Multi-Source Correlation',
-    description:
-      'Pull metrics, logs, and traces from Prometheus, Grafana, Datadog, New Relic, and more into one investigation.',
-    icon: '🔗',
+    title: 'Bring your own model, no account',
+    description: 'Works with Ollama, OpenAI, Groq, any OpenAI-compatible endpoint, or a Claude Code install. No PrismaLens account, no subscription — your keys, your provider.',
+    icon: 'link',
   },
   {
-    title: 'Automated Investigations',
-    description:
-      'AI agents follow investigation playbooks, gather evidence, and build a timeline of what happened.',
-    icon: '🤖',
+    title: 'An enforced sandbox, honestly reported',
+    description: '--sandbox runs the investigation behind an OS-level egress boundary when one is available, and every report states what was requested vs. what was actually applied.',
+    icon: 'shield',
   },
   {
-    title: 'Service Dependency Mapping',
-    description:
-      'Understand blast radius instantly with auto-discovered service relationships and dependency graphs.',
-    icon: '🗺️',
+    title: 'Every run saved locally',
+    description: 'Reports and full event streams persist to ~/.prismalens/runs/. Use --json to pipe results into your own scripts and dashboards.',
+    icon: 'unlock',
   },
   {
-    title: 'Open Source Core',
-    description:
-      'Self-host with Docker Compose. Full control over your data. No vendor lock-in.',
-    icon: '🔓',
+    title: '`pl doctor` before you run anything',
+    description: 'Preflights your setup — harness (the coding agent it drives locally) binary on PATH, a model credential set, a writable workspace — so failures surface before an investigation starts, not mid-run.',
+    icon: 'check',
   },
 ]
 ---
 
-<BaseLayout title="AI-Powered Incident Investigation">
+<BaseLayout title="PrismaLens CLI — AI root-cause investigation from your terminal">
   <Hero
-    title="Resolve incidents faster with AI-powered root cause analysis"
-    subtitle="PrismaLens uses AI agents to automatically investigate production incidents, correlate signals across your observability stack, and surface the root cause — so your team can fix, not search."
-    primaryCta={{ href: 'https://app.prismalens.io', label: 'Get Started' }}
+    title="Point it at a repo. Get a root cause you can actually check."
+    subtitle="The PrismaLens CLI investigates a firing alert the way an on-call engineer would — it reads the repo, runs read-only commands through your existing local tooling and auth context (kubectl, aws, gcloud, curl) instead of calling observability APIs directly, and returns hypotheses ranked most to least plausible, each linked to the evidence behind it."
+    code="cat alert.json | npx prismalens investigate --repo ."
+    codeNote="prismalens and the shorter pl alias point at the same binary — pl investigate works too; run pl doctor first to check your setup."
+    primaryCta={{ href: `${docsBase}/cli/`, label: 'Read the CLI docs' }}
     secondaryCta={{
-      href: 'https://github.com/prismalens',
+      href: 'https://github.com/prismalens/prismalens',
       label: 'View on GitHub',
     }}
   />
+
+  <!-- Live demo: real recorded run (condensed) against a live incident stack -->
+  <section class="px-4 pb-24 sm:px-6 lg:px-8">
+    <div class="mx-auto max-w-4xl">
+      <p class="mb-4 text-center text-sm" style="color: var(--muted-foreground);">
+        A real recorded run — a firing latency alert piped in, root cause out (condensed):
+      </p>
+      <img
+        src="/cli-demo.svg"
+        alt="Terminal recording: a firing alert is piped into pl investigate, the investigation timeline streams, and the report traces the latency to an uncached endpoint that blocks on a slow external API call"
+        class="w-full rounded-xl"
+        style="border: 1px solid var(--border); box-shadow: 0 20px 60px color-mix(in srgb, var(--primary) 10%, transparent);"
+        loading="lazy"
+      />
+    </div>
+  </section>
+
   <FeatureGrid features={features} />
+
+  <!-- Why We Built This Section -->
+  <section class="relative px-4 py-24 sm:px-6 lg:px-8 overflow-hidden" style="background: linear-gradient(135deg, color-mix(in srgb, var(--primary) 3%, transparent) 0%, transparent 50%, color-mix(in srgb, var(--pl-investigation-purple) 3%, transparent) 100%);">
+    <div class="mx-auto max-w-4xl relative">
+      <div class="rounded-3xl p-12 backdrop-blur-xl" style="border: 1px solid var(--border); background: linear-gradient(135deg, color-mix(in srgb, var(--card) 90%, transparent) 0%, color-mix(in srgb, var(--background) 90%, transparent) 100%); box-shadow: 0 20px 60px color-mix(in srgb, var(--primary) 10%, transparent);">
+        <!-- Accent line -->
+        <div class="absolute left-0 top-0 h-1 w-32 rounded-tl-3xl" style="background: linear-gradient(to right, var(--primary) 0%, var(--pl-investigation-purple) 100%);"></div>
+
+        <h2 class="text-4xl font-bold tracking-tight sm:text-5xl mb-8" style="color: var(--foreground);">
+          Why We Built This
+        </h2>
+
+        <div class="space-y-6" style="color: var(--muted-foreground);">
+          <p class="text-lg sm:text-xl leading-relaxed">
+            At <span class="font-mono font-bold" style="color: var(--destructive);">2:47am</span>, your payment API times out and you spend
+            <span class="font-bold" style="color: var(--foreground);">90 minutes</span> correlating dashboards, logs, and deploys before finding the cause. You had the right tools — the problem was
+            <span class="font-bold" style="color: var(--primary);">correlation</span>, not observability, and that takes time you don't have at 3am.
+          </p>
+
+          <p class="text-lg leading-relaxed">
+            The PrismaLens CLI does that legwork for you, and hands back a trail of evidence you can actually check — not a black-box score.
+          </p>
+        </div>
+
+        <a
+          href="/about"
+          class="mt-8 inline-flex items-center gap-2 text-base font-semibold transition-all hover:gap-3"
+          style="color: var(--primary);"
+        >
+          Read the full story
+          <Icon name="arrow-right" size={20} />
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- In development notice -->
+  <section class="px-4 py-16 sm:px-6 lg:px-8">
+    <div class="mx-auto max-w-3xl rounded-2xl p-8 text-center" style="border: 1px dashed var(--border); background: color-mix(in srgb, var(--card) 60%, transparent);">
+      <h2 class="text-xl font-bold mb-2" style="color: var(--foreground);">A self-hosted server is in development</h2>
+      <p class="text-base leading-relaxed" style="color: var(--muted-foreground);">
+        Today, PrismaLens ships as a CLI you run from your terminal. A self-hosted server —
+        a web UI and webhook alert intake for triggering investigations from your existing
+        monitoring stack — is on the roadmap, not yet released.
+      </p>
+    </div>
+  </section>
+
   <CTA
-    title="Ready to stop firefighting?"
-    description="Deploy PrismaLens in minutes with Docker Compose. Open source, self-hosted, and built for teams who are tired of manual incident investigation."
-    href="https://docs.prismalens.io/getting-started/quick-start"
-    label="Read the Quick Start Guide"
+    title="Ready to try it on a real alert?"
+    description="Install the CLI, run pl doctor to check your setup, and investigate your first firing alert in a few minutes."
+    href={`${docsBase}/cli/`}
+    label="Get Started →"
   />
 </BaseLayout>

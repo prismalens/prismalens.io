@@ -4,56 +4,72 @@ import Hero from '../components/Hero.astro'
 import FeatureGrid from '../components/FeatureGrid.astro'
 import CTA from '../components/CTA.astro'
 
+const docsBase = import.meta.env.DEV ? 'http://localhost:4322' : 'https://docs.prismalens.io'
+
 const coreFeatures = [
   {
-    title: 'Command Center',
+    title: 'Two ways to start an investigation',
     description:
-      'Real-time dashboard showing all active incidents, their severity, affected services, and current investigation status.',
-    icon: '🎛️',
+      'Pipe in a FiringAlert JSON (or a webhook/Alertmanager-shaped payload) on stdin, or skip the alert and describe the problem with --query. Either way, the CLI streams a live timeline as it works.',
+    icon: 'search',
   },
   {
-    title: 'AI Investigations',
+    title: 'Ordered-evidence reports',
     description:
-      'LangGraph-powered agents that autonomously investigate incidents by querying your observability tools and correlating signals.',
-    icon: '🤖',
+      'Every report has the same shape: a root cause (or an honest "not determined"), hypotheses ranked by plausibility with supporting/contradicting evidence, what was ruled out, coverage, and next steps. No numeric confidence scores.',
+    icon: 'activity',
   },
   {
-    title: 'Incident Timeline',
+    title: 'Bring your own model provider',
     description:
-      'Automatically constructed timeline of events leading up to and during an incident, with evidence from multiple sources.',
-    icon: '📊',
+      'The default deepagents harness (a coding agent it drives locally) speaks the OpenAI protocol — Ollama, OpenAI, Groq, or your own OpenAI-compatible endpoint. Prefer Claude Code? Use --harness claude-code with your Anthropic credential instead.',
+    icon: 'link',
   },
   {
-    title: 'Service Catalog',
+    title: 'Permission modes',
     description:
-      'Maintain a living catalog of your services with ownership, dependencies, runbooks, and integration metadata.',
-    icon: '📋',
+      '--mode controls what the harness is asked to do: read-only (default), supervised, auto, or dangerous. --dangerously-skip-permissions is a shortcut for the last one.',
+    icon: 'shield',
   },
   {
-    title: 'Integration Hub',
+    title: 'Sandboxed isolation, with a self-check',
     description:
-      'Connect Prometheus, Grafana, Datadog, New Relic, PagerDuty, and more. Generic webhook support for custom sources.',
-    icon: '🔌',
+      '--sandbox auto prefers an OS-level egress boundary when one is available, and only falls back to software-level (process) limits when a real egress self-check shows the boundary would not actually contain the run — and says so, never silently.',
+    icon: 'unlock',
   },
   {
-    title: 'Role-Based Access',
+    title: 'Every run persisted, JSON for scripting',
     description:
-      'Fine-grained permissions for who can view, manage, and resolve incidents across your organization.',
-    icon: '🔐',
+      'Each investigation writes its event stream and report under ~/.prismalens/runs/<runId>/. Add --json to print the InvestigationReport as machine-readable output, or --output to save a copy.',
+    icon: 'layers',
   },
 ]
 ---
 
-<BaseLayout title="Features" description="Explore the features that make PrismaLens the fastest way to resolve production incidents.">
+<BaseLayout title="Features" description="What the PrismaLens CLI does today — read-only AI investigation, bring-your-own-API-key model providers, and an enforced sandbox.">
   <Hero
-    title="Everything you need for incident investigation"
-    subtitle="From automated root cause analysis to multi-source correlation, PrismaLens gives your team superpowers when things go wrong."
+    title="What the CLI does today"
+    subtitle="A terminal tool that investigates a firing alert like an on-call engineer would, and hands you back a report you can check line by line."
   />
   <FeatureGrid features={coreFeatures} />
+
+  <!-- In development -->
+  <section class="px-4 py-16 sm:px-6 lg:px-8">
+    <div class="mx-auto max-w-3xl rounded-2xl p-8" style="border: 1px dashed var(--border); background: color-mix(in srgb, var(--card) 60%, transparent);">
+      <h2 class="text-xl font-bold mb-4 text-center" style="color: var(--foreground);">In development — not yet released</h2>
+      <ul class="mx-auto max-w-md space-y-2 text-base" style="color: var(--muted-foreground);">
+        <li>&bull; A self-hosted web UI</li>
+        <li>&bull; An incident command center</li>
+        <li>&bull; Webhook alert intake from your existing monitoring stack</li>
+        <li>&bull; Multi-source correlation across incidents</li>
+      </ul>
+    </div>
+  </section>
+
   <CTA
     title="See it in action"
-    description="Deploy PrismaLens locally in under 5 minutes and run your first AI-powered investigation."
-    href="https://docs.prismalens.io/getting-started/quick-start"
-    label="Quick Start Guide"
+    description="Install the CLI and run your first read-only investigation against a real repo."
+    href={`${docsBase}/cli/`}
+    label="Read the CLI docs"
   />
 </BaseLayout>

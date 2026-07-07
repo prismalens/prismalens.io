@@ -1,0 +1,73 @@
+---
+import ThemeSelect from '@astrojs/starlight/components/ThemeSelect.astro'
+import { buttonVariants } from '@/components/ui/button'
+
+const siteBase = import.meta.env.DEV ? 'http://localhost:4321' : 'https://prismalens.io';
+---
+
+<!-- Fills Starlight's fixed header shell (header.header) — the shell paints bg + border, theme-aware. -->
+<div class="docs-header mx-auto flex w-full max-w-7xl items-center justify-between">
+  <!-- Split lockup: the brand exits to the marketing site, "Docs" is home within the docs. -->
+  <span class="flex items-center gap-2 text-xl font-bold">
+    <a href={siteBase} class="flex items-center gap-2" title="prismalens.io">
+      <svg width="24" height="24" viewBox="0 0 64 64" fill="none" aria-hidden="true">
+        <g stroke-linecap="round">
+          <path d="M2 34H20" stroke="var(--sl-color-white)" opacity=".55" stroke-width="3"/>
+          <path d="M43.5 28.3 62 17" stroke="#38BDF8" stroke-width="3"/>
+          <path d="M44 29 62 26" stroke="#6366F1" stroke-width="3"/>
+          <path d="M44 30.2 62 35" stroke="#8B5CF6" stroke-width="3"/>
+          <path d="M43.5 31 62 44" stroke="#C026D3" stroke-width="3"/>
+          <path d="M32 12 51 47H13Z" stroke="var(--sl-color-white)" stroke-width="3.5" stroke-linejoin="round"/>
+        </g>
+      </svg>
+      <span class="whitespace-nowrap"><span style="color: var(--sl-color-accent);">Prisma</span><span style="color: var(--sl-color-white);">Lens</span></span>
+    </a>
+    <a href="/" class="docs-header-link text-sm font-normal ml-2" style="color: var(--sl-color-gray-2);" title="Docs home">Docs</a>
+  </span>
+
+  <div class="hidden items-center gap-6 md:flex">
+    <!-- Marketing site links -->
+    <a
+      href={`${siteBase}/features`}
+      class="docs-header-link text-sm transition-colors"
+      style="color: var(--sl-color-gray-2);"
+    >
+      Features
+    </a>
+    <a
+      href={`${siteBase}/about`}
+      class="docs-header-link text-sm transition-colors"
+      style="color: var(--sl-color-gray-2);"
+    >
+      About
+    </a>
+
+    <ThemeSelect />
+
+    <!-- GitHub link -->
+    <a
+      href="https://github.com/prismalens/prismalens"
+      target="_blank"
+      rel="noopener noreferrer"
+      class={buttonVariants({ variant: 'default', size: 'sm' })}
+    >
+      View on GitHub
+    </a>
+  </div>
+</div>
+
+<style>
+  /* The Starlight header shell already paints var(--sl-color-bg-nav) + hairline; just add blur. */
+  :global(header.header) {
+    backdrop-filter: blur(12px);
+  }
+
+  .docs-header a {
+    text-decoration: none;
+  }
+
+  /* Navigation link hover state */
+  .docs-header-link:hover {
+    color: var(--sl-color-accent) !important;
+  }
+</style>

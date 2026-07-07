@@ -1,0 +1,77 @@
+---
+title: Skills Configuration
+description: Environment variables for skills environment variables schema.
+---
+
+# Skills Configuration
+
+:::note[Auto-generated Documentation]
+This page is automatically generated from source code.
+- **Last updated:** 2026-02-06T12:07:30.005Z
+- **Source:** [skills.ts](https://github.com/prismalens/prismalens/blob/20ebbb27b1a8e3908ead47dcf1092a22df48ed6e/packages/@prismalens/config/src/schemas/skills.ts)
+:::
+
+## Overview
+
+Skills environment variables schema.
+
+Configure paths to custom skill directories and MCP (Model Context Protocol) server definitions to extend PrismaLens capabilities.
+
+## Environment Variables
+
+| Variable | Type | Required | Default | Description |
+|----------|------|----------|---------|-------------|
+| `PRISMALENS_CARTOGRAPHER_SKILLS_DIR` | string | No | - | Custom skills directory for Cartographer subagent |
+| `PRISMALENS_DETECTIVE_SKILLS_DIR` | string | No | - | Custom skills directory for Detective subagent |
+| `PRISMALENS_SURGEON_SKILLS_DIR` | string | No | - | Custom skills directory for Surgeon subagent |
+| `PRISMALENS_ADDITIONAL_SKILLS_DIR` | string | No | - | Additional skills directory path (merged with built-in skills) |
+| `PRISMALENS_MCP_CODE_PATHFINDER_ENABLED` | string | Yes | `false` | Enable Code Pathfinder MCP for call graph analysis |
+| `PRISMALENS_MCP_CODE_PATHFINDER_PROJECT_PATH` | string | No | - | Project path for Code Pathfinder analysis |
+| `PRISMALENS_MCP_CODE_INDEX_ENABLED` | string | Yes | `false` | Enable Code Index MCP for multi-language AST analysis |
+| `PRISMALENS_MCP_CODE_INDEX_PROJECT_PATH` | string | No | - | Project path for Code Index MCP |
+| `PRISMALENS_MCP_RIPGREP_ENABLED` | string | Yes | `false` | Enable mcp-ripgrep for fast pattern search |
+| `PRISMALENS_MCP_RIPGREP_BASE_DIR` | string | No | - | Base directory for ripgrep searches |
+
+## Docker Secrets Support
+
+All environment variables support Docker and Kubernetes secrets via the `_FILE` suffix pattern. This allows you to mount secrets as files instead of passing them directly as environment variables.
+
+**Example:**
+
+```bash
+# Direct value (less secure for secrets)
+ANTHROPIC_API_KEY=sk-ant-xxx
+
+# Or via mounted secret file (recommended for production)
+ANTHROPIC_API_KEY_FILE=/run/secrets/anthropic_key
+```
+
+When a `_FILE` variable is provided, PrismaLens will read the secret from that file path. This is the recommended approach for sensitive values in containerized environments.
+
+## Example Configuration
+
+```bash title=".env"
+# Enable Code Pathfinder MCP for call graph analysis
+PRISMALENS_MCP_CODE_PATHFINDER_ENABLED=false
+
+# Enable Code Index MCP for multi-language AST analysis
+PRISMALENS_MCP_CODE_INDEX_ENABLED=false
+
+# Enable mcp-ripgrep for fast pattern search
+PRISMALENS_MCP_RIPGREP_ENABLED=false
+```
+
+
+
+## Configuration Precedence
+
+Environment variables have the highest priority and override any values stored in the database (configured via the Settings UI). Default values defined in the schema are used when neither an environment variable nor a database value is set.
+
+## Related Configuration
+
+- [Global Configuration](/reference/config-global)
+- [Database](/reference/config-database)
+- [Logging](/reference/config-logging)
+- [LLM Providers](/reference/config-llm)
+- [Configuration Overview](/reference/)
+

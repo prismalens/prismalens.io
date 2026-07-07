@@ -10,29 +10,62 @@ import CTA from '../components/CTA.astro'
     subtitle="We're building the future of incident investigation — where AI does the searching and your team does the fixing."
   />
   <section class="mx-auto max-w-3xl px-4 py-16 sm:px-6 lg:px-8">
-    <div class="space-y-8 text-gray-300">
+    <div class="space-y-6 text-muted-foreground">
+      <h2 class="text-2xl font-bold text-foreground">Why We Built This</h2>
+
       <p>
-        PrismaLens was born from a simple frustration: when production breaks, engineers spend more
-        time searching for the cause than fixing it. They jump between Grafana dashboards, grep
-        through logs, check deployment timelines, and piece together a story manually.
+        At 2:47am on a Tuesday, our payment API started timing out. Revenue dropped
+        to zero. The on-call engineer spent 90 minutes jumping between Grafana dashboards,
+        grepping logs, and correlating deployment times before finding the cause: a database
+        migration that added an unindexed column.
       </p>
+
       <p>
-        We believe AI agents can do this investigation work — faster, more thoroughly, and without
-        the cognitive load. PrismaLens connects to your existing observability stack and uses
-        LangGraph-powered agents to automatically correlate signals, build timelines, and surface
-        root causes.
+        That engineer had all the right tools — Prometheus, Grafana, distributed tracing,
+        structured logs. The problem wasn't <em>observability</em>. It was
+        <span class="text-primary font-semibold">correlation</span>. Connecting the dots
+        across systems, timelines, and signal types is cognitive work that takes time and
+        drains focus.
       </p>
+
       <p>
-        PrismaLens is open source at its core. We believe incident response tooling should be
-        transparent, extensible, and free from vendor lock-in. Self-host with Docker Compose and
-        maintain full control over your data.
+        <strong class="text-foreground">The PrismaLens CLI automates that correlation.</strong> Point
+        it at a repo, pipe in a firing alert (or describe the problem with <code>--query</code>), and it
+        rents a harness — a coding agent it drives locally — to gather evidence read-only, then hands back a report:
+        hypotheses ranked most to least plausible, each backed by the evidence that supports or
+        contradicts it — no numeric confidence scores, just an ordered trail you can check.
+      </p>
+
+      <p>
+        We built PrismaLens because we believe incident response should be about
+        <em>fixing</em> problems, not <em>finding</em> them. Your observability tools
+        already captured the evidence. Let AI do the detective work.
+      </p>
+
+      <h3 class="text-xl font-bold text-foreground mt-8">Open Source by Design</h3>
+
+      <p>
+        PrismaLens is open source (Apache-2.0) because incident response tools should be
+        transparent. You should know exactly how investigations run, what data gets queried, and
+        how conclusions are reached. Run it with your own model provider key — no PrismaLens
+        account, no subscription, and every run's events and report stay on your machine under
+        <code>~/.prismalens/runs/</code>.
+      </p>
+
+      <h3 class="text-xl font-bold text-foreground mt-8">Built for SREs, by SREs</h3>
+
+      <p>
+        We're not building another observability platform. The CLI is a terminal-first tool
+        that reads your repo and investigates read-only — it doesn't ask you to migrate off
+        Prometheus, Grafana, Datadog, or New Relic. A self-hosted server that connects to those
+        tools directly is on the roadmap, but not released yet.
       </p>
     </div>
   </section>
   <CTA
     title="Join the community"
-    description="PrismaLens is open source. Star us on GitHub, contribute, or just say hello."
-    href="https://github.com/prismalens"
+    description="PrismaLens is open source. Star us on GitHub, open an issue with feedback or bug reports, or just say hello — code contributions open up a little later."
+    href="https://github.com/prismalens/prismalens"
     label="View on GitHub"
   />
 </BaseLayout>

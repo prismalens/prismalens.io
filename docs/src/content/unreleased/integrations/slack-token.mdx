@@ -1,0 +1,57 @@
+---
+title: "Slack (Bot Token) Integration"
+description: Setup guide for the Slack (Bot Token) integration in PrismaLens
+---
+
+# Slack (Bot Token) Integration
+
+:::note[Auto-generated Documentation]
+This page is automatically generated from source code.
+- **Last updated:** 2026-03-10T17:31:21.835Z
+- **Source:** [templates/](https://github.com/prismalens/prismalens/blob/a457b79ffdf7b11c18176d39cc41201300b8e6d1/packages/@prismalens/integrations/src/templates/)
+:::
+
+## Overview
+
+| Property | Value |
+|----------|-------|
+| **Auth Mode** | API Key |
+| **Category** | Communication |
+| **Template ID** | `slack-token` |
+
+## Prerequisites
+
+Start here: [Slack setup page](https://api.slack.com/apps)
+
+1. Go to api.slack.com/apps and click 'Create New App'
+2. Choose 'From scratch' and name it 'PrismaLens'
+3. Go to 'OAuth & Permissions' and add Bot Token Scopes: chat:write
+4. Click 'Install to Workspace' and authorize
+5. Copy the 'Bot User OAuth Token' (starts with xoxb-)
+
+## Credential Fields
+
+| Field | Label | Type | Required | Sensitive | Description |
+|-------|-------|------|----------|-----------|-------------|
+| `apiKey` | Bot Token | password | Yes | Yes | Bot User OAuth Token — starts with xoxb-, found on 'OAuth & Permissions' page after installation |
+
+## Connection Fields
+
+| Field | Label | Type | Required | Sensitive | Description |
+|-------|-------|------|----------|-----------|-------------|
+| `defaultChannel` | Default Channel | string | No | No | Default Channel — the Slack channel name (e.g., #incidents) where PrismaLens sends notifications |
+
+## Required Permissions
+
+| Permission | Description |
+|------------|-------------|
+| `write` | Send messages to channels |
+
+## Tips
+
+- The bot token approach is simpler than OAuth but requires manual token management
+- Invite the bot to the target channel with /invite @PrismaLens
+
+## Provider Documentation
+
+- [Slack API docs](https://api.slack.com/messaging/webhooks)

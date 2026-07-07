@@ -1,0 +1,16 @@
+name: Content suggestion
+description: Suggest an improvement to the docs or the marketing site.
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: suggestion
+    attributes:
+      label: What should change?
+      description: Missing documentation, unclear explanation, or a site improvement — and why it would help.
+    validations:
+      required: true
+  - type: input
+    id: page
+    attributes:
+      label: Related page (if any)
+      placeholder: https://docs.prismalens.io/cli/configuration/

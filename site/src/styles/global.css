@@ -1,2 +1,162 @@
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
+
+/* Import PrismaLens brand fonts */
+@import "@fontsource-variable/inter";
+@import "@fontsource-variable/jetbrains-mono";
+
+/* Shared design tokens (light :root + .dark overrides) */
+@import "./design-tokens/tokens.css";
+@import "./design-tokens/tailwind-preset.css";
+
+/* Theme-aware body styles */
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* ── Grid background pattern ── */
+.grid-background {
+  background-color: var(--background);
+  background-image:
+    linear-gradient(to right, color-mix(in srgb, var(--border) 50%, transparent) 1px, transparent 1px),
+    linear-gradient(to bottom, color-mix(in srgb, var(--border) 50%, transparent) 1px, transparent 1px);
+  background-size: 40px 40px;
+  position: relative;
+  transition: background-color 0.3s ease;
+}
+
+.grid-background::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 50% 0%, color-mix(in srgb, var(--primary) 15%, transparent), transparent 50%);
+  pointer-events: none;
+}
+
+/* ── Terminal-style glow effect ── */
+.terminal-glow {
+  box-shadow:
+    0 0 20px color-mix(in srgb, var(--primary) 10%, transparent),
+    0 0 40px color-mix(in srgb, var(--primary) 5%, transparent);
+}
+
+/* ── Status indicator pulse ── */
+.status-indicator {
+  animation: statusPulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes statusPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* ── Code block styling ── */
+pre {
+  background-color: var(--card);
+  border: 1px solid var(--border);
+  @apply rounded-lg p-4 overflow-x-auto font-mono text-sm;
+}
+
+code {
+  color: var(--primary);
+  @apply font-mono;
+}
+
+/* ── Header ── */
+.header-bg {
+  border-bottom: 1px solid var(--border);
+  background: color-mix(in srgb, var(--background) 80%, transparent);
+  backdrop-filter: blur(8px);
+  transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+.logo-lens {
+  color: var(--foreground);
+  transition: color 0.3s ease;
+}
+
+.nav-link {
+  color: var(--muted-foreground);
+  transition: color 0.3s ease;
+}
+
+.nav-link:hover {
+  color: var(--primary);
+}
+
+/* ── Hero ── */
+.hero-title {
+  color: var(--foreground);
+  transition: color 0.3s ease, text-shadow 0.3s ease;
+}
+
+.dark .hero-title {
+  text-shadow: 0 4px 20px rgba(0,0,0,0.5), 0 0 40px color-mix(in srgb, var(--primary) 30%, transparent);
+}
+
+.hero-subtitle {
+  color: var(--muted-foreground);
+  transition: color 0.3s ease, text-shadow 0.3s ease;
+}
+
+.dark .hero-subtitle {
+  text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+}
+
+/* ── Feature cards ── */
+.feature-card-bg {
+  background: linear-gradient(135deg, color-mix(in srgb, var(--card) 80%, transparent) 0%, color-mix(in srgb, var(--background) 90%, transparent) 100%);
+  border: 1px solid var(--border);
+  transition: background 0.3s ease, border-color 0.3s ease;
+}
+
+.feature-title {
+  color: var(--foreground);
+  transition: color 0.3s ease;
+}
+
+.feature-description {
+  color: var(--muted-foreground);
+  transition: color 0.3s ease;
+}
+
+/* ── Footer ── */
+.footer-bg {
+  border-top: 1px solid var(--border);
+  background: var(--background);
+  transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+.footer-text {
+  color: var(--muted-foreground);
+  transition: color 0.3s ease;
+}
+
+.footer-heading {
+  color: var(--foreground);
+  transition: color 0.3s ease;
+}
+
+.footer-copyright {
+  color: var(--muted-foreground);
+  transition: color 0.3s ease;
+}
+
+/* ── CTA ── */
+.cta-card-bg {
+  border: 2px solid color-mix(in srgb, var(--primary) 50%, transparent);
+  background: linear-gradient(135deg, var(--card) 0%, var(--background) 100%);
+  transition: background 0.3s ease, border-color 0.3s ease;
+}
+
+.cta-title {
+  color: var(--foreground);
+  transition: color 0.3s ease;
+}
+
+.cta-description {
+  color: var(--muted-foreground);
+  transition: color 0.3s ease;
+}

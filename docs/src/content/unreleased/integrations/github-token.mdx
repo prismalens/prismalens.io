@@ -1,0 +1,61 @@
+---
+title: "GitHub (PAT) Integration"
+description: Setup guide for the GitHub (PAT) integration in PrismaLens
+---
+
+# GitHub (PAT) Integration
+
+:::note[Auto-generated Documentation]
+This page is automatically generated from source code.
+- **Last updated:** 2026-03-10T17:31:21.835Z
+- **Source:** [templates/](https://github.com/prismalens/prismalens/blob/a457b79ffdf7b11c18176d39cc41201300b8e6d1/packages/@prismalens/integrations/src/templates/)
+:::
+
+## Overview
+
+| Property | Value |
+|----------|-------|
+| **Auth Mode** | API Key |
+| **Category** | Version Control |
+| **Template ID** | `github-token` |
+
+## Prerequisites
+
+Start here: [GitHub setup page](https://github.com/settings/tokens?type=beta)
+
+1. Go to GitHub → Settings → Developer settings → Personal access tokens → Fine-grained tokens
+2. Click 'Generate new token'
+3. Set a descriptive name like 'PrismaLens'
+4. Set expiration (recommend 90 days, rotate regularly)
+5. Under 'Repository access', select the repositories PrismaLens should access
+6. Under 'Permissions', grant 'Contents: Read-only' and 'Metadata: Read-only'
+7. Click 'Generate token' and copy the token immediately (it won't be shown again)
+
+## Credential Fields
+
+| Field | Label | Type | Required | Sensitive | Description |
+|-------|-------|------|----------|-----------|-------------|
+| `apiKey` | Personal Access Token | password | Yes | Yes | Personal Access Token — the token starting with github_pat_... |
+
+## Connection Fields
+
+| Field | Label | Type | Required | Sensitive | Description |
+|-------|-------|------|----------|-----------|-------------|
+| `organization` | Organization | string | No | No | Organization name — the GitHub org whose repos PrismaLens should access |
+
+## Required Permissions
+
+| Permission | Description |
+|------------|-------------|
+| `Contents` | Read-only — access repository files and code |
+| `Metadata` | Read-only — access repository metadata |
+
+## Tips
+
+- Fine-grained PATs are recommended over classic tokens for better security scoping
+- Tokens expire — set a calendar reminder to rotate before expiry
+- Classic tokens (ghp_...) also work but grant broader access than necessary
+
+## Provider Documentation
+
+- [GitHub API docs](https://docs.github.com/en/rest)

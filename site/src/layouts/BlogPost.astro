@@ -1,5 +1,7 @@
 ---
 import BaseLayout from './BaseLayout.astro'
+import { badgeVariants } from '@/components/ui/badge'
+import { cn } from '@/lib/utils'
 
 interface Props {
   title: string
@@ -38,7 +40,7 @@ function formatDate(date: Date): string {
       <div class="mb-4 flex flex-wrap gap-2">
         {
           tags.map((tag) => (
-            <span class="rounded-full bg-violet-500/10 px-3 py-1 text-sm text-violet-400">
+            <span class={cn(badgeVariants({ variant: 'secondary' }), 'bg-primary/10 text-primary')}>
               {tag}
             </span>
           ))
@@ -47,7 +49,7 @@ function formatDate(date: Date): string {
       <h1 class="mb-4 text-4xl font-bold tracking-tight sm:text-5xl">
         {title}
       </h1>
-      <div class="flex items-center gap-4 text-sm text-gray-400">
+      <div class="flex items-center gap-4 text-sm text-muted-foreground">
         <span>{author}</span>
         <span>&middot;</span>
         <time datetime={pubDate.toISOString()}>{formatDate(pubDate)}</time>
@@ -61,7 +63,7 @@ function formatDate(date: Date): string {
       </div>
     </header>
     <div
-      class="prose prose-invert prose-violet max-w-none prose-headings:font-bold prose-a:text-violet-400 prose-code:text-violet-300"
+      class="prose dark:prose-invert max-w-none prose-headings:font-bold prose-a:text-primary prose-code:text-primary/80"
     >
       <slot />
     </div>

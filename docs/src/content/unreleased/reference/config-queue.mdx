@@ -1,0 +1,108 @@
+---
+title: Queue Configuration
+description: Environment variables for redis configuration schema for queue mode.
+---
+
+# Queue Configuration
+
+:::note[Auto-generated Documentation]
+This page is automatically generated from source code.
+- **Last updated:** 2026-02-06T12:07:30.005Z
+- **Source:** [queue.ts](https://github.com/prismalens/prismalens/blob/20ebbb27b1a8e3908ead47dcf1092a22df48ed6e/packages/@prismalens/config/src/schemas/queue.ts)
+:::
+
+## Overview
+
+Redis configuration schema for queue mode.
+
+Configure Redis connection settings for queue-based processing mode. Queue mode is recommended for production deployments to handle concurrent investigations reliably.
+
+## Environment Variables
+
+| Variable | Type | Required | Default | Description |
+|----------|------|----------|---------|-------------|
+| `PRISMALENS_REDIS_HOST` | string | Yes | `localhost` | Redis host for queue mode |
+| `PRISMALENS_REDIS_PORT` | number | Yes | `6379` | Redis port for queue mode |
+| `PRISMALENS_REDIS_USERNAME` | string | Yes | - | Redis username for queue mode (if applicable) |
+| `PRISMALENS_REDIS_PASSWORD` | string | Yes | - | Redis password for queue mode (if applicable) |
+| `PRISMALENS_REDIS_DB` | number | Yes | `0` | Redis database index for queue mode |
+| `PRISMALENS_REDIS_TLS` | boolean | Yes | `false` | Use TLS for Redis connection |
+| `PRISMALENS_REDIS_CA` | string | Yes | - | Redis CA certificate (if applicable) |
+| `PRISMALENS_REDIS_CLUSTER_NODES` | string | Yes | - | Redis cluster nodes (comma-separated host:port) for queue mode (if applicable), e.g. "host1:6379,host2:6379" |
+
+## Docker Secrets Support
+
+All environment variables support Docker and Kubernetes secrets via the `_FILE` suffix pattern. This allows you to mount secrets as files instead of passing them directly as environment variables.
+
+**Example:**
+
+```bash
+# Direct value (less secure for secrets)
+ANTHROPIC_API_KEY=sk-ant-xxx
+
+# Or via mounted secret file (recommended for production)
+ANTHROPIC_API_KEY_FILE=/run/secrets/anthropic_key
+```
+
+When a `_FILE` variable is provided, PrismaLens will read the secret from that file path. This is the recommended approach for sensitive values in containerized environments.
+
+## Example Configuration
+
+```bash title=".env"
+# Redis host for queue mode
+PRISMALENS_REDIS_HOST=localhost
+
+# Redis port for queue mode
+PRISMALENS_REDIS_PORT=6379
+
+# Redis username for queue mode (if applicable)
+PRISMALENS_REDIS_USERNAME=<value>
+
+# Redis password for queue mode (if applicable)
+PRISMALENS_REDIS_PASSWORD=<value>
+
+# Redis database index for queue mode
+PRISMALENS_REDIS_DB=0
+
+# Use TLS for Redis connection
+PRISMALENS_REDIS_TLS=false
+
+# Redis CA certificate (if applicable)
+PRISMALENS_REDIS_CA=<value>
+
+# Redis cluster nodes (comma-separated host:port) for queue mode (if applicable), e.g. "host1:6379,host2:6379"
+PRISMALENS_REDIS_CLUSTER_NODES=<value>
+```
+
+
+## Queue Mode vs Regular Mode
+
+PrismaLens can run in two modes:
+
+### Regular Mode (Default)
+- Investigations run directly in the API server process
+- Simpler to deploy (no Redis required)
+- Limited concurrency control
+- Good for development and light production use
+
+### Queue Mode (Recommended for Production)
+- Set `PRISMALENS_MODE=queue` to enable
+- Requires Redis for job queue management
+- Better resource management and concurrency control
+- Recommended for production deployments
+- Supports horizontal scaling with multiple worker processes
+
+To enable queue mode, set `PRISMALENS_MODE=queue` and configure the Redis connection settings below.
+
+## Configuration Precedence
+
+Environment variables have the highest priority and override any values stored in the database (configured via the Settings UI). Default values defined in the schema are used when neither an environment variable nor a database value is set.
+
+## Related Configuration
+
+- [Global Configuration](/reference/config-global)
+- [Database](/reference/config-database)
+- [Logging](/reference/config-logging)
+- [LLM Providers](/reference/config-llm)
+- [Configuration Overview](/reference/)
+

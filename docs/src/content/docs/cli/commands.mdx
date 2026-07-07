@@ -1,0 +1,204 @@
+---
+title: Commands
+description: Full flag reference for the four prismalens CLI commands — investigate, serve, doctor, and init.
+---
+
+The `prismalens` binary (alias `pl`) has four subcommands:
+
+```
+prismalens <command> [flags]      # alias: pl
+
+  investigate   Run a read-only root-cause investigation of a firing alert.
+  serve         Run the JSON-RPC 2.0 server over stdio (the live channel for apps).
+  doctor        Preflight-check the investigation environment.
+  init          Scaffold a prismalens.config.yaml in the current directory.
+```
+
+## `investigate`
+
+Seeds an investigation from a firing alert, rents a Tier-2 harness to gather
+evidence read-only, and renders the ordered-evidence report once the run
+resolves.
+
+The seed alert comes from **one of**:
+
+- a `FiringAlert` JSON piped on stdin (also accepts a webhook/Alertmanager-shaped
+  payload — `alertname`/`severity` are read from the top level, falling back to
+  `labels`), or
+- `--query` — a one-line description the CLI synthesizes into a minimal alert.
+
+If neither is given (no pipe, no `--query`), the run fails with a hard input
+error.
+
+### Flags
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--repo <dir>` | string | current directory | Path to the repository the harness investigates (its cwd). |
+| `--query, -q <text>` | string | — | Synthesize an alert from this one-line description (alternative to piping a `FiringAlert` JSON on stdin). |
+| `--config <path>` | string | — | Path to a `prismalens.config.yaml` (skips the upward config search). |
+| `--model <id>` | string | — | Override `agent.model` — a **bare** model id, e.g. `gpt-oss:120b`. |
+| `--harness <name>` | enum: `deepagents` \| `claude-code` \| `codex` | `agent.default` in config (`deepagents`) | Tier-2 harness backend. `codex` is a reserved slot — selecting it throws (not implemented). |
+| `--mode <mode>` | enum: `read-only` \| `supervised` \| `auto` \| `dangerous` | `agent.permissions.mode` in config (`read-only`) | Permission posture the harness runs under. |
+| `--dangerously-skip-permissions` | boolean | `false` | Alias for `--mode dangerous`. Wins over `--mode` when set. |
+| `--sandbox <mode>` | enum: `auto` \| `process` \| `srt` \| `e2b` | `agent.sandbox` in config (`auto`) | Isolation boundary the harness runs in. `auto` uses `srt` (an enforced OS boundary) when its egress self-check passes, else the cooperative `process` floor — the degrade is logged, never silent. `e2b` is an explicit-only cloud/remote boundary that needs `E2B_API_KEY`. |
+| `--service <name>` | string | — | Select the service context by name from `services` in config (overrides the alert's service label). |
+| `--json` | boolean | `false` | Print the `InvestigationReport` as JSON to stdout (suppresses the human renderer and implies `--quiet`). |
+| `--output <file>` | string | — | Also write the `InvestigationReport` JSON to this file. |
+| `--quiet` | boolean | `false` | Suppress progress and the human renderer (errors still go to stderr). |
+
+Only harnesses driven over ACP (`deepagents`) are spawned as a child process
+the engine can place inside an enforced boundary. Requesting `--sandbox srt`
+or `--sandbox e2b` with a non-ACP harness (`claude-code`) fails fast — the CLI
+won't claim an enforcement it can't apply. `--sandbox auto` or `--sandbox
+process` on a non-ACP harness runs without a boundary silently, since nothing
+was claimed.
+
+### Exit codes
+
+- **`0`** — the run produced a synthesized `InvestigationReport`.
+- **`1`** — a hard input error (no alert/query, an unbuilt harness, a sandbox
+  mode a harness can't honor), a mid-stream failure, or a **no-evidence** run
+  (the harness branch gathered nothing and errored — the CLI reports the
+  failure rather than fabricating a root cause).
+
+### Examples
+
+```bash
+# Synthesized alert from a one-liner, deepagents harness, investigating ./my-service
+prismalens investigate \
+  --repo ./my-service \
+  --query "p99 checkout latency tripled after 14:00 UTC" \
+  --harness deepagents
+
+# Pipe a real FiringAlert (or webhook/Alertmanager-shaped) payload on stdin
+cat alert.json | prismalens investigate --repo ./my-service
+
+# Machine-readable report to stdout, a copy on disk, no progress chatter
+prismalens investigate -q "OOMKilled in payments pod" --json --output report.json
+```
+
+Every run is persisted under `~/.prismalens/runs/<runId>/` regardless of how
+it was invoked:
+
+```
+~/.prismalens/
+  sessions.json                  # run index (runId -> SessionRecord)
+  runs/<runId>/session.json      # per-run metadata mirror
+  runs/<runId>/events.jsonl      # canonical event stream (one JSON per line)
+  runs/<runId>/report.json       # the synthesized InvestigationReport
+```
+
+## `serve`
+
+Runs a **JSON-RPC 2.0** server over **stdio**, **newline-delimited** in both
+directions — one JSON value per line, requests on stdin, responses and
+notifications on stdout. This is the live channel a driving app (the desktop
+app, the web API) uses instead of shelling out to `investigate` per run. No
+flags.
+
+The `~/.prismalens/runs/<runId>/` workspace is still written for every run,
+exactly as the `investigate` command writes it.
+
+### `initialize`
+
+```jsonc
+--> {"jsonrpc":"2.0","id":1,"method":"initialize"}
+<-- {"jsonrpc":"2.0","id":1,"result":{
+      "protocolVersion": 1,
+      "serverInfo": { "name": "prismalens", "version": "0.0.1" }
+    }}
+```
+
+### `investigate`
+
+`params`:
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `alert` | object | A `FiringAlert` (or webhook-shaped payload), same as stdin for the CLI command. |
+| `query` | string | Alternative to `alert` — synthesizes an alert from a one-line description. |
+| `repo` | string | Repository path (defaults to the server's cwd). |
+| `harness` | string | `deepagents` \| `claude-code` \| `codex`. |
+| `model` | string | Bare model id override. |
+| `config` | string | Path to a `prismalens.config.yaml`. |
+| `service` | string | Service name from `services` in config. |
+| `mode` | string | Permission posture: `read-only` \| `supervised` \| `auto` \| `dangerous`. |
+| `dangerouslySkipPermissions` | boolean | Alias for `mode: "dangerous"`. Wins over `mode`. |
+
+Streams a **notification per canonical event** (including the terminal
+`report` event), then **resolves the request** with `{ runId, report }`:
+
+```jsonc
+--> {"jsonrpc":"2.0","id":2,"method":"investigate",
+     "params":{"query":"checkout latency spike","repo":"./my-service","harness":"deepagents"}}
+
+// zero or more notifications, in order, as the supervisor streams:
+<-- {"jsonrpc":"2.0","method":"investigate/event",
+     "params":{"runId":"<uuid>","event":{ /* CanonicalEvent */ }}}
+// ... agent_step, tool_result, branch_done, (error), then the terminal report event ...
+
+// finally, the request resolves:
+<-- {"jsonrpc":"2.0","id":2,"result":{"runId":"<uuid>","report":{ /* InvestigationReport */ }}}
+```
+
+`CanonicalEvent.kind` is one of `agent_step` | `tool_result` | `branch_done` |
+`error` | `report`. Requests are fire-and-forget on the wire — multiple can run
+concurrently and interleave their notifications; each notification carries its
+`runId` so a driver can demultiplex.
+
+### Error codes
+
+| Code | Meaning |
+| --- | --- |
+| `-32700` | Parse error — invalid JSON on a line. |
+| `-32600` | Invalid request — not a well-formed JSON-RPC 2.0 request. |
+| `-32601` | Method not found. |
+| `-32602` | Invalid params — includes input errors from resolving the investigation (no alert/query, an unknown or unbuilt harness). |
+| `-32603` | Internal error — a mid-stream failure; `data` carries `{ runId }`. |
+| `-32000` | No evidence — the harness branch failed and produced no report; `data` carries `{ runId }`. |
+
+A malformed or failed request always becomes a JSON-RPC error response — the
+server never crashes on bad input.
+
+## `doctor`
+
+Preflight checklist that gates a run. Prints pass/fail per check, then exits
+non-zero **iff a hard check fails**. No flags.
+
+| Check | Hard/Soft | What it verifies |
+| --- | --- | --- |
+| Harness binary | Hard | The binary for the configured harness (`agent.default`) is on `PATH`: `deepagents` → `deepagents-acp`, `claude-code` → `claude`, `codex` → `codex`. |
+| LLM credential | Hard | Any of `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, `GOOGLE_API_KEY`, `OLLAMA_API_KEY`, `GROQ_API_KEY`, `CUSTOM_LLM_API_KEY` is set — or, for `claude-code`, a signed-in `~/.claude/.credentials.json`. |
+| Workspace | Soft | `workspace.base_dir` can be created and is writable. |
+
+```bash
+prismalens doctor
+```
+
+A hard failure prints as an error, a soft failure as a warning, and the
+process exits `1` only when at least one hard check failed — so `doctor` is
+also a reasonable CI smoke check.
+
+## `init`
+
+Scaffolds a commented `prismalens.config.yaml` in the current directory,
+sourced directly from the config schema's defaults so it can't drift from
+what the engine actually uses. No flags.
+
+```bash
+prismalens init
+```
+
+Non-interactive: if `prismalens.config.yaml` already exists in the current
+directory, `init` prints a notice and leaves it untouched — it never
+overwrites.
+
+The scaffold includes commented sections for `agent` (harness + model),
+`telemetry` (Prometheus/Alertmanager/API URLs), and `workspace.base_dir`, with
+live defaults filled in and everything else left commented as a hint.
+
+## Next steps
+
+- [Providers](/cli/providers/) — set up a model provider and harness binary.
+- [Configuration](/cli/configuration/) — the full `prismalens.config.yaml` reference and BYO-key environment variables.

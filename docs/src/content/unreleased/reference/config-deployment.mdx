@@ -1,0 +1,85 @@
+---
+title: Deployment Configuration
+description: Environment variables for deployment configuration schema.
+---
+
+# Deployment Configuration
+
+:::note[Auto-generated Documentation]
+This page is automatically generated from source code.
+- **Last updated:** 2026-02-06T12:07:30.005Z
+- **Source:** [deployment.ts](https://github.com/prismalens/prismalens/blob/20ebbb27b1a8e3908ead47dcf1092a22df48ed6e/packages/@prismalens/config/src/schemas/deployment.ts)
+:::
+
+## Overview
+
+Deployment configuration schema.
+
+Configure deployment-specific settings including encryption keys, SMTP for email notifications, and other production deployment concerns.
+
+## Environment Variables
+
+| Variable | Type | Required | Default | Description |
+|----------|------|----------|---------|-------------|
+| `PRISMALENS_USER_FOLDER` | string | No | - | Path where Prismalens stores user-specific data. Directory stores database file and encryption keys. " + "Defaults to user home directory if not specified. " + "Example: /var/prismalens or /home/user/.custom-prismalens |
+| `PRISMALENS_PATH` | string | No | - | Path to .prismalens directory where CLI stores application files (logs, config, cached data). " + "Defaults to ~/.prismalens if not specified. |
+| `PRISMALENS_ENCRYPTION_KEY` | string | No | - | Hex-encoded 32-byte (64 hex chars) encryption key for encrypting sensitive data at rest. " + "If not set, random key will be generated (not recommended for production). |
+| `PRISMALENS_INTERNAL_SECRET` | string | Yes | `dev-secret-replace-in-prod` | Shared secret for internal API communication. " + "Must be at least 32 characters in production (PRISMALENS_MODE=queue). |
+| `BETTER_AUTH_SECRET` | string | Yes | `dev-secret-replace-in-production-min-32-chars` | Secret key for Better Auth session signing. Generate with: openssl rand -base64 32 |
+| `PRISMALENS_SMTP_HOST` | string | No | - | SMTP server hostname for sending invitation emails |
+| `PRISMALENS_SMTP_PORT` | number | Yes | `587` | SMTP server port (default: 587) |
+| `PRISMALENS_SMTP_USER` | string | No | - | SMTP authentication username |
+| `PRISMALENS_SMTP_PASS` | string | No | - | SMTP authentication password |
+| `PRISMALENS_SMTP_FROM` | string | No | - | Email address to send invitations from |
+| `PRISMALENS_SMTP_SECURE` | boolean | Yes | `true` | Use TLS for SMTP connection (default: true) |
+| `PRISMALENS_MODE` | enum: `regular`, `queue` | Yes | `regular` | Investigation mode: regular (no Redis, HTTP dispatch) or queue (Redis-backed BullMQ) |
+
+## Docker Secrets Support
+
+All environment variables support Docker and Kubernetes secrets via the `_FILE` suffix pattern. This allows you to mount secrets as files instead of passing them directly as environment variables.
+
+**Example:**
+
+```bash
+# Direct value (less secure for secrets)
+ANTHROPIC_API_KEY=sk-ant-xxx
+
+# Or via mounted secret file (recommended for production)
+ANTHROPIC_API_KEY_FILE=/run/secrets/anthropic_key
+```
+
+When a `_FILE` variable is provided, PrismaLens will read the secret from that file path. This is the recommended approach for sensitive values in containerized environments.
+
+## Example Configuration
+
+```bash title=".env"
+# Shared secret for internal API communication. " + "Must be at least 32 characters in production (PRISMALENS_MODE=queue).
+PRISMALENS_INTERNAL_SECRET=dev-secret-replace-in-prod
+
+# Secret key for Better Auth session signing. Generate with: openssl rand -base64 32
+BETTER_AUTH_SECRET=dev-secret-replace-in-production-min-32-chars
+
+# SMTP server port (default: 587)
+PRISMALENS_SMTP_PORT=587
+
+# Use TLS for SMTP connection (default: true)
+PRISMALENS_SMTP_SECURE=true
+
+# Investigation mode: regular (no Redis, HTTP dispatch) or queue (Redis-backed BullMQ)
+PRISMALENS_MODE=regular
+```
+
+
+
+## Configuration Precedence
+
+Environment variables have the highest priority and override any values stored in the database (configured via the Settings UI). Default values defined in the schema are used when neither an environment variable nor a database value is set.
+
+## Related Configuration
+
+- [Global Configuration](/reference/config-global)
+- [Database](/reference/config-database)
+- [Logging](/reference/config-logging)
+- [LLM Providers](/reference/config-llm)
+- [Configuration Overview](/reference/)
+

@@ -8,19 +8,18 @@ on:
       - 'pnpm-workspace.yaml'
       - 'package.json'
       - 'pnpm-lock.yaml'
+  # No paths filter on pull_request: this job is a REQUIRED status check, and a
+  # path-filtered required check never reports on PRs outside its paths — which
+  # blocks them from merging.
   pull_request:
     branches: [main]
-    paths:
-      - 'docs/**'
-      - 'pnpm-workspace.yaml'
-      - 'package.json'
-      - 'pnpm-lock.yaml'
 
 permissions:
   contents: read
 
 jobs:
   build:
+    name: Build docs
     runs-on: ubuntu-latest
     steps:
       - name: Checkout

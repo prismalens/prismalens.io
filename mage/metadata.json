@@ -1,0 +1,9 @@
+{
+  "schema": "mage.v2",
+  "mode": "external",
+  "project": "prismalens-io",
+  "hub_path": "/home/sumit/prismalens-org/prismalens-docs-hub",
+  "hub_repo": "https://github.com/Sumit1993/prismalens-docs-hub.git",
+  "hub_refs": [],
+  "linked_at": "2026-07-07T09:55:55Z"
+}

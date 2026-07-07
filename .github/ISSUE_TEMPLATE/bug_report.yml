@@ -1,0 +1,31 @@
+name: Bug report
+description: Something on prismalens.io or docs.prismalens.io is broken or wrong.
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to file a report. For bugs in the PrismaLens
+        **product** (the CLI itself), please use the
+        [main repository](https://github.com/prismalens/prismalens/issues) instead.
+  - type: input
+    id: page
+    attributes:
+      label: Page URL
+      description: The page where you saw the problem.
+      placeholder: https://docs.prismalens.io/cli/
+    validations:
+      required: true
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What's wrong?
+      description: Broken link, incorrect content, rendering/layout issue, typo — describe what you saw and what you expected.
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Browser / device
+      description: Only needed for rendering or layout issues.
+      placeholder: Firefox 143 on Android
