@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: PrismaLens product bugs (CLI / engine)
+    url: https://github.com/prismalens/prismalens/issues
+    about: Bugs in the PrismaLens CLI itself belong in the main repository.
+  - name: Security vulnerabilities
+    url: https://github.com/prismalens/prismalens.io/security/advisories/new
+    about: Please report security issues privately, not as public issues.
