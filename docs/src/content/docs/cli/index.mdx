@@ -14,10 +14,11 @@ provider key.
 
 A real, unscripted recording: a p99-latency alert from a live demo stack is
 piped into `pl investigate`. The CLI streams the investigation as it happens,
-then prints the report — here it traces the alert to a config change that
-disabled the service's response cache.
+then prints the report — here it reasons from the source and traces the latency
+to a book-lookup endpoint that skips caching and blocks on a slow external API
+call, with the fix ranked first in the next steps.
 
-<img src="/cli-demo.svg" alt="Animated terminal recording: a firing alert is piped into pl investigate, the live investigation timeline streams tool calls, and the final report names a disabled response cache (CACHE_TYPE=NullCache) as the confirmed root cause" style="width:100%;border-radius:8px" loading="lazy" />
+<img src="/cli-demo.svg" alt="Animated terminal recording: a firing alert is piped into pl investigate, the live investigation timeline streams tool calls, and the final report traces the p99 latency to an uncached endpoint that blocks on a slow external API call" style="width:100%;border-radius:8px" loading="lazy" />
 
 The raw [asciinema recording](/cli-demo.cast) is also available.
 
