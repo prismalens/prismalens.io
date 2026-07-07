@@ -15,15 +15,6 @@
 @import "@fontsource-variable/jetbrains-mono";
 @import "@prismalens/design-tokens/starlight.css";
 
-/* Force dark header background globally */
-header,
-.header,
-[data-sl-header],
-.docs-header {
-  background: oklch(0.141 0.005 285.823 / 0.95) !important;
-  border-bottom-color: var(--sl-color-hairline) !important;
-}
-
 /* Theme synchronization */
 :root {
   color-scheme: dark;
@@ -86,6 +77,13 @@ header,
 [data-theme="dark"] .expressive-code {
   --ec-brdCol: var(--sl-color-hairline);
   --ec-codeBg: oklch(0.21 0.006 285.885);
+}
+
+/* Provider tables (cli/providers) — the Notes column was wrapping into ragged
+   4-6-line cells at the default auto column widths. Scoped to .providers-table
+   so it doesn't touch other tables (e.g. the Commands flags table). */
+.providers-table table td:last-child {
+  min-width: 18rem;
 }
 
 /* Light theme equivalents */
