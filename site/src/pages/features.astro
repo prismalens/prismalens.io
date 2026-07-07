@@ -20,9 +20,9 @@ const coreFeatures = [
     icon: 'activity',
   },
   {
-    title: 'BYO model provider',
+    title: 'Bring your own model provider',
     description:
-      'The default deepagents harness speaks the OpenAI protocol — Ollama, OpenAI, Groq, or your own OpenAI-compatible endpoint. Prefer Claude Code? Use --harness claude-code with your Anthropic credential instead.',
+      'The default deepagents harness (a coding agent it drives locally) speaks the OpenAI protocol — Ollama, OpenAI, Groq, or your own OpenAI-compatible endpoint. Prefer Claude Code? Use --harness claude-code with your Anthropic credential instead.',
     icon: 'link',
   },
   {
@@ -34,7 +34,7 @@ const coreFeatures = [
   {
     title: 'Sandboxed isolation, with a self-check',
     description:
-      '--sandbox auto prefers an enforced OS-level boundary (srt) and only falls back to the cooperative process floor once a real egress self-check says the boundary would actually work — and says so, never silently.',
+      '--sandbox auto prefers an OS-level egress boundary when one is available, and only falls back to software-level (process) limits when a real egress self-check shows the boundary would not actually contain the run — and says so, never silently.',
     icon: 'unlock',
   },
   {
@@ -46,7 +46,7 @@ const coreFeatures = [
 ]
 ---
 
-<BaseLayout title="Features" description="What the PrismaLens CLI does today — read-only AI investigation, BYO-key model providers, and an enforced sandbox.">
+<BaseLayout title="Features" description="What the PrismaLens CLI does today — read-only AI investigation, bring-your-own-API-key model providers, and an enforced sandbox.">
   <Hero
     title="What the CLI does today"
     subtitle="A terminal tool that investigates a firing alert like an on-call engineer would, and hands you back a report you can check line by line."

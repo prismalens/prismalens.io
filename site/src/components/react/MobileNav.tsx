@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button"
 import {
   Sheet,
   SheetContent,
+  SheetDescription,
   SheetHeader,
   SheetTitle,
   SheetTrigger,
@@ -33,6 +34,7 @@ export default function MobileNav({ navLinks }: Props) {
           <SheetTitle className="text-left">
             <span className="text-primary">Prisma</span>Lens
           </SheetTitle>
+          <SheetDescription className="sr-only">Site navigation links</SheetDescription>
         </SheetHeader>
         <nav className="flex flex-col gap-4 px-4">
           {navLinks.map((link) => (

@@ -5,14 +5,15 @@ interface Props {
   title: string
   subtitle: string
   code?: string
+  codeNote?: string
   primaryCta?: { href: string; label: string }
   secondaryCta?: { href: string; label: string }
 }
 
-const { title, subtitle, code, primaryCta, secondaryCta } = Astro.props
+const { title, subtitle, code, codeNote, primaryCta, secondaryCta } = Astro.props
 ---
 
-<section class="relative overflow-hidden px-4 py-24 sm:px-6 sm:py-32 lg:px-8">
+<section class="relative overflow-hidden px-4 pt-12 pb-24 sm:px-6 sm:py-32 lg:px-8">
   <!-- Grid background with blue glow -->
   <div class="absolute inset-0 -z-10 grid-background">
     <div class="absolute left-1/2 top-0 h-[600px] w-[1000px] -translate-x-1/2 rounded-full" style="background: radial-gradient(circle, color-mix(in srgb, var(--primary) 20%, transparent) 0%, transparent 70%);"></div>
@@ -46,6 +47,11 @@ const { title, subtitle, code, primaryCta, secondaryCta } = Astro.props
           <span style="color: var(--muted-foreground);">$</span> {code}
         </code>
       </div>
+    )}
+    {codeNote && (
+      <p class="mx-auto mt-3 max-w-md text-sm" style="color: var(--muted-foreground);">
+        {codeNote}
+      </p>
     )}
 
     {(primaryCta || secondaryCta) && (

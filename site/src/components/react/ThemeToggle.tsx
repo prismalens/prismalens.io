@@ -24,12 +24,23 @@ function applyTheme(theme: Theme) {
 }
 
 export default function ThemeToggle() {
-	const [theme, setTheme] = useState<Theme>(getStoredTheme);
+	// Server always renders the "dark" markup below (no access to localStorage).
+	// Stay on that same markup through the first client render too, and only
+	// swap in the real stored theme after mount — otherwise React's hydration
+	// pass sees mismatched classes and logs a hydration error.
+	const [mounted, setMounted] = useState(false);
+	const [theme, setTheme] = useState<Theme>("dark");
 
 	useEffect(() => {
+		setTheme(getStoredTheme());
+		setMounted(true);
+	}, []);
+
+	useEffect(() => {
+		if (!mounted) return;
 		applyTheme(theme);
 		localStorage.setItem(THEME_KEY, theme);
-	}, [theme]);
+	}, [theme, mounted]);
 
 	useEffect(() => {
 		function onStorage(e: StorageEvent) {
@@ -43,6 +54,19 @@ export default function ThemeToggle() {
 
 	function toggle() {
 		setTheme((prev) => (prev === "dark" ? "light" : "dark"));
+	}
+
+	if (!mounted) {
+		return (
+			<Button
+				variant="ghost"
+				size="icon"
+				aria-label="Toggle theme"
+				className="relative"
+			>
+				<Sun className="h-5 w-5 opacity-0" />
+			</Button>
+		);
 	}
 
 	return (
