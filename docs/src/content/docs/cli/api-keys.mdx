@@ -1,0 +1,196 @@
+---
+title: Providers & API keys
+description: The honest compatibility matrix for PrismaLens's coding-agent harnesses and the model providers that power them.
+---
+
+PrismaLens doesn't run its own model. It rents a coding-agent binary — a **harness** — to do the read-only investigation work, then calls a model itself to write the final report. Both are BYO-key: no PrismaLens account, no subscription. You bring credentials for whichever provider you want, and PrismaLens reads them from your environment.
+
+There are two independent choices to make:
+
+1. **Harness** — which agent binary PrismaLens drives (`claude-code` or `deepagents`).
+2. **Model provider** — whose model backs that harness, and which credential it needs.
+
+This page covers the compatibility matrix, and how to configure your API keys for the CLI.
+
+## Harnesses
+
+| Harness | Binary on PATH | Install | Read-only guarantee | Status |
+| --- | --- | --- | --- | --- |
+| `claude-code` (default) | `claude` | `npm install -g @anthropic-ai/claude-code` | Enforced file tools (deny-list) but Bash is unrestricted — see [honest-fidelity caveat](/cli/sandboxing/) | Available |
+| `deepagents` | `deepagents-acp` | `npm install -g deepagents-acp @langchain/openai` | Cooperative — the harness auto-approves its own permission prompts; no OS-level enforcement yet | Available |
+
+Pick a harness with `--harness` on `prismalens investigate`, or set `agent.default` in `prismalens.config.yaml`. Whichever harness you pick, its binary must be on `PATH` — `prismalens doctor` checks this before every run.
+
+:::note[Codex — planned, not yet available]
+`codex` is a reserved harness value, but selecting it (`--harness codex` or
+`agent.default: codex`) exits with an error today — it isn't wired up yet. Don't
+plan a current setup around it.
+:::
+
+## Setting up your API keys
+
+Model credentials are separate from the harness. PrismaLens never stores a key — it reads it fresh from the environment on every run (ADR-0006).
+
+Here are the supported ways to configure your API keys.
+
+### 1. Zero config — Claude subscription only
+
+If you use the default `claude-code` harness and are signed in, you can run investigations immediately with no API key anywhere:
+
+```bash
+pl doctor
+# ⚠ LLM credential: none (reports will be RAW harness pass-through) — not verified
+# ✔ All required checks passed.
+
+pl investigate -q "checkout latency spiked"
+# ℹ No Tier-1 provider configured (checked env + _FILE for: ANTHROPIC_API_KEY,
+#   OPENAI_API_KEY, GOOGLE_API_KEY, GROQ_API_KEY, OLLAMA_API_KEY) — reports will
+#   be RAW harness pass-through (un-synthesized). This is supported.
+```
+
+The investigation runs on your Claude login. The report is the agent's own conclusion, marked `[RAW — un-synthesized]`.
+
+### 2. One-off key, single run (inline env)
+
+Configuring any provider key upgrades your reports to fully synthesized writeups. An inline environment variable has the highest precedence.
+
+```bash
+ANTHROPIC_API_KEY=sk-ant-… pl investigate -q "checkout latency spiked"
+```
+
+The key exists for that one process, winning over everything else. You can also use this to switch the Tier-1 synthesis provider for a single run:
+
+```bash
+GROQ_API_KEY=gsk_… pl investigate -q "…"   # this run reduces via Groq
+```
+
+### 3. Persistent key via shell env
+
+Export the key in your shell profile (`~/.bashrc`, `~/.zshrc`) to persist it.
+
+```bash
+# ~/.bashrc
+export ANTHROPIC_API_KEY=sk-ant-…
+```
+
+```bash
+pl doctor
+# ✔ LLM credential: Anthropic (source: env) — ping OK
+```
+
+When `synth.provider` is unset, the CLI auto-selects the **first** provider with a key set, in this exact order: `anthropic`, `openai`, `google`, `groq`, `ollama`.
+
+`pl doctor` actually calls the model to live-ping the credential (~1 token, network egress to the provider), so a fake or expired key will fail with a red error here naming the file/source:
+
+```bash
+OPENAI_API_KEY=sk-fake pl doctor
+# ✖ LLM credential: OpenAI (source: env) — ping failed: Invalid or unauthorized API key.
+# exit code 1
+```
+
+### 4. Docker/K8s secrets — the `_FILE` convention
+
+For production container deployments, supply keys via a file.
+
+```bash
+ANTHROPIC_API_KEY_FILE=/run/secrets/anthropic_key pl listen
+```
+
+```bash
+pl doctor --no-ping
+# ✔ LLM credential: Anthropic (source: file) — ping skipped
+```
+
+Rules for file secrets:
+- Direct environment variables beat their `_FILE` twin.
+- One trailing newline is automatically trimmed.
+- A missing file is a hard error.
+
+### 5. Local Ollama (free, offline)
+
+Set `OLLAMA_BASE_URL` to point to your local server:
+
+```bash
+OLLAMA_BASE_URL=http://localhost:11434 pl investigate -q "…"
+# /v1 is appended automatically — no key needed for local
+```
+
+### 6. Any OpenAI-compatible endpoint (vLLM, LM Studio, proxies)
+
+To use a custom OpenAI-compatible endpoint, you must configure `synth.provider` to `custom` and explicitly provide a `base_url` — PrismaLens will hard error without it.
+
+```yaml
+# prismalens.config.yaml
+synth:
+  provider: custom
+  base_url: http://localhost:8000/v1   # REQUIRED for custom — hard error without it
+  model: my-model
+```
+
+```bash
+CUSTOM_LLM_API_KEY=… pl investigate -q "…"
+```
+
+## Precedence in one line
+
+**Inline env → shell env → `_FILE` → nothing (raw pass-through report).** 
+
+Config chooses *which* provider/model; env/`_FILE` supplies *the* secret; `pl doctor` tells you what got resolved, from which layer, and whether it works.
+
+## Pinning provider and model in config
+
+If you want to override the auto-selection order, or specify a model for the synthesis step, pin them in `prismalens.config.yaml`. **Yaml never holds secrets — the key still comes from env/`_FILE`.**
+
+```yaml
+# prismalens.config.yaml
+synth:
+  provider: openai        # overrides auto-selection
+  model: gpt-5-mini       # optional; omitted → provider's default
+```
+
+## Picking a model that's actually up to the job
+
+Bring-your-own-model doesn't mean any model. An investigation drives an agent
+through many tool calls and then reasons over everything it found — a small model
+silently produces shallow, wrong-more-often root-cause analysis, and it's easy to
+blame the tool instead of the model. There's a practical floor:
+
+- **`claude-code`** — a Claude Sonnet-class model or better. The Claude Agent SDK
+  defaults to `claude-sonnet-4-5`; Sonnet or Opus tier is the sweet spot.
+- **`deepagents`** (OpenAI-protocol) — a frontier or large open model. Good
+  choices: `gpt-oss:120b` (deepagents' own default, via Ollama Cloud), a current
+  OpenAI model (GPT-5 / GPT-5-mini class), or a 70B+ open model such as
+  `llama-3.3-70b-versatile` on Groq.
+- **The report-synthesis step** (Tier-1) has the same floor — it's the model that
+  writes the actual report, so a tiny model here gives you a thin writeup even if
+  the investigation went well.
+
+A small local model (roughly a ~20B or smaller Ollama model) is fine for a free
+smoke test to confirm your setup works, but treat its investigations as a demo,
+not a diagnosis.
+
+## Checking your setup
+
+`prismalens doctor` runs before every investigation and checks four things (this
+is the canonical LLM-credential list — the other pages link here):
+
+- **Harness binary** (hard) — the configured harness's binary is on `PATH`.
+- **LLM credential** (hard) — **some** LLM credential is present: any of
+  `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, `GOOGLE_API_KEY`, `OLLAMA_API_KEY`,
+  `GROQ_API_KEY`, `CUSTOM_LLM_API_KEY`, or a signed-in Claude Code session.
+- **Workspace** (soft) — the workspace directory is writable.
+- **Listen token** (soft) — whether `listen.token` is set; only `pl listen`
+  needs it, so an unset token is a notice, not a failure.
+
+See the [`doctor` command reference](/cli/commands/#doctor) for the exact
+hard/soft semantics and exit behavior.
+
+```bash
+prismalens doctor
+```
+
+## Next steps
+
+- Run your first investigation: [CLI overview](/cli/)
+- See every flag on `investigate`: [CLI commands](/cli/commands/)
+- Full `prismalens.config.yaml` reference: [Configuration](/cli/configuration/)

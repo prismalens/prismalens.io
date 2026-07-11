@@ -58,7 +58,7 @@ naming the missing variable — there's no silent fallback to an empty string.
 Model-provider credentials (`OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, and so on)
 are read straight from the environment and are never written into the config
 file. `${VAR}` interpolation is for non-secret settings like URLs; see
-[Providers](/cli/providers/) for the credential list.
+[Providers](/cli/api-keys/) for the credential list.
 :::
 
 ## Annotated example
@@ -101,6 +101,16 @@ agent:
   #   wall_clock_ms: 60000   # deadline, enforced by every sandbox mode
   #   memory_mb: 512         # best-effort; only applied when sandbox is srt
   #   cpu_cores: 2           # best-effort; only applied when sandbox is srt
+
+  # Maximum number of turns (tool calls) the harness can make before being halted.
+  # Unset means the harness uses its own default.
+  # max_turns: 40
+
+# Tier-1 synthesis provider and model. Used to synthesize the final report.
+# synth:
+#   provider: openai        # overrides auto-selection
+#   model: gpt-5-mini       # omit to let provider pick default
+#   base_url: https://...   # required for 'custom' provider
 
 # Read-only telemetry + app endpoints the harness may query. Point these at
 # your stack; the defaults assume a local dev setup.
@@ -267,4 +277,4 @@ cleanup step — nothing lives outside it except your config file.
 ## Next steps
 
 - [Commands](/cli/commands/) for the full flag reference on each command
-- [Providers & harnesses](/cli/providers/) for what each `agent.default` value needs installed
+- [Providers & harnesses](/cli/api-keys/) for what each `agent.default` value needs installed

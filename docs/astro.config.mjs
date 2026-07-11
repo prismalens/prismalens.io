@@ -59,7 +59,7 @@ export default defineConfig({
 					label: 'CLI Reference',
 					items: [
 						{ label: 'Overview & Install', slug: 'cli' },
-						{ label: 'Providers & Harnesses', slug: 'cli/providers' },
+						{ label: 'Providers & Harnesses', slug: 'cli/api-keys' },
 						{ label: 'Commands', slug: 'cli/commands' },
 						{ label: 'Configuration', slug: 'cli/configuration' },
 						{ label: 'Unattended Alerts', slug: 'cli/listen' },
