@@ -1,0 +1,96 @@
+---
+title: Quickstart
+description: Install PrismaLens, check your setup with pl doctor, run your first investigation, and read the report.
+---
+
+This walks one path end to end: install the CLI, confirm your setup, run a
+single investigation, and read the report it produces. For the full concept and
+flag reference, follow the links at the end.
+
+## 1. Install
+
+Requires **Node.js 22.13 or newer** (the CLI uses Node's built-in `node:sqlite`
+for its run record store).
+
+Run it without installing anything:
+
+```bash
+npx prismalens doctor
+```
+
+Or install it globally:
+
+```bash
+npm install -g prismalens
+```
+
+Both `prismalens` and the shorter `pl` alias point at the same binary.
+
+## 2. Set up your harness and (optional) model credential
+
+PrismaLens doesn't investigate on its own — it rents an agent **harness** to do
+the read-only work, and calls a model to write the report. For your first run, you need at minimum:
+
+1. **A harness binary on PATH.** The default, `claude-code`, needs the `claude`
+   binary (`npm install -g @anthropic-ai/claude-code`) and a signed-in session (`claude login`).
+
+**Zero-config pass-through:** With just a Claude Code login and no API key, you can run investigations immediately. The report will be marked `[RAW — un-synthesized]` (the agent's own conclusion, returned exactly as-is).
+
+**Full synthesis:** Configuring any provider API key (like `OPENAI_API_KEY` or `OLLAMA_API_KEY`) upgrades your reports to fully synthesized ordered-evidence writeups.
+
+The exact credentials each harness needs — and the report-synthesis step's
+requirement — are in [Providers & API keys](/cli/api-keys/).
+
+## 3. Check your setup
+
+```bash
+pl doctor
+```
+
+`doctor` checks the things that would otherwise fail mid-run — the harness
+binary is on `PATH`, a model credential is set, and the run workspace is
+writable — and exits non-zero if anything required is missing. Fix any hard
+failure before you investigate; if you get stuck, see
+[Troubleshooting](/cli/troubleshooting/).
+
+## 4. Run your first investigation
+
+Point it at a repo and describe the problem:
+
+```bash
+pl investigate --repo . --query "checkout latency spike after 14:00 UTC"
+```
+
+`--repo` defaults to the current directory, so inside a repo you can drop it.
+Already have an alert payload from Alertmanager, Grafana, or a webhook? Pipe it
+in instead:
+
+```bash
+cat alert.json | pl investigate --repo ./my-service
+```
+
+Either way, the CLI streams a live one-line timeline as the investigation runs,
+then prints the report and saves a copy under `~/.prismalens/runs/<runId>/`.
+
+## 5. Read the report
+
+Every investigation ends in the same **ordered-evidence** shape (see a real [Sample Report](/cli/sample-report/)):
+
+- A **root cause**, if one was found — otherwise "not determined," honestly.
+- **Hypotheses**, ranked most to least plausible, each with the evidence that
+  supports or contradicts it and where it came from.
+- What was **ruled out**, and why.
+- **Coverage** — which sources were queried and which weren't.
+- **Next steps** to confirm or dig further.
+
+There are no numeric confidence scores — evidence is ordered, not scored. The
+full JSON field list is in the [Output shape](/cli/commands/#output-shape)
+reference; read a stored run back later with `pl status` and
+`pl report <runId>`.
+
+## Next steps
+
+- [How PrismaLens works](/concepts/how-it-works/) — the two-tier mental model.
+- [Providers & harnesses](/cli/api-keys/) — set up a model provider and harness binary.
+- [Commands](/cli/commands/) — the full flag reference for every `pl` subcommand.
+- [Unattended alerts](/cli/listen/) — let firing alerts investigate themselves.

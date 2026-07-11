@@ -14,6 +14,23 @@ independent dials on `investigate`:
 This page covers both, plus how to read the honest "here's what you asked
 for vs. what you actually got" report every run produces.
 
+## Supported platforms
+
+PrismaLens runs on Linux and macOS natively, and on Windows through WSL2 — but
+the *enforced* sandbox boundaries aren't available everywhere:
+
+| Platform | Runs the CLI | `process` floor | `srt` (enforced local) | `e2b` (enforced cloud) |
+| --- | --- | --- | --- | --- |
+| Linux (native) | Yes | Yes | Yes (`bwrap` + seccomp) | Yes |
+| macOS (native) | Yes | Yes | Yes (`sandbox-exec`) | Yes |
+| Windows via WSL2 | Yes | Yes | Yes (Linux `bwrap`, inside WSL) — see the [WSL caveat](#the-wsl-caveat-mirrored-networking-breaks-srt) | Yes |
+| Windows (native, no WSL) | Yes | Yes | **No** — `srt` is Linux/macOS-only | Yes |
+
+`srt` depends on an OS-level mechanism (`bwrap` on Linux, `sandbox-exec` on
+macOS), so a **native-Windows** user without WSL only has the cooperative
+`process` floor locally, or the cloud `e2b` boundary for a hard guarantee. Run
+under WSL2 to get the enforced local sandbox on Windows.
+
 ## Permission modes (`--mode`)
 
 | Value | What it does |
@@ -34,7 +51,6 @@ into each harness's native mechanism and reports what actually resulted:
 | --- | --- | --- |
 | `deepagents` | cooperative | ACP `session/request_permission` is auto-approved — prompt-only, no programmatic block. The harness has to actually respect the read-only ask. |
 | `claude-code` | enforced | Agent SDK `disallowedTools` deny-list (`Edit`, `Write`, `MultiEdit`, `NotebookEdit`) plus `permissionMode` — a real block, not just a prompt. |
-| `codex` | — | Not implemented yet; selecting this harness throws. |
 
 `auto` and `dangerous` don't consult that table at all — they're always
 **advisory**, on every harness, because neither applies a read-only floor in
@@ -112,18 +128,18 @@ in the run's fidelity report. A healthy verdict is trusted for the rest of
 the process's life; an unhealthy one is re-checked after five minutes, so a
 one-off network blip doesn't disable `srt` for good.
 
-## Only some harnesses can be sandboxed at all
+## Both hero harnesses run inside the boundary
 
-`--sandbox srt`/`e2b`/`process` only apply to a harness PrismaLens spawns as
-a child process — today that's just `deepagents` (driven over ACP).
-`claude-code` runs in-process via the Agent SDK, so there's no child for a
-sandbox provider to wrap.
+`--sandbox` applies to both hero harnesses — `claude-code` and `deepagents`.
+Every investigation runs inside at least the always-on `process` floor, and
+`claude-code` now spawns through the same isolation boundary the ACP path
+(`deepagents`) already used, honoring your `sandbox` and `limits` config the
+same way. Whichever harness ran, the run's fidelity report records the sandbox
+that was actually applied (see below).
 
-Ask for an enforced boundary (`srt` or `e2b`) with `claude-code` and the
-command fails fast, before doing anything, rather than silently claiming an
-enforcement it can't deliver. `--sandbox auto` or `--sandbox process` with
-`claude-code` just runs with no boundary at all — no error, because nothing
-dishonest is being claimed either.
+So `--sandbox srt` (or `auto` landing on `srt`) wraps `claude-code` in the
+enforced OS boundary just as it does `deepagents`. `e2b` remains the
+explicit-only cloud boundary — `auto` never reaches for it on either harness.
 
 ## Requested vs. actual: the fidelity report
 
@@ -150,6 +166,16 @@ The `sandbox.requested`/`sandbox.actual` pair is what makes an `auto`
 degrade visible after the fact, not just in the moment. During the run
 itself, the CLI also prints a one-line warning whenever `auto` degrades
 (naming the reason), or an info line confirming `srt` was actually used.
+
+:::tip[To confirm the boundary actually applied, read `--json`]
+Because the human terminal renderer hides the `fidelity` block, an interactive
+run doesn't *show* you whether it was truly sandboxed — a degrade from `srt` to
+the `process` floor is easy to miss beyond the one-line warning. If you need to
+**verify** the enforced boundary held (in CI, a compliance check, or just to be
+sure), run with `--json` (or `--output`) and read `fidelity.sandbox.actual` /
+`fidelity.sandbox.fidelity`. That's the authoritative record of what enforcement
+was applied.
+:::
 
 ## The WSL caveat: mirrored networking breaks `srt`
 
@@ -204,13 +230,25 @@ detect the dead relay, not repair it.
   first.
 - Use `--sandbox e2b` for a cloud or CI placement where you don't want the
   harness anywhere near your local machine at all.
-- Leave `--mode` at the default `read-only` unless you have a specific
-  reason to loosen it. `--dangerously-skip-permissions` means exactly what it
-  says, on any harness.
+- Leave `--mode` at the default `read-only`. Investigations are designed to be
+  read-only, so most runs never need anything looser.
+
+### When `auto` / `dangerous` are legitimate
+
+The loosening modes exist for the case where the investigation genuinely needs a
+**write** step the read-only floor would block — reproducing a failure by running
+the test suite, or a diagnostic tool that has to write a scratch file to do its
+job. Reach for them only when **both** are true: you need that write step, *and*
+the run is inside an OS sandbox (`srt` or `e2b`) that contains the blast radius
+anyway. Loosening the permission posture **without** a containing sandbox is just
+an unconstrained agent writing on your machine — don't. `--dangerously-skip-permissions`
+means exactly what it says, on any harness.
 
 ## Next steps
 
 - [Configuration](/cli/configuration/) — set `agent.sandbox`,
   `agent.permissions.mode`, and `agent.limits` in `prismalens.config.yaml`.
 - [Commands](/cli/commands/) — the full `investigate` flag reference.
-- [Providers & harnesses](/cli/providers/) — what each harness needs installed.
+- [Providers & harnesses](/cli/api-keys/) — what each harness needs installed.
+- [Troubleshooting](/cli/troubleshooting/) — sandbox degrades, the WSL `srt`
+  symptom, and other run failures.

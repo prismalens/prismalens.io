@@ -1,0 +1,47 @@
+---
+title: Ordered evidence
+description: Why a PrismaLens report ranks hypotheses by evidence instead of emitting a numeric confidence score.
+---
+
+Every PrismaLens investigation ends in the same structure, and one choice shapes
+all of it: the report **orders** hypotheses by evidence rather than attaching a
+numeric confidence score to each. This is a deliberate design decision
+(ADR-0002), not an omission.
+
+## Why not a confidence score?
+
+A number like "87% confident" reads as precise and earns trust it hasn't
+necessarily earned. For an LLM-driven tool it's worse than imprecise — it's a
+fabricated statistic. The model has no calibrated basis for "87 vs 72," so a
+score invites you to act on a digit instead of on the reasoning behind it.
+
+PrismaLens refuses to manufacture that number. Instead it gives you the thing a
+score is a lossy summary of: the **evidence, ranked**.
+
+## What the report gives you instead
+
+- **Hypotheses, ordered most to least plausible.** The order *is* the ranking —
+  there's no separate rank field. Each hypothesis carries the evidence that
+  supports or contradicts it, and where that evidence came from (the exact
+  command or source), so you can check it yourself.
+- **Ruled out.** Candidate causes that were considered and dropped, with the
+  contradicting evidence that eliminated them — so you can see the paths already
+  walked, not just the conclusion.
+- **Coverage.** What was queried and what wasn't. An investigation that couldn't
+  reach a data source says so, rather than letting silence read as "all clear."
+- **Next steps.** Concrete checks to confirm the top hypothesis or dig further.
+
+## Read it as a lead
+
+Because there's no score to hide behind, the report puts its reasoning in the
+open — which is exactly how you should read it. A PrismaLens report is a
+strong, evidence-linked **lead**, not a verdict; the same run can differ across
+attempts, and a confidently-worded top hypothesis can still be wrong. The
+ordering tells you where to look first; the linked evidence lets you confirm it
+fast. See [How PrismaLens works](/concepts/how-it-works/#a-report-is-a-lead-not-a-verdict)
+for more on treating a report as a lead.
+
+## Next steps
+
+- [How PrismaLens works](/concepts/how-it-works/) — the two-tier engine that produces the report.
+- [Output shape](/cli/commands/#output-shape) — the report's exact JSON fields.

@@ -19,8 +19,8 @@ const features = [
     icon: 'activity',
   },
   {
-    title: 'Bring your own model, no account',
-    description: 'Works with Ollama, OpenAI, Groq, any OpenAI-compatible endpoint, or a Claude Code install. No PrismaLens account, no subscription — your keys, your provider.',
+    title: 'Bring your own agent and key',
+    description: 'PrismaLens rents a coding-agent harness to investigate — Claude Code ships as the default (deepagents is the alternate lane; Codex is planned). Point it at Ollama, OpenAI, Groq, Anthropic, or any OpenAI-compatible endpoint. No PrismaLens account, no subscription — your agent, your keys, your provider.',
     icon: 'link',
   },
   {
@@ -44,7 +44,7 @@ const features = [
 <BaseLayout title="PrismaLens CLI — AI root-cause investigation from your terminal">
   <Hero
     title="Point it at a repo. Get a root cause you can actually check."
-    subtitle="The PrismaLens CLI investigates a firing alert the way an on-call engineer would — it reads the repo, runs read-only commands through your existing local tooling and auth context (kubectl, aws, gcloud, curl) instead of calling observability APIs directly, and returns hypotheses ranked most to least plausible, each linked to the evidence behind it."
+    subtitle="The PrismaLens CLI investigates a firing alert the way an on-call engineer would — it reads the repo, runs read-only commands through your existing local tooling and auth context (kubectl, aws, gcloud, curl) instead of calling observability APIs directly, and returns hypotheses ranked most to least plausible, each linked to the evidence behind it. Bring your own agent and model key — no account, no subscription."
     code="cat alert.json | npx prismalens investigate --repo ."
     codeNote="prismalens and the shorter pl alias point at the same binary — pl investigate works too; run pl doctor first to check your setup."
     primaryCta={{ href: `${docsBase}/cli/`, label: 'Read the CLI docs' }}

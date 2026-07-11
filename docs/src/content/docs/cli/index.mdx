@@ -8,7 +8,10 @@ way an on-call engineer would: it reads the repo, queries your read-only
 telemetry, and comes back with an **ordered-evidence report** — hypotheses
 ranked most to least plausible, each one backed by evidence it actually
 gathered. No PrismaLens account, no subscription — you bring your own model
-provider key.
+provider key. It's open source, [Apache-2.0 licensed](https://github.com/prismalens/prismalens/blob/main/LICENSE).
+
+New here? The [Quickstart](/quickstart/) walks install → `pl doctor` → your first
+investigation end to end. This page is the CLI overview and install reference.
 
 ## See it in action
 
@@ -24,7 +27,8 @@ The raw [asciinema recording](/cli-demo.cast) is also available.
 
 ## Install
 
-Requires **Node.js 22 or newer**.
+Requires **Node.js 22.13 or newer** (the CLI uses Node's built-in
+`node:sqlite` for its run record store).
 
 Try it without installing anything:
 
@@ -38,7 +42,8 @@ Or install it globally:
 npm install -g prismalens
 ```
 
-Both `prismalens` and the shorter `pl` alias point at the same binary.
+Both `prismalens` and the shorter `pl` alias point at the same binary. Confirm
+the installed version with `pl --version`.
 
 ## Before your first run
 
@@ -46,54 +51,17 @@ Two things need to be in place before your first investigation:
 
 1. **A harness binary on PATH.** The CLI doesn't investigate on its own — it
    rents an agent harness to do the read-only legwork. The default,
-   `deepagents`, needs the `deepagents-acp` package's binary on PATH.
-2. **A model provider credential.** `deepagents` talks to any OpenAI-protocol
-   provider (Ollama, OpenAI, Groq, or your own OpenAI-compatible endpoint).
-   See [Providers](/cli/providers/) for the full setup.
+   `claude-code`, needs the `claude` binary on PATH
+   (`npm install -g @anthropic-ai/claude-code`) and a signed-in session (`claude login`).
+2. **Zero-config or a model credential.** `claude-code` works out of the box with just your signed-in Claude Code session — no API key required — yielding a raw, un-synthesized report (the agent's own conclusion). Configuring any provider API key (like `OPENAI_API_KEY` or `OLLAMA_API_KEY`) upgrades reports to fully synthesized writeups. See [Providers & API keys](/cli/api-keys/) for the full setup and alternative harnesses.
 
-## Check your setup: `pl doctor`
+Run `pl doctor` to confirm both are in place — it checks the harness binary is
+on PATH, a model credential is set, and the run workspace is writable, and exits
+non-zero if anything required is missing (a good CI smoke check too). When a run
+fails or `doctor` reports a problem, [Troubleshooting](/cli/troubleshooting/)
+maps the symptom to the fix.
 
-Confirm both are in place before you investigate:
-
-```bash
-pl doctor
-```
-
-It checks the things that would otherwise fail mid-run: the harness binary is
-on PATH, a model credential is set, and the run workspace is writable. It
-exits non-zero if anything required is missing, so it's a good fit for a CI
-smoke check too.
-
-## 3-minute quickstart
-
-There are two ways to hand the CLI something to investigate.
-
-### Pipe in an alert
-
-If you already have an alert payload — from Alertmanager, Grafana, or a
-generic webhook — pipe it straight in:
-
-```bash
-cat alert.json | pl investigate --repo ./my-service
-```
-
-The CLI accepts a raw `FiringAlert` JSON or a webhook/Alertmanager-shaped
-payload; it pulls `alertname`/`severity` from the top level or falls back to
-`labels`.
-
-### Or just describe the problem
-
-No alert handy? Describe what's wrong and let the CLI synthesize one:
-
-```bash
-pl investigate --repo . --query "checkout latency spike after 14:00 UTC"
-```
-
-`--repo` defaults to the current directory, so inside a repo you can drop it
-entirely.
-
-Either path streams a live one-line timeline as the investigation runs, then
-prints the report and saves a copy under `~/.prismalens/runs/<runId>/`.
+Then head to the [Quickstart](/quickstart/) to run one end to end.
 
 ## What a report looks like
 
@@ -107,10 +75,15 @@ terminal or as JSON (`--json`):
 - **Coverage** — which sources were queried and which weren't.
 - **Next steps** to confirm or dig further.
 
-There are no numeric confidence scores — evidence is ordered, not scored.
+There are no numeric confidence scores — evidence is ordered, not scored. The
+full JSON field list is documented in the
+[Output shape](/cli/commands/#output-shape) reference.
 
 ## Next steps
 
-- [Providers](/cli/providers/) — set up a model provider and harness binary for your setup.
-- [Commands](/cli/commands/) — the full flag reference for `investigate`, `serve`, `doctor`, and `init`.
+- [Quickstart](/quickstart/) — install to first report, one path end to end.
+- [Providers](/cli/api-keys/) — set up a model provider and harness binary for your setup.
+- [Commands](/cli/commands/) — the full flag reference for every `pl` subcommand.
+- [Unattended alerts](/cli/listen/) — point Alertmanager at `pl listen` and let it investigate on its own.
 - [Configuration](/cli/configuration/) — `prismalens.config.yaml`, layering, and BYO-key environment variables.
+- [Troubleshooting](/cli/troubleshooting/) — when a run or `pl doctor` fails.

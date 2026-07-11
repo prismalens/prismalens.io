@@ -1,0 +1,51 @@
+---
+title: Bring your own agent & key
+description: PrismaLens rents a coding-agent harness and calls a model you configure — both BYO-key, no account, no subscription. The honest agent lineup.
+---
+
+PrismaLens ships no model and no bundled agent. It **rents a coding-agent
+harness** to do the read-only investigation ([Tier-2](/concepts/how-it-works/)),
+and calls a model you configure to write the report ([Tier-1](/concepts/how-it-works/)).
+Both are bring-your-own-key: no PrismaLens account, no subscription, no credits.
+You point it at whichever provider you already pay for, and PrismaLens reads the
+credential fresh from your environment on every run — it never stores a key
+(ADR-0006).
+
+That's the trade PrismaLens makes deliberately: instead of embedding a model and
+metering you for it, it stays **local-first and Apache-2.0**, and rides on
+credentials you already have.
+
+## The agent lineup (honest status)
+
+PrismaLens drives the harness through one permission dial and reports what
+actually happened; the harnesses themselves differ in maturity. Here's the
+honest state for the current release (`pl --version`):
+
+- **`claude-code` — shipped, and the default.** Runs sandboxed on Anthropic's
+  native Claude Agent SDK. Bring an Anthropic subscription (a signed-in Claude
+  Code session) or an `ANTHROPIC_API_KEY`.
+- **`deepagents` — shipped, the alternate lane.** Driven over the Agent Client
+  Protocol (ACP), it speaks to any OpenAI-protocol provider — Ollama, OpenAI,
+  Groq, or any OpenAI-compatible endpoint.
+- **`codex` — planned, not yet available.** Reserved as a harness value, but
+  selecting it exits with an error today. Don't plan a current setup around it.
+
+The full compatibility matrix — binaries, install commands, read-only fidelity,
+and every provider credential — lives in
+[Providers & harnesses](/cli/api-keys/). It's the single source of truth; this
+page is just the framing.
+
+## Model quality still matters
+
+BYO-model doesn't mean any model. An investigation drives an agent through many
+tool calls and then reasons over the result, so a small local model produces
+noticeably weaker root-cause analysis — and you'll blame the tool, not the
+model. There's a floor worth respecting; the recommended model classes per
+harness are in
+[Providers → Picking a model that's actually up to the job](/cli/api-keys/#picking-a-model-thats-actually-up-to-the-job).
+
+## Next steps
+
+- [Providers & harnesses](/cli/api-keys/) — the full matrix and credential setup.
+- [How PrismaLens works](/concepts/how-it-works/) — where the harness and model each fit.
+- [Data & privacy](/concepts/data-and-privacy/) — what your provider sees.
