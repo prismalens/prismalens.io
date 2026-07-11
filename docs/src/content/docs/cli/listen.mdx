@@ -23,7 +23,8 @@ pl doctor
 ```
 
 `doctor` also reports whether `listen.token` is set (a soft check — only
-`listen` needs it).
+`listen` needs it). If a check fails or a run misbehaves later,
+[Troubleshooting](/cli/troubleshooting/) maps the symptom to the fix.
 
 ## 1. Set the intake token
 
@@ -132,6 +133,16 @@ tokens on your own provider key). Three caps under `listen.caps` bound it:
   window.
 - `max_turns` — an optional per-run turn ceiling handed to the harness.
 
+**Sizing the spend.** A single investigation drives an agent through many tool
+calls and then a synthesis pass, so one run typically spends on the order of tens
+of thousands to a few hundred thousand tokens — the exact figure depends on your
+model, harness, and how deep the run digs (`max_turns` is the lever that caps
+run depth). Translate that to money at your provider's per-token price, then
+bound the *worst case* with the caps: with the defaults, `max_per_hour: 10`
+ceilings an alert storm at ten investigations an hour, so your hourly exposure is
+roughly ten times a single run's cost. Lower `max_per_hour`/`max_concurrent` or
+set `max_turns` if that number is bigger than you want to wake up to.
+
 A group turned away by a cap isn't dropped silently — it's recorded as a
 terminal `suppressed` run with the cap that tripped, so you can see what was
 skipped. A suppressed run is not retried: intake has already acknowledged the
@@ -146,10 +157,69 @@ listen:
   slack_webhook_url: ${PRISMALENS_SLACK_WEBHOOK_URL}
 ```
 
+That value is a Slack **incoming-webhook URL**. If you don't have one, create it
+from Slack's [Incoming Webhooks](https://api.slack.com/messaging/webhooks) app
+setup — add the app to your workspace, pick the channel to post into, and copy
+the generated `https://hooks.slack.com/services/...` URL.
+
 Successful, no-evidence, and **errored** runs all notify — an errored 3AM run is
-exactly what you want woken for; operator-cancelled runs don't. Delivery is
-best-effort with a short timeout and no retries, and a failed post can never
-change a run's outcome. Leave the field unset and nothing is sent.
+exactly what you want woken for. (A run cancelled before it finishes — its abort
+signal fired mid-stream — posts nothing; there's no cancelled *status* to query,
+since a cancelled run never reaches a terminal state. The queryable states stay
+`running`, `done`, `errored`, and `suppressed`, per
+[`pl status`](/cli/commands/#status).) Delivery is best-effort with a short
+timeout and no retries, and a failed post can never change a run's outcome. Leave
+the field unset and nothing is sent.
+
+## Running listen unattended
+
+`pl listen` holds a terminal open — which is no good for the 3AM feature. To keep
+it running while you sleep and bring it back after a reboot, run it as a service.
+A minimal systemd unit:
+
+```ini
+# /etc/systemd/system/prismalens-listen.service
+[Unit]
+Description=PrismaLens unattended alert intake
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=prismalens
+WorkingDirectory=/opt/prismalens
+# The service environment does NOT inherit your shell — supply the token and
+# your model credentials here (a root-only EnvironmentFile keeps them off the
+# process line).
+EnvironmentFile=/etc/prismalens/listen.env
+ExecStart=/usr/bin/pl listen
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+```
+
+```bash
+sudo systemctl enable --now prismalens-listen   # start now + on every boot
+journalctl -u prismalens-listen -f              # follow the intake log
+```
+
+`Restart=on-failure` brings the receiver back if it crashes, and
+`WantedBy=multi-user.target` restarts it on reboot. The same shape works under
+any supervisor (a Docker `restart: unless-stopped`, a launchd agent, etc.) — the
+two things that matter are keep-alive and a service environment that carries the
+token plus model credentials.
+
+:::caution[A restart drops in-flight groups]
+Grouping and dedup state is held **in memory**, not in the record store. If
+`pl listen` restarts mid-storm, alerts still inside the
+[grouping window](#alert-grouping) — and the pending intake queue — are lost, and
+alerts intake already accepted (`202`) won't be retried by Alertmanager, since
+`send_resolved: false` means it treats them as delivered. Completed runs are
+safe (they're persisted to `prismalens.db`); only *in-flight* grouping is at
+risk. Prefer restarting `pl listen` during a quiet window, not mid-incident.
+:::
 
 ## Read the results
 

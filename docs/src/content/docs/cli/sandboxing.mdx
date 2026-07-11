@@ -14,6 +14,23 @@ independent dials on `investigate`:
 This page covers both, plus how to read the honest "here's what you asked
 for vs. what you actually got" report every run produces.
 
+## Supported platforms
+
+PrismaLens runs on Linux and macOS natively, and on Windows through WSL2 — but
+the *enforced* sandbox boundaries aren't available everywhere:
+
+| Platform | Runs the CLI | `process` floor | `srt` (enforced local) | `e2b` (enforced cloud) |
+| --- | --- | --- | --- | --- |
+| Linux (native) | Yes | Yes | Yes (`bwrap` + seccomp) | Yes |
+| macOS (native) | Yes | Yes | Yes (`sandbox-exec`) | Yes |
+| Windows via WSL2 | Yes | Yes | Yes (Linux `bwrap`, inside WSL) — see the [WSL caveat](#the-wsl-caveat-mirrored-networking-breaks-srt) | Yes |
+| Windows (native, no WSL) | Yes | Yes | **No** — `srt` is Linux/macOS-only | Yes |
+
+`srt` depends on an OS-level mechanism (`bwrap` on Linux, `sandbox-exec` on
+macOS), so a **native-Windows** user without WSL only has the cooperative
+`process` floor locally, or the cloud `e2b` boundary for a hard guarantee. Run
+under WSL2 to get the enforced local sandbox on Windows.
+
 ## Permission modes (`--mode`)
 
 | Value | What it does |
@@ -150,6 +167,16 @@ degrade visible after the fact, not just in the moment. During the run
 itself, the CLI also prints a one-line warning whenever `auto` degrades
 (naming the reason), or an info line confirming `srt` was actually used.
 
+:::tip[To confirm the boundary actually applied, read `--json`]
+Because the human terminal renderer hides the `fidelity` block, an interactive
+run doesn't *show* you whether it was truly sandboxed — a degrade from `srt` to
+the `process` floor is easy to miss beyond the one-line warning. If you need to
+**verify** the enforced boundary held (in CI, a compliance check, or just to be
+sure), run with `--json` (or `--output`) and read `fidelity.sandbox.actual` /
+`fidelity.sandbox.fidelity`. That's the authoritative record of what enforcement
+was applied.
+:::
+
 ## The WSL caveat: mirrored networking breaks `srt`
 
 :::caution[WSL2 mirrored networking silently kills srt's egress]
@@ -203,9 +230,19 @@ detect the dead relay, not repair it.
   first.
 - Use `--sandbox e2b` for a cloud or CI placement where you don't want the
   harness anywhere near your local machine at all.
-- Leave `--mode` at the default `read-only` unless you have a specific
-  reason to loosen it. `--dangerously-skip-permissions` means exactly what it
-  says, on any harness.
+- Leave `--mode` at the default `read-only`. Investigations are designed to be
+  read-only, so most runs never need anything looser.
+
+### When `auto` / `dangerous` are legitimate
+
+The loosening modes exist for the case where the investigation genuinely needs a
+**write** step the read-only floor would block — reproducing a failure by running
+the test suite, or a diagnostic tool that has to write a scratch file to do its
+job. Reach for them only when **both** are true: you need that write step, *and*
+the run is inside an OS sandbox (`srt` or `e2b`) that contains the blast radius
+anyway. Loosening the permission posture **without** a containing sandbox is just
+an unconstrained agent writing on your machine — don't. `--dangerously-skip-permissions`
+means exactly what it says, on any harness.
 
 ## Next steps
 
@@ -213,3 +250,5 @@ detect the dead relay, not repair it.
   `agent.permissions.mode`, and `agent.limits` in `prismalens.config.yaml`.
 - [Commands](/cli/commands/) — the full `investigate` flag reference.
 - [Providers & harnesses](/cli/providers/) — what each harness needs installed.
+- [Troubleshooting](/cli/troubleshooting/) — sandbox degrades, the WSL `srt`
+  symptom, and other run failures.

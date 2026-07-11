@@ -145,26 +145,15 @@ full resolution order and file locations.
 
 ## Sandbox falls back to the process floor on WSL
 
-If `agent.sandbox` is `auto` (the default) and you see a warning like:
+**Symptom:** on the default `agent.sandbox: auto` you see a warning that the
+sandbox degraded to the `process` floor (`srt egress bridge unhealthy — WSL
+mirrored networking?`); or, with `--sandbox srt` forced, every tool call that
+needs network access fails and the run comes back with no evidence.
 
-```
-Sandbox 'auto' degraded to the process-floor (cooperative, not an OS boundary):
-srt egress bridge unhealthy — WSL mirrored networking? Using the process floor.
-```
-
-this is WSL2's **mirrored networking** mode breaking the enforced sandbox's
-in-namespace network bridge — the sandbox binary is present, but traffic
-through it silently dies. `auto` detects this and degrades to the
-cooperative `process` floor rather than claiming an enforced boundary that
-doesn't actually have egress, so the run still completes. If you explicitly
-force `--sandbox srt` on an affected host instead, tool calls that need
-network access will fail outright with no such warning.
-
-The fix is switching your WSL networking mode to NAT: remove
-`networkingMode=mirrored` from `%UserProfile%\.wslconfig`, then run
-`wsl --shutdown` and restart your WSL session. See
-[Sandboxing](/cli/sandboxing/) for the full picture of sandbox modes and how
-`auto` chooses between them.
+**Cause and fix:** WSL2's **mirrored** networking mode breaks `srt`'s
+in-namespace egress bridge. Switch WSL to NAT networking. The full explanation,
+the `.wslconfig` edit, and the `wsl --shutdown` step live in one place —
+[Sandboxing → the WSL caveat](/cli/sandboxing/#the-wsl-caveat-mirrored-networking-breaks-srt).
 
 ## Filing a good bug report
 
