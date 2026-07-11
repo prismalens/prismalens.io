@@ -17,6 +17,13 @@ prismalens <command> [flags]      # alias: pl
   init          Scaffold a prismalens.config.yaml in the current directory.
 ```
 
+## Global flags
+
+Available on the `prismalens` binary itself, before any subcommand:
+
+- `--version`, `-v` — print the installed PrismaLens version and exit.
+- `--help`, `-h` — print usage (top-level, or for a subcommand: `pl investigate --help`).
+
 ## `investigate`
 
 Seeds an investigation from a firing alert, rents a Tier-2 harness to gather
@@ -31,7 +38,11 @@ The seed alert comes from **one of**:
 - `--query` — a one-line description the CLI synthesizes into a minimal alert.
 
 If neither is given (no pipe, no `--query`), the run fails with a hard input
-error.
+error. If the stdin payload is present but **isn't valid JSON**, it isn't a hard
+error: the malformed input is logged as a warning and ignored, and the run
+proceeds from `--query` if one was given (and fails as "no seed alert" if not).
+Pair a pipe with `--query` when you can't be sure the upstream payload is
+well-formed.
 
 ### Flags
 
@@ -93,6 +104,28 @@ Run metadata, the canonical event stream, and the synthesized report all live
 in `prismalens.db` — a WAL-mode SQLite database backed by Node's built-in
 `node:sqlite`. Read a stored run back with [`status`](#status) and
 [`report`](#report) rather than parsing files by hand.
+
+### Output shape
+
+`--json`, `--output`, and [`pl report`](#report) all emit the same
+`InvestigationReport` object. Its fields:
+
+| Field | Type | What it is |
+| --- | --- | --- |
+| `summary` | string | A one-line synopsis of the investigation. |
+| `rootCause` | string \| null | The identified root cause, or `null` when not determined — never fabricated. |
+| `rootCauseCategory` | string \| null | A coarse category for the root cause, when one was classified. |
+| `hypotheses` | array | Ordered **most → least plausible** (array position *is* the ranking — no numeric score). Each: `{ statement, status, evidence[] }`. |
+| `ruledOut` | array | Candidate causes eliminated: `{ statement, why, evidence[] }`. |
+| `coverage` | object | `{ queried[], notQueried[] }` — what was and wasn't checked. |
+| `nextSteps` | array | Recommended follow-ups: `{ title, detail, priority? }`. |
+| `fidelity` | object \| null | The honest run-fidelity record — `{ harness, mode, fidelity, mechanism, sandbox? }` — of the boundary that actually applied. See [Sandboxing → the fidelity report](/cli/sandboxing/#requested-vs-actual-the-fidelity-report). |
+
+Each **evidence** entry is `{ observation, source, direction, status, toolCallId? }`
+— `source` is the exact command or origin that produced the observation, and
+`direction` records whether it supports or contradicts the hypothesis. Ordering
+and the no-numeric-score rule are explained in
+[Ordered evidence](/concepts/ordered-evidence/).
 
 ## `listen`
 

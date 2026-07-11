@@ -194,6 +194,76 @@ Over-cap groups aren't dropped — they're recorded as terminal `suppressed` run
 (visible in [`pl status`](/cli/commands/#status)) with the cap that turned them
 away.
 
+## `services`
+
+A service catalog keyed by service name (ADR-0015). When an alert fires, its
+`service` label — falling back to `namespace` then `job` — selects the matching
+entry, and that service's repo/tier/dependencies ride into the investigation so a
+single-alert run isn't context-free. `pl investigate --service <name>` selects an
+entry explicitly, overriding the alert's label.
+
+```yaml
+services:
+  checkout:
+    tier: tier-1
+    repo: acme/checkout
+    depends_on: [payments, inventory]
+```
+
+| Key | Type | Default | What it does |
+| --- | --- | --- | --- |
+| `<name>` | map key | — | The service name matched against the alert's `service`/`namespace`/`job` label (or `--service`). No match ⇒ the run proceeds from the bare alert. |
+| `tier` | string | — | Free-form criticality label (e.g. `tier-1`) carried into the investigation context. |
+| `repo` | string | — | `owner/name` slug or a local path the harness reads for this service. |
+| `depends_on` | string[] | `[]` | Direct dependency service names — a blast-radius seed handed to the investigation. |
+
+## `harnesses`
+
+Per-harness **native passthrough** (ADR-0017), keyed by harness id. Each entry
+has a single `native` map, forwarded untyped to that harness — an escape hatch
+for harness-specific knobs PrismaLens doesn't model. Which keys a harness
+actually consumes differs:
+
+| Harness | What `native` does |
+| --- | --- |
+| `deepagents` | `native.args` is appended **verbatim** to the `deepagents-acp` CLI invocation. `native.shellAllowList` and `native.sandbox` are **rejected** with an error — the published `deepagents-acp` binary has no such flags; use the [`--sandbox`](/cli/sandboxing/) port for real isolation instead. |
+| `claude-code` | `native` is merged into the Claude Agent SDK `query` options for the run. |
+
+```yaml
+harnesses:
+  deepagents:
+    native:
+      args: [--memory, ./AGENTS.md]
+```
+
+The permission posture (`agent.permissions.mode`) and the isolation boundary
+(`agent.sandbox`) are **not** native knobs — they're first-class dials PrismaLens
+translates itself. Don't try to set them through `native`.
+
+## Run storage and retention
+
+Every run persists to `workspace.base_dir` (`~/.prismalens` by default): a
+`prismalens.db` record store plus a `runs/<runId>/` workspace directory per run.
+These **grow unbounded** — PrismaLens prunes nothing on its own, and the
+footprint climbs much faster under `pl listen`, where alerts investigate
+themselves around the clock.
+
+There's no built-in retention policy or `prune` command yet, so cleanup is
+manual:
+
+```bash
+# Drop old per-run workspace dirs (keeps the record store)
+find ~/.prismalens/runs -maxdepth 1 -mtime +30 -type d -exec rm -rf {} +
+
+# Full reset — removes all runs, events, and reports
+rm -rf ~/.prismalens
+```
+
+Point `workspace.base_dir` at a volume with room to spare if you run `pl listen`
+long-term, and keep an eye on `prismalens.db` (it holds every run's metadata,
+events, and report). Deleting `~/.prismalens` wholesale is also the uninstall
+cleanup step — nothing lives outside it except your config file.
+
 ## Next steps
 
 - [Commands](/cli/commands/) for the full flag reference on each command
