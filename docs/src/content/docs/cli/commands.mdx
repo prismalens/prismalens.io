@@ -75,6 +75,9 @@ guarantees and how to read a run's fidelity report.
   (the harness branch gathered nothing and errored — the CLI reports the
   failure rather than fabricating a root cause).
 
+[Troubleshooting](/cli/troubleshooting/#common-investigate-failures) walks each
+exit-`1` cause — including what a "no-evidence" run means — and the fix.
+
 ### Examples
 
 ```bash
@@ -286,7 +289,7 @@ non-zero **iff a hard check fails**. No flags.
 | Check | Hard/Soft | What it verifies |
 | --- | --- | --- |
 | Harness binary | Hard | The binary for the configured harness (`agent.default`) is on `PATH`: `deepagents` → `deepagents-acp`, `claude-code` → `claude`. |
-| LLM credential | Hard | Any of `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, `GOOGLE_API_KEY`, `OLLAMA_API_KEY`, `GROQ_API_KEY`, `CUSTOM_LLM_API_KEY` is set — or, for `claude-code`, a signed-in `~/.claude/.credentials.json`. |
+| LLM credential | Hard | Any one supported LLM credential env var is set — or, for `claude-code`, a signed-in `~/.claude/.credentials.json`. The canonical list lives in [Providers → Checking your setup](/cli/providers/#checking-your-setup). |
 | Workspace | Soft | `workspace.base_dir` can be created and is writable. |
 | Listen token | Soft | Whether `listen.token` is set — only `pl listen` needs it, so an unset token is a notice, not a failure. |
 

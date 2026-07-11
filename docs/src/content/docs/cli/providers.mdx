@@ -124,13 +124,21 @@ agent:
 
 ## Checking your setup
 
-`prismalens doctor` runs before every investigation and checks:
+`prismalens doctor` runs before every investigation and checks four things (this
+is the canonical LLM-credential list — the other pages link here):
 
-- the configured harness's binary is on `PATH`,
-- **some** LLM credential is present — any of `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, `GOOGLE_API_KEY`, `OLLAMA_API_KEY`, `GROQ_API_KEY`, `CUSTOM_LLM_API_KEY`, or a signed-in Claude Code session,
-- the workspace directory is writable.
+- **Harness binary** (hard) — the configured harness's binary is on `PATH`.
+- **LLM credential** (hard) — **some** LLM credential is present: any of
+  `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, `GOOGLE_API_KEY`, `OLLAMA_API_KEY`,
+  `GROQ_API_KEY`, `CUSTOM_LLM_API_KEY`, or a signed-in Claude Code session.
+- **Workspace** (soft) — the workspace directory is writable.
+- **Listen token** (soft) — whether `listen.token` is set; only `pl listen`
+  needs it, so an unset token is a notice, not a failure.
 
-That credential check is intentionally broad — it's a smoke test, not a guarantee your chosen harness will actually work. Only `OLLAMA_API_KEY`/`OPENAI_API_KEY` (for `deepagents` and the report-synthesis step) and `ANTHROPIC_API_KEY`/Claude Code login (for `claude-code`) are ever actually read during a run. Setting `GOOGLE_API_KEY`, for example, satisfies `doctor` but won't make anything work.
+See the [`doctor` command reference](/cli/commands/#doctor) for the exact
+hard/soft semantics and exit behavior.
+
+That credential check is intentionally broad — it's a smoke test, not a guarantee your chosen harness will actually work. Only `OLLAMA_API_KEY`/`OPENAI_API_KEY` (for `deepagents` and the report-synthesis step) and `ANTHROPIC_API_KEY`/Claude Code login (for `claude-code`) are ever actually read during a run. Setting `GOOGLE_API_KEY`, for example, satisfies `doctor` but won't make anything work — if a run fails after `doctor` passed, [Troubleshooting](/cli/troubleshooting/#no-llm-credential-found) breaks down which credential each path actually needs.
 
 ```bash
 prismalens doctor

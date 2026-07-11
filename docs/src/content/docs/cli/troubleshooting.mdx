@@ -54,11 +54,11 @@ npm install -g @langchain/openai
 
 ### No LLM credential found
 
-`doctor` passes this check as soon as it finds **any** of these set in the
-environment: `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, `GOOGLE_API_KEY`,
-`OLLAMA_API_KEY`, `GROQ_API_KEY`, or `CUSTOM_LLM_API_KEY`. For `claude-code` it
-also accepts a signed-in session (`~/.claude/.credentials.json`, created by
-running `claude` once).
+`doctor` passes this check as soon as it finds **any** supported LLM credential
+env var set — the canonical list is in
+[Providers → Checking your setup](/cli/providers/#checking-your-setup). For
+`claude-code` it also accepts a signed-in session
+(`~/.claude/.credentials.json`, created by running `claude` once).
 
 That check only confirms *something* is set — it doesn't confirm the right
 credential for what you're about to run. Two things actually consume a

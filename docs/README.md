@@ -13,20 +13,29 @@ The documentation site for PrismaLens, built with Astro Starlight.
 
 ```
 docs/
-├── public/               # Static assets (images, favicons, etc.)
+├── public/               # Static assets (og image, cli-demo, favicons, etc.)
 ├── src/
-│   ├── assets/           # Images and media files
 │   ├── content/
-│   │   ├── docs/         # Documentation pages (MDX)
-│   │   │   ├── getting-started/
-│   │   │   ├── guides/
-│   │   │   ├── integrations/
-│   │   │   └── api/
-│   │   └── config.ts     # Content collections config
-│   └── env.d.ts
-├── astro.config.mjs      # Astro & Starlight configuration
+│   │   ├── docs/             # Live documentation pages (MDX)
+│   │   │   ├── index.mdx     # Landing / welcome
+│   │   │   ├── quickstart.mdx
+│   │   │   ├── concepts/     # Explanation pages (how-it-works, byo-agent, ...)
+│   │   │   └── cli/          # CLI reference (commands, providers, listen, ...)
+│   │   └── unreleased/       # Staged pages for the not-yet-shipped self-hosted
+│   │       │                 #   server — NOT wired into the sidebar yet
+│   │       ├── api/
+│   │       ├── getting-started/
+│   │       ├── guides/
+│   │       ├── integrations/
+│   │       └── reference/
+│   └── styles/           # Starlight theme overrides + design tokens
+├── astro.config.mjs      # Astro & Starlight configuration (sidebar lives here)
 └── tsconfig.json
 ```
+
+The live tree is intentionally flat: a root `index.mdx` + `quickstart.mdx`, a
+`concepts/` group, and the `cli/` reference. The `unreleased/` set ships with the
+self-hosted server later; it isn't in the sidebar.
 
 ## Development
 
@@ -86,28 +95,32 @@ Your content here...
 
 ### File-Based Routing
 
-- `src/content/docs/example.md` → `/example`
-- `src/content/docs/guides/setup.md` → `/guides/setup`
-- `src/content/docs/index.md` → `/`
+- `src/content/docs/index.mdx` → `/`
+- `src/content/docs/quickstart.mdx` → `/quickstart`
+- `src/content/docs/cli/commands.mdx` → `/cli/commands`
 
 ### Organize Documentation
 
-Group related pages in subdirectories:
+Group related pages in subdirectories, and register the group in the sidebar
+(`astro.config.mjs`). The current live groups:
 
 ```
 src/content/docs/
-├── getting-started/
-│   ├── installation.md
-│   ├── quick-start.md
-│   └── onboarding.md
-├── guides/
-│   ├── command-center.md
-│   ├── incidents.md
-│   └── investigations.md
-└── integrations/
-    ├── prometheus.md
-    ├── grafana.md
-    └── datadog.md
+├── index.mdx
+├── quickstart.mdx
+├── concepts/
+│   ├── how-it-works.mdx
+│   ├── byo-agent-and-key.mdx
+│   ├── ordered-evidence.mdx
+│   └── data-and-privacy.mdx
+└── cli/
+    ├── index.mdx
+    ├── providers.mdx
+    ├── commands.mdx
+    ├── configuration.mdx
+    ├── listen.mdx
+    ├── sandboxing.mdx
+    └── troubleshooting.mdx
 ```
 
 ### Update Navigation Sidebar
@@ -190,8 +203,8 @@ This is a danger callout.
 Link to other documentation pages:
 
 ```markdown
-[Installation Guide](/getting-started/installation)
-[Prometheus Integration](/integrations/prometheus)
+[Quickstart](/quickstart/)
+[Providers & harnesses](/cli/providers/)
 ```
 
 ### Images
