@@ -1,0 +1,172 @@
+---
+title: Unattended alerts
+description: Point Alertmanager at pl listen so firing alerts trigger read-only investigations on their own — grouped, capped, and delivered to Slack.
+---
+
+`pl investigate` is something you run by hand. `pl listen` runs the same
+investigation **unattended**: it opens a small local HTTP receiver, and every
+firing alert Alertmanager sends it becomes a full read-only investigation —
+while you're asleep. The report is saved, and (if you've wired Slack) posted to
+a channel.
+
+A **harness** here means the coding-agent binary PrismaLens rents to do the
+read-only legwork; see [Providers & harnesses](/cli/providers/) if that's new.
+
+## Before you start
+
+`pl listen` runs a real investigation per alert, so the same prerequisites as
+`investigate` apply — a harness binary on `PATH` and a model credential. Confirm
+them with:
+
+```bash
+pl doctor
+```
+
+`doctor` also reports whether `listen.token` is set (a soft check — only
+`listen` needs it).
+
+## 1. Set the intake token
+
+`pl listen` refuses to start without a shared bearer token — an open,
+unauthenticated intake is not a mode. Keep the token out of your config file by
+referencing an environment variable:
+
+```yaml
+# prismalens.config.yaml
+listen:
+  token: ${PRISMALENS_LISTEN_TOKEN}
+```
+
+```bash
+export PRISMALENS_LISTEN_TOKEN=$(openssl rand -hex 32)
+```
+
+Every other `listen.*` setting has a default — the token is the only one you
+must provide. The full list is in [Configuration](/cli/configuration/#listen).
+
+## 2. Start listening
+
+```bash
+pl listen
+```
+
+The command holds the terminal open and serves one route on `127.0.0.1:4181`
+(override the port with `listen.port`):
+
+```
+POST /webhooks/alertmanager
+```
+
+It logs one line as each webhook is accepted and one as each investigation
+finishes — for example:
+
+```
+Investigating "HighErrorRate" for run 6f1c…  (payments)
+Report saved for run 6f1c…
+```
+
+Requests without the bearer token get `401`; anything that isn't a well-formed
+Alertmanager payload gets a `400` with the reason. The exact status codes are
+in the [`listen` command reference](/cli/commands/#listen).
+
+## 3. Point Alertmanager at it
+
+Add a webhook receiver to your Alertmanager config, presenting the same token
+as a bearer credential:
+
+```yaml
+# alertmanager.yml
+receivers:
+  - name: prismalens
+    webhook_configs:
+      - url: http://localhost:4181/webhooks/alertmanager
+        send_resolved: false
+        http_config:
+          authorization:
+            type: Bearer
+            credentials: <your PRISMALENS_LISTEN_TOKEN>
+
+route:
+  receiver: prismalens
+```
+
+Keep the token out of `alertmanager.yml` too — Alertmanager accepts
+`credentials_file: /path/to/token` instead of an inline `credentials`. Set
+`send_resolved: false`: `pl listen` acts on **firing** alerts and only
+acknowledges resolved ones.
+
+If Alertmanager and `pl listen` run on different hosts, publish the receiver on
+a reachable address and put it behind TLS — the bearer token is the only thing
+guarding the intake.
+
+## What happens when an alert fires
+
+At 3AM, for each firing alert, `pl listen`:
+
+1. **Groups** related alerts arriving close together (see below) into one
+   investigation instead of a stampede of redundant runs.
+2. **Checks the budget** — if a cap is already hit, the group is recorded as
+   `suppressed` rather than investigated (see [below](#budget-guardrails)).
+3. **Investigates** — resolves config, repo, and sandbox exactly like a manual
+   `pl investigate`, and runs the harness read-only against the service the
+   alert points at.
+4. **Saves the report** to the record store, and
+5. **Notifies Slack** if `listen.slack_webhook_url` is set.
+
+### Alert grouping
+
+Firing alerts that arrive within `listen.grouping_window_ms` (default 60000ms —
+one minute) are debounced into a single group, so one incident that trips ten
+rules becomes one investigation carrying all ten alerts, not ten. Alerts that
+arrive while a group's investigation is already running attach to it (deduped)
+instead of starting a redundant run. Tune the window in
+[Configuration](/cli/configuration/#listen).
+
+### Budget guardrails
+
+An alert storm shouldn't fan out into unbounded investigations (each one costs
+tokens on your own provider key). Three caps under `listen.caps` bound it:
+
+- `max_concurrent` (default 2) — investigations running at once.
+- `max_per_hour` (default 10) — investigations started per rolling 60-minute
+  window.
+- `max_turns` — an optional per-run turn ceiling handed to the harness.
+
+A group turned away by a cap isn't dropped silently — it's recorded as a
+terminal `suppressed` run with the cap that tripped, so you can see what was
+skipped. A suppressed run is not retried: intake has already acknowledged the
+alert.
+
+### Slack delivery
+
+Set one field to have finished investigations posted to Slack:
+
+```yaml
+listen:
+  slack_webhook_url: ${PRISMALENS_SLACK_WEBHOOK_URL}
+```
+
+Successful, no-evidence, and **errored** runs all notify — an errored 3AM run is
+exactly what you want woken for; operator-cancelled runs don't. Delivery is
+best-effort with a short timeout and no retries, and a failed post can never
+change a run's outcome. Leave the field unset and nothing is sent.
+
+## Read the results
+
+Everything `pl listen` produces lands in the same record store a manual run
+uses, so you review a night's activity with the ordinary read commands:
+
+```bash
+pl status                        # every run, most recent first
+pl status --status suppressed    # just what a cap turned away
+pl report <runId> --events       # one stored report, with its timeline
+```
+
+See [`status`](/cli/commands/#status) and [`report`](/cli/commands/#report) for
+their full output.
+
+## Next steps
+
+- [Configuration](/cli/configuration/#listen) — every `listen.*` key and its default.
+- [Commands](/cli/commands/#listen) — the `listen` wire contract and response codes.
+- [Sandboxing & permissions](/cli/sandboxing/) — what boundary each unattended run gets.

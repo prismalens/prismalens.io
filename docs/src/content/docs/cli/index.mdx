@@ -24,7 +24,8 @@ The raw [asciinema recording](/cli-demo.cast) is also available.
 
 ## Install
 
-Requires **Node.js 22 or newer**.
+Requires **Node.js 22.13 or newer** (the CLI uses Node's built-in
+`node:sqlite` for its run record store).
 
 Try it without installing anything:
 
@@ -46,10 +47,13 @@ Two things need to be in place before your first investigation:
 
 1. **A harness binary on PATH.** The CLI doesn't investigate on its own — it
    rents an agent harness to do the read-only legwork. The default,
-   `deepagents`, needs the `deepagents-acp` package's binary on PATH.
-2. **A model provider credential.** `deepagents` talks to any OpenAI-protocol
-   provider (Ollama, OpenAI, Groq, or your own OpenAI-compatible endpoint).
-   See [Providers](/cli/providers/) for the full setup.
+   `claude-code`, needs the `claude` binary on PATH
+   (`npm install -g @anthropic-ai/claude-code`).
+2. **A model provider credential.** `claude-code` uses your signed-in Claude
+   Code session or an `ANTHROPIC_API_KEY`. (`deepagents`, the alternative
+   harness, talks to any OpenAI-protocol provider instead.) The report-writing
+   step always needs an OpenAI-compatible credential too — see
+   [Providers](/cli/providers/) for the full setup.
 
 ## Check your setup: `pl doctor`
 
@@ -112,5 +116,6 @@ There are no numeric confidence scores — evidence is ordered, not scored.
 ## Next steps
 
 - [Providers](/cli/providers/) — set up a model provider and harness binary for your setup.
-- [Commands](/cli/commands/) — the full flag reference for `investigate`, `serve`, `doctor`, and `init`.
+- [Commands](/cli/commands/) — the full flag reference for every `pl` subcommand.
+- [Unattended alerts](/cli/listen/) — point Alertmanager at `pl listen` and let it investigate on its own.
 - [Configuration](/cli/configuration/) — `prismalens.config.yaml`, layering, and BYO-key environment variables.

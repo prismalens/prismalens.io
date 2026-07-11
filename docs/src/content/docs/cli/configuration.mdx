@@ -73,7 +73,7 @@ file. `${VAR}` interpolation is for non-secret settings like URLs; see
 # Tier-2 harness backend the supervisor rents.
 agent:
   # Which agent harness to rent: deepagents | claude-code | codex
-  default: deepagents
+  default: claude-code
 
   # BARE model id, e.g. "gpt-oss:120b" — the chosen harness applies its own
   # provider prefix. Omit to let the harness pick its own default.
@@ -122,9 +122,24 @@ telemetry:
 #     repo: acme/checkout
 #     depends_on: [payments, inventory]
 
-# Where runs, events, and reports are stored on disk.
+# Where runs, events, and reports are stored on disk (a prismalens.db record
+# store plus a runs/<runId>/ workspace dir per run).
 workspace:
   base_dir: ~/.prismalens
+
+# Unattended intake for `pl listen` (token-authed Alertmanager webhooks). The
+# token is REQUIRED to start listening — keep it out of the file via env
+# interpolation. See the reference below and the Unattended alerts guide.
+# listen:
+#   token: ${PRISMALENS_LISTEN_TOKEN}   # required for `pl listen`
+#   port: 4181                          # local intake port
+#   grouping_window_ms: 60000           # debounce firing alerts into one group
+#   max_pending: 8                      # queue depth before intake 503s
+#   slack_webhook_url: ${PRISMALENS_SLACK_WEBHOOK_URL}   # optional report delivery
+#   caps:
+#     max_concurrent: 2                 # investigations running at once
+#     max_per_hour: 10                  # investigations started per rolling hour
+#     max_turns: 40                     # per-run turn ceiling (unset ⇒ harness default)
 
 # Per-harness native passthrough — untyped, forwarded straight to the rented
 # harness. For `deepagents` (the deepagents-acp binary, driven over ACP),
@@ -155,6 +170,28 @@ silently enforced. `wall_clock_ms` is enforced by every sandbox mode;
 | `wall_clock_ms` | integer, milliseconds | every sandbox mode |
 | `memory_mb` | integer, megabytes | `srt` only |
 | `cpu_cores` | number (fractional allowed) | `srt` only |
+
+## `listen`
+
+Settings for `pl listen`, the unattended Alertmanager webhook receiver. `token`
+is the only key `listen` can't start without; everything else has a default. For
+the end-to-end setup — the Alertmanager side, grouping, and Slack — see
+[Unattended alerts](/cli/listen/).
+
+| Key | Type | Default | What it does |
+| --- | --- | --- | --- |
+| `token` | string | — (**required** to start) | Shared bearer token every webhook request must present. Set it via env interpolation (`${PRISMALENS_LISTEN_TOKEN}`), never as a literal. Unset ⇒ `pl listen` refuses to start. |
+| `port` | integer | `4181` | Local intake port. Bound on `127.0.0.1` only. `0` picks an ephemeral port. |
+| `grouping_window_ms` | integer (1000–120000) | `60000` | Debounce window: firing alerts arriving within it are grouped into one investigation. |
+| `max_pending` | integer | `8` | Alerts waiting or running before intake replies `503` (an empty queue always admits a payload, so an oversized group can't wedge permanently). |
+| `slack_webhook_url` | URL | — | Slack incoming-webhook for report delivery. Unset ⇒ delivery disabled. Set via env interpolation (`${PRISMALENS_SLACK_WEBHOOK_URL}`). |
+| `caps.max_concurrent` | integer | `2` | Investigations allowed to run at the same time. |
+| `caps.max_per_hour` | integer | `10` | Investigations started per rolling 60-minute window. |
+| `caps.max_turns` | integer | — | Per-run turn ceiling handed to the default harness. Unset ⇒ the harness's own default. |
+
+Over-cap groups aren't dropped — they're recorded as terminal `suppressed` runs
+(visible in [`pl status`](/cli/commands/#status)) with the cap that turned them
+away.
 
 ## Next steps
 

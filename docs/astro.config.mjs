@@ -39,6 +39,7 @@ export default defineConfig({
 						{ label: 'Providers & Harnesses', slug: 'cli/providers' },
 						{ label: 'Commands', slug: 'cli/commands' },
 						{ label: 'Configuration', slug: 'cli/configuration' },
+						{ label: 'Unattended Alerts', slug: 'cli/listen' },
 						{ label: 'Sandboxing & Permissions', slug: 'cli/sandboxing' },
 						{ label: 'Troubleshooting', slug: 'cli/troubleshooting' },
 					],

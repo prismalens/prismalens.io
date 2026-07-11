@@ -1,14 +1,17 @@
 ---
 title: Commands
-description: Full flag reference for the four prismalens CLI commands — investigate, serve, doctor, and init.
+description: Full flag reference for the prismalens CLI commands — investigate, listen, status, report, serve, doctor, and init.
 ---
 
-The `prismalens` binary (alias `pl`) has four subcommands:
+The `prismalens` binary (alias `pl`) has these subcommands:
 
 ```
 prismalens <command> [flags]      # alias: pl
 
   investigate   Run a read-only root-cause investigation of a firing alert.
+  listen        Serve a token-authed local webhook receiver for Alertmanager.
+  status        List past and running investigations.
+  report        Print a stored report for one run.
   serve         Run the JSON-RPC 2.0 server over stdio (the live channel for apps).
   doctor        Preflight-check the investigation environment.
   init          Scaffold a prismalens.config.yaml in the current directory.
@@ -38,7 +41,7 @@ error.
 | `--query, -q <text>` | string | — | Synthesize an alert from this one-line description (alternative to piping a `FiringAlert` JSON on stdin). |
 | `--config <path>` | string | — | Path to a `prismalens.config.yaml` (skips the upward config search). |
 | `--model <id>` | string | — | Override `agent.model` — a **bare** model id, e.g. `gpt-oss:120b`. |
-| `--harness <name>` | enum: `deepagents` \| `claude-code` \| `codex` | `agent.default` in config (`deepagents`) | Tier-2 harness backend. `codex` is a reserved slot — selecting it throws (not implemented). |
+| `--harness <name>` | enum: `deepagents` \| `claude-code` \| `codex` | `agent.default` in config (`claude-code`) | Tier-2 harness backend. `codex` is a reserved slot — selecting it throws (not implemented). |
 | `--mode <mode>` | enum: `read-only` \| `supervised` \| `auto` \| `dangerous` | `agent.permissions.mode` in config (`read-only`) | Permission posture the harness runs under. |
 | `--dangerously-skip-permissions` | boolean | `false` | Alias for `--mode dangerous`. Wins over `--mode` when set. |
 | `--sandbox <mode>` | enum: `auto` \| `process` \| `srt` \| `e2b` | `agent.sandbox` in config (`auto`) | Isolation boundary the harness runs in. `auto` uses `srt` (an enforced OS boundary) when its egress self-check passes, else the cooperative `process` floor — the degrade is logged, never silent. `e2b` is an explicit-only cloud/remote boundary that needs `E2B_API_KEY`. |
@@ -47,12 +50,11 @@ error.
 | `--output <file>` | string | — | Also write the `InvestigationReport` JSON to this file. |
 | `--quiet` | boolean | `false` | Suppress progress and the human renderer (errors still go to stderr). |
 
-Only harnesses driven over ACP (`deepagents`) are spawned as a child process
-the engine can place inside an enforced boundary. Requesting `--sandbox srt`
-or `--sandbox e2b` with a non-ACP harness (`claude-code`) fails fast — the CLI
-won't claim an enforcement it can't apply. `--sandbox auto` or `--sandbox
-process` on a non-ACP harness runs without a boundary silently, since nothing
-was claimed.
+Both hero harnesses (`claude-code` and `deepagents`) run inside the isolation
+boundary: every investigation gets at least the always-on `process` floor, and
+`srt`/`auto` apply the enforced boundary when it's available. See
+[Sandboxing & permissions](/cli/sandboxing/) for what each boundary actually
+guarantees and how to read a run's fidelity report.
 
 ### Exit codes
 
@@ -78,16 +80,98 @@ cat alert.json | prismalens investigate --repo ./my-service
 prismalens investigate -q "OOMKilled in payments pod" --json --output report.json
 ```
 
-Every run is persisted under `~/.prismalens/runs/<runId>/` regardless of how
-it was invoked:
+Every run is persisted under `workspace.base_dir` (`~/.prismalens` by default)
+regardless of how it was invoked:
 
 ```
 ~/.prismalens/
-  sessions.json                  # run index (runId -> SessionRecord)
-  runs/<runId>/session.json      # per-run metadata mirror
-  runs/<runId>/events.jsonl      # canonical event stream (one JSON per line)
-  runs/<runId>/report.json       # the synthesized InvestigationReport
+  prismalens.db          # record store: runs, alert groups, events, and reports
+  runs/<runId>/          # per-run workspace dir the harness works in
 ```
+
+Run metadata, the canonical event stream, and the synthesized report all live
+in `prismalens.db` — a WAL-mode SQLite database backed by Node's built-in
+`node:sqlite`. Read a stored run back with [`status`](#status) and
+[`report`](#report) rather than parsing files by hand.
+
+## `listen`
+
+Starts a token-authed local HTTP receiver that turns firing Alertmanager
+alerts into investigations, unattended. Each firing alert runs the **same**
+seam chain as `investigate` — config, repo, and sandbox resolved per payload,
+so config edits apply to the next webhook without a restart.
+
+```bash
+pl listen
+```
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--config <path>` | string | — | Path to a `prismalens.config.yaml` (else the global→project search). |
+
+`listen` refuses to start unless `listen.token` is configured — an open intake
+is not a mode. It binds `127.0.0.1` only and serves one route,
+`POST /webhooks/alertmanager`. Every request must present the shared bearer
+token or it gets `401`. The full setup — the Alertmanager `webhook_config`, the
+grouping and budget behavior, and Slack delivery — is in
+[Unattended alerts](/cli/listen/); every `listen.*` config key is enumerated in
+[Configuration](/cli/configuration/#listen).
+
+Responses on the wire:
+
+| Status | Meaning |
+| --- | --- |
+| `202` | Payload accepted; body reports `received` and `accepted` (firing) counts. |
+| `400` | Body isn't valid JSON, or isn't a well-formed Alertmanager payload (the validation reason is included). |
+| `401` | Missing or wrong bearer token. |
+| `404` | Wrong path — only `/webhooks/alertmanager` is served. |
+| `413` | Request body over 5 MB. |
+| `503` | Intake queue full — Alertmanager's durable retry absorbs the backpressure. |
+
+## `status`
+
+Lists investigation runs — recent grouping/investigation activity plus whatever
+is running now — reading straight from `prismalens.db`.
+
+```bash
+pl status
+pl status --status errored,suppressed
+```
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--status <list>` | string | — | Comma-separated filter over `running`, `done`, `errored`, `suppressed`. An unknown value exits `1`. |
+| `--base-dir <dir>` | string | `~/.prismalens` | Workspace whose record store to read. |
+
+Each run prints one line of `key: value` fields:
+
+```
+run_id: <id> | status: <state> | created_at: <iso-8601> | alertname: <name> | agent: <harness> | repo: <owner/name>
+```
+
+`alertname`, `agent`, and `repo` appear only when recorded. A `suppressed` run
+(one a [budget cap](/cli/listen/#budget-guardrails) turned away) also carries
+`suppressed_by: <cap>`. With no runs, `status` prints `No runs found.`
+
+## `report`
+
+Prints one stored `InvestigationReport` as JSON, by run id.
+
+```bash
+pl report <runId>
+pl report <runId> --events
+```
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `id` (positional) | string | — | The run id, as shown by `pl status`. Required. |
+| `--events` | boolean | `false` | Also print the run's canonical event timeline, one JSON event per line, under a `--- Timeline Events ---` header. |
+| `--base-dir <dir>` | string | `~/.prismalens` | Workspace whose record store to read. |
+
+`report` and `status` are the read side of what a run **produces**: `investigate`
+and `listen` write runs into `prismalens.db`; `status` lists them and `report`
+prints one back. If there's no stored report for the id, `report` prints an
+error and exits `1`.
 
 ## `serve`
 
@@ -106,7 +190,7 @@ exactly as the `investigate` command writes it.
 --> {"jsonrpc":"2.0","id":1,"method":"initialize"}
 <-- {"jsonrpc":"2.0","id":1,"result":{
       "protocolVersion": 1,
-      "serverInfo": { "name": "prismalens", "version": "0.0.1" }
+      "serverInfo": { "name": "prismalens", "version": "…" }  // the installed prismalens version
     }}
 ```
 
@@ -171,6 +255,7 @@ non-zero **iff a hard check fails**. No flags.
 | Harness binary | Hard | The binary for the configured harness (`agent.default`) is on `PATH`: `deepagents` → `deepagents-acp`, `claude-code` → `claude`, `codex` → `codex`. |
 | LLM credential | Hard | Any of `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, `GOOGLE_API_KEY`, `OLLAMA_API_KEY`, `GROQ_API_KEY`, `CUSTOM_LLM_API_KEY` is set — or, for `claude-code`, a signed-in `~/.claude/.credentials.json`. |
 | Workspace | Soft | `workspace.base_dir` can be created and is writable. |
+| Listen token | Soft | Whether `listen.token` is set — only `pl listen` needs it, so an unset token is a notice, not a failure. |
 
 ```bash
 prismalens doctor

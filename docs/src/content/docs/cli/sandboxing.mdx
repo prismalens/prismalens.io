@@ -112,18 +112,18 @@ in the run's fidelity report. A healthy verdict is trusted for the rest of
 the process's life; an unhealthy one is re-checked after five minutes, so a
 one-off network blip doesn't disable `srt` for good.
 
-## Only some harnesses can be sandboxed at all
+## Both hero harnesses run inside the boundary
 
-`--sandbox srt`/`e2b`/`process` only apply to a harness PrismaLens spawns as
-a child process — today that's just `deepagents` (driven over ACP).
-`claude-code` runs in-process via the Agent SDK, so there's no child for a
-sandbox provider to wrap.
+`--sandbox` applies to both hero harnesses — `claude-code` and `deepagents`.
+Every investigation runs inside at least the always-on `process` floor, and
+`claude-code` now spawns through the same isolation boundary the ACP path
+(`deepagents`) already used, honoring your `sandbox` and `limits` config the
+same way. Whichever harness ran, the run's fidelity report records the sandbox
+that was actually applied (see below).
 
-Ask for an enforced boundary (`srt` or `e2b`) with `claude-code` and the
-command fails fast, before doing anything, rather than silently claiming an
-enforcement it can't deliver. `--sandbox auto` or `--sandbox process` with
-`claude-code` just runs with no boundary at all — no error, because nothing
-dishonest is being claimed either.
+So `--sandbox srt` (or `auto` landing on `srt`) wraps `claude-code` in the
+enforced OS boundary just as it does `deepagents`. `e2b` remains the
+explicit-only cloud boundary — `auto` never reaches for it on either harness.
 
 ## Requested vs. actual: the fidelity report
 

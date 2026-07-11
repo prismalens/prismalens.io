@@ -14,13 +14,14 @@ investigation that was never going to finish.
 pl doctor
 ```
 
-`doctor` runs three checks and prints a pass/fail line for each:
+`doctor` prints a pass/fail line for each check:
 
 | Check | Severity | What it means |
 | --- | --- | --- |
 | Harness binary | Hard | Is the Tier-2 harness binary for your configured `agent.default` on `PATH`? |
 | LLM credential | Hard | Is there a model credential in the environment (or a signed-in Claude Code session)? |
 | Workspace | Soft | Can `workspace.base_dir` (`~/.prismalens` by default) be created and written to? |
+| Listen token | Soft | Is `listen.token` set? Only `pl listen` needs it, so an unset token is a notice, not a failure. |
 
 A **hard** check failing makes `doctor` exit `1` — fix it before running
 `investigate`. A **soft** check only warns; runs can still complete, but nothing
@@ -33,8 +34,8 @@ was looking for and for which harness:
 
 | `--harness` | Binary it looks for | Install it |
 | --- | --- | --- |
-| `deepagents` (default) | `deepagents-acp` | `npm install -g deepagents-acp @langchain/openai` |
-| `claude-code` | `claude` | Install Claude Code, then run `claude` once to sign in |
+| `claude-code` (default) | `claude` | Install Claude Code, then run `claude` once to sign in |
+| `deepagents` | `deepagents-acp` | `npm install -g deepagents-acp @langchain/openai` |
 | `codex` | `codex` | Not available yet — selecting `--harness codex` fails immediately |
 
 If you just installed the binary and `doctor` still can't see it, open a new
@@ -78,9 +79,10 @@ credential, and they can fail independently even after `doctor` passes:
 ### Workspace not writable
 
 `workspace.base_dir` (`~/.prismalens` unless you've changed it) needs to be
-creatable and writable — every run's events and report are persisted there.
-This is a soft check: the investigation still runs, but nothing is saved to
-disk and you lose the run's history. Fix the directory's permissions, or point
+creatable and writable — every run's metadata, events, and report are persisted
+there, in the `prismalens.db` record store. This is a soft check: the
+investigation still runs, but nothing is saved to disk and you lose the run's
+history. Fix the directory's permissions, or point
 `workspace.base_dir` somewhere writable in your config.
 
 ## Common `investigate` failures
@@ -175,8 +177,8 @@ pl --version
 ```
 
 Include both outputs verbatim in your report, along with the command you ran
-and, if you're comfortable sharing it, the run's `report.json` /
-`events.jsonl` from `~/.prismalens/runs/<runId>/`. Open the issue at
+and, if you're comfortable sharing it, the stored run — grab its id from
+`pl status` and export it with `pl report <runId> --events`. Open the issue at
 [github.com/prismalens/prismalens/issues](https://github.com/prismalens/prismalens/issues).
 
 ## Next steps

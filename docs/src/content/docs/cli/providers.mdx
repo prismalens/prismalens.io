@@ -16,8 +16,8 @@ This page is the compatibility matrix for both, plus how to point PrismaLens at 
 
 | Harness | Binary on PATH | Install | Read-only guarantee | Status |
 | --- | --- | --- | --- | --- |
-| `deepagents` (default) | `deepagents-acp` | `npm install -g deepagents-acp @langchain/openai` | Cooperative — the harness auto-approves its own permission prompts; no OS-level enforcement yet | Available |
-| `claude-code` | `claude` | `npm install -g @anthropic-ai/claude-code` | Enforced — a tool deny-list blocks write/edit tools at the SDK level | Available |
+| `claude-code` (default) | `claude` | `npm install -g @anthropic-ai/claude-code` | Enforced — a tool deny-list blocks write/edit tools at the SDK level | Available |
+| `deepagents` | `deepagents-acp` | `npm install -g deepagents-acp @langchain/openai` | Cooperative — the harness auto-approves its own permission prompts; no OS-level enforcement yet | Available |
 | `codex` | `codex` | — | Enforced (planned) | **Not yet available** — selecting it exits with an error |
 
 Pick a harness with `--harness` on `prismalens investigate`, or set `agent.default` in `prismalens.config.yaml`. Whichever harness you pick, its binary must be on `PATH` — `prismalens doctor` checks this before every run.
@@ -92,7 +92,7 @@ Or set them in `prismalens.config.yaml`:
 
 ```yaml
 agent:
-  default: deepagents            # deepagents | claude-code | codex
+  default: claude-code           # claude-code | deepagents | codex
   model: gpt-oss:120b            # a BARE id — the chosen harness applies its own provider prefix
 ```
 
