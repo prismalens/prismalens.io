@@ -50,7 +50,8 @@ well-formed.
 | --- | --- | --- | --- |
 | `--repo <dir>` | string | current directory | Path to the repository the harness investigates (its cwd). |
 | `--query, -q <text>` | string | — | Synthesize an alert from this one-line description (alternative to piping a `FiringAlert` JSON on stdin). |
-| `--config <path>` | string | — | Path to a `prismalens.config.yaml` (skips the upward config search). |
+| `--config <path>` | string | — | Path to a `prismalens.config.yaml` (skips the upward config search; fails closed on missing/invalid files). |
+| `--max-turns <number>` | integer | `agent.max_turns` in config | Maximum number of turns (tool calls) the harness is allowed to make before being halted. |
 | `--model <id>` | string | — | Override `agent.model` — a **bare** model id, e.g. `gpt-oss:120b`. |
 | `--harness <name>` | enum: `deepagents` \| `claude-code` | `agent.default` in config (`claude-code`) | Tier-2 harness backend. (`codex` is a reserved value but is planned, not yet available — selecting it throws.) |
 | `--mode <mode>` | enum: `read-only` \| `supervised` \| `auto` \| `dangerous` | `agent.permissions.mode` in config (`read-only`) | Permission posture the harness runs under. |
@@ -284,12 +285,18 @@ server never crashes on bad input.
 ## `doctor`
 
 Preflight checklist that gates a run. Prints pass/fail per check, then exits
-non-zero **iff a hard check fails**. No flags.
+non-zero **iff a hard check fails**.
+
+### Flags
+
+| Flag | Type | Default | Description |
+| --- | --- | --- | --- |
+| `--no-ping` | boolean | `false` | Skip the live model credential ping (avoids network egress to the provider). |
 
 | Check | Hard/Soft | What it verifies |
 | --- | --- | --- |
 | Harness binary | Hard | The binary for the configured harness (`agent.default`) is on `PATH`: `deepagents` → `deepagents-acp`, `claude-code` → `claude`. |
-| LLM credential | Hard | Any one supported LLM credential env var is set — or, for `claude-code`, a signed-in `~/.claude/.credentials.json`. The canonical list lives in [Providers → Checking your setup](/cli/providers/#checking-your-setup). |
+| LLM credential | Hard | The resolved synthesis provider and credential source (env vs `_FILE`). Live-pings the model (~1 token, creating network egress to the provider) unless `--no-ping` is set. A broken credential or missing file causes a hard, red failure naming the source. The canonical list of credentials lives in [Providers & API keys](/cli/api-keys/#checking-your-setup). |
 | Workspace | Soft | `workspace.base_dir` can be created and is writable. |
 | Listen token | Soft | Whether `listen.token` is set — only `pl listen` needs it, so an unset token is a notice, not a failure. |
 
@@ -321,5 +328,5 @@ live defaults filled in and everything else left commented as a hint.
 
 ## Next steps
 
-- [Providers](/cli/providers/) — set up a model provider and harness binary.
+- [Providers](/cli/api-keys/) — set up a model provider and harness binary.
 - [Configuration](/cli/configuration/) — the full `prismalens.config.yaml` reference and BYO-key environment variables.

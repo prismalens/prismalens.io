@@ -52,12 +52,8 @@ Two things need to be in place before your first investigation:
 1. **A harness binary on PATH.** The CLI doesn't investigate on its own — it
    rents an agent harness to do the read-only legwork. The default,
    `claude-code`, needs the `claude` binary on PATH
-   (`npm install -g @anthropic-ai/claude-code`).
-2. **A model provider credential.** `claude-code` uses your signed-in Claude
-   Code session or an `ANTHROPIC_API_KEY`. (`deepagents`, the alternative
-   harness, talks to any OpenAI-protocol provider instead.) The report-writing
-   step always needs an OpenAI-compatible credential too — see
-   [Providers](/cli/providers/) for the full setup.
+   (`npm install -g @anthropic-ai/claude-code`) and a signed-in session (`claude login`).
+2. **Zero-config or a model credential.** `claude-code` works out of the box with just your signed-in Claude Code session — no API key required — yielding a raw, un-synthesized report (the agent's own conclusion). Configuring any provider API key (like `OPENAI_API_KEY` or `OLLAMA_API_KEY`) upgrades reports to fully synthesized writeups. See [Providers & API keys](/cli/api-keys/) for the full setup and alternative harnesses.
 
 Run `pl doctor` to confirm both are in place — it checks the harness binary is
 on PATH, a model credential is set, and the run workspace is writable, and exits
@@ -86,7 +82,7 @@ full JSON field list is documented in the
 ## Next steps
 
 - [Quickstart](/quickstart/) — install to first report, one path end to end.
-- [Providers](/cli/providers/) — set up a model provider and harness binary for your setup.
+- [Providers](/cli/api-keys/) — set up a model provider and harness binary for your setup.
 - [Commands](/cli/commands/) — the full flag reference for every `pl` subcommand.
 - [Unattended alerts](/cli/listen/) — point Alertmanager at `pl listen` and let it investigate on its own.
 - [Configuration](/cli/configuration/) — `prismalens.config.yaml`, layering, and BYO-key environment variables.

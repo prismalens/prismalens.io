@@ -26,18 +26,20 @@ npm install -g prismalens
 
 Both `prismalens` and the shorter `pl` alias point at the same binary.
 
-## 2. Set up a harness and a model credential
+## 2. Set up your harness and (optional) model credential
 
 PrismaLens doesn't investigate on its own — it rents an agent **harness** to do
-the read-only work, and calls a model to write the report. Two things need to be
-in place before your first run:
+the read-only work, and calls a model to write the report. For your first run, you need at minimum:
 
 1. **A harness binary on PATH.** The default, `claude-code`, needs the `claude`
-   binary (`npm install -g @anthropic-ai/claude-code`).
-2. **A model provider credential**, read fresh from your environment.
+   binary (`npm install -g @anthropic-ai/claude-code`) and a signed-in session (`claude login`).
+
+**Zero-config pass-through:** With just a Claude Code login and no API key, you can run investigations immediately. The report will be marked `[RAW — un-synthesized]` (the agent's own conclusion, returned exactly as-is).
+
+**Full synthesis:** Configuring any provider API key (like `OPENAI_API_KEY` or `OLLAMA_API_KEY`) upgrades your reports to fully synthesized ordered-evidence writeups.
 
 The exact credentials each harness needs — and the report-synthesis step's
-requirement — are in [Providers & harnesses](/cli/providers/).
+requirement — are in [Providers & API keys](/cli/api-keys/).
 
 ## 3. Check your setup
 
@@ -89,6 +91,6 @@ reference; read a stored run back later with `pl status` and
 ## Next steps
 
 - [How PrismaLens works](/concepts/how-it-works/) — the two-tier mental model.
-- [Providers & harnesses](/cli/providers/) — set up a model provider and harness binary.
+- [Providers & harnesses](/cli/api-keys/) — set up a model provider and harness binary.
 - [Commands](/cli/commands/) — the full flag reference for every `pl` subcommand.
 - [Unattended alerts](/cli/listen/) — let firing alerts investigate themselves.

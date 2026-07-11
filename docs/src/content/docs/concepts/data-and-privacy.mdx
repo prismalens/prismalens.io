@@ -16,6 +16,7 @@ configured**:
 - **Repo source** the harness reads while investigating.
 - **Telemetry and log query results** it gathers (from the endpoints in your
   `prismalens.config.yaml`).
+- **`pl doctor` pings** the model API with a minimal (~1 token) prompt to verify the credential before a run, creating network egress to the provider. You can disable this with `pl doctor --no-ping`.
 
 Both flow to your provider — Anthropic, OpenAI, Groq, your own Ollama, whichever
 you set — the same way they would if you used that provider's coding agent
@@ -45,7 +46,7 @@ Two mitigations help, and it's worth knowing where each stops:
   harness's process environment down to a safe allowlist plus your configured
   BYO-key credentials, so your shell's other environment variables — and
   PrismaLens's own secrets — never reach the harness. It protects **environment
-  variables**, not files.
+  variables**, not files. (For maximum secret hygiene in deployments, use the `_FILE` convention to mount API keys as files rather than exporting them as environment variables.)
 - **The `srt` sandbox's egress allowlist** restricts which network hosts the
   harness can reach to the telemetry domains you configured, narrowing where data
   could go. It can't un-read a secret already pulled into the prompt.
