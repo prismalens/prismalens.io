@@ -24,6 +24,9 @@ Available on the `prismalens` binary itself, before any subcommand:
 - `--version`, `-v` — print the installed PrismaLens version and exit.
 - `--help`, `-h` — print usage (top-level, or for a subcommand: `pl investigate --help`).
 
+Flags are strict on every command: an option a command doesn't declare is an
+error (`Unknown option: --my-typo`, exit 1), never silently ignored.
+
 ## `investigate`
 
 Seeds an investigation from a firing alert, rents a Tier-2 harness to gather
