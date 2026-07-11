@@ -28,12 +28,35 @@ export default defineConfig({
 			editLink: {
 				baseUrl: 'https://github.com/prismalens/prismalens.io/edit/main/docs/',
 			},
+			// Per-page "Last updated" timestamps, so readers can judge whether a
+			// time-sensitive gotcha (e.g. the WSL srt caveat) is still current.
+			lastUpdated: true,
+			// Social/OG preview card for shared links — reuses the brand card the
+			// marketing site ships; wired here because Starlight emits no og:image
+			// on its own.
+			head: [
+				{ tag: 'meta', attrs: { property: 'og:image', content: 'https://docs.prismalens.io/og-default.png' } },
+				{ tag: 'meta', attrs: { property: 'og:image:width', content: '1200' } },
+				{ tag: 'meta', attrs: { property: 'og:image:height', content: '630' } },
+				{ tag: 'meta', attrs: { name: 'twitter:card', content: 'summary_large_image' } },
+				{ tag: 'meta', attrs: { name: 'twitter:image', content: 'https://docs.prismalens.io/og-default.png' } },
+			],
 			sidebar: [
 				// Server-app sections (Guides, Configuration Reference, Integrations, API,
-				// Quick Start, Onboarding) are staged in src/content/unreleased/ until the
-				// self-hosted server ships — the 0.0.1 launch is CLI-only.
+				// Onboarding) are staged in src/content/unreleased/ until the
+				// self-hosted server ships — the 0.1.0 launch is CLI-only.
+				{ label: 'Quickstart', slug: 'quickstart' },
 				{
-					label: 'CLI',
+					label: 'Concepts',
+					items: [
+						{ label: 'How PrismaLens works', slug: 'concepts/how-it-works' },
+						{ label: 'Bring your own agent & key', slug: 'concepts/byo-agent-and-key' },
+						{ label: 'Ordered evidence', slug: 'concepts/ordered-evidence' },
+						{ label: 'Data & privacy', slug: 'concepts/data-and-privacy' },
+					],
+				},
+				{
+					label: 'CLI Reference',
 					items: [
 						{ label: 'Overview & Install', slug: 'cli' },
 						{ label: 'Providers & Harnesses', slug: 'cli/providers' },

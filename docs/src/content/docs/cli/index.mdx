@@ -8,7 +8,10 @@ way an on-call engineer would: it reads the repo, queries your read-only
 telemetry, and comes back with an **ordered-evidence report** — hypotheses
 ranked most to least plausible, each one backed by evidence it actually
 gathered. No PrismaLens account, no subscription — you bring your own model
-provider key.
+provider key. It's open source, [Apache-2.0 licensed](https://github.com/prismalens/prismalens/blob/main/LICENSE).
+
+New here? The [Quickstart](/quickstart/) walks install → `pl doctor` → your first
+investigation end to end. This page is the CLI overview and install reference.
 
 ## See it in action
 
@@ -39,7 +42,8 @@ Or install it globally:
 npm install -g prismalens
 ```
 
-Both `prismalens` and the shorter `pl` alias point at the same binary.
+Both `prismalens` and the shorter `pl` alias point at the same binary. Confirm
+the installed version with `pl --version`.
 
 ## Before your first run
 
@@ -55,49 +59,13 @@ Two things need to be in place before your first investigation:
    step always needs an OpenAI-compatible credential too — see
    [Providers](/cli/providers/) for the full setup.
 
-## Check your setup: `pl doctor`
+Run `pl doctor` to confirm both are in place — it checks the harness binary is
+on PATH, a model credential is set, and the run workspace is writable, and exits
+non-zero if anything required is missing (a good CI smoke check too). When a run
+fails or `doctor` reports a problem, [Troubleshooting](/cli/troubleshooting/)
+maps the symptom to the fix.
 
-Confirm both are in place before you investigate:
-
-```bash
-pl doctor
-```
-
-It checks the things that would otherwise fail mid-run: the harness binary is
-on PATH, a model credential is set, and the run workspace is writable. It
-exits non-zero if anything required is missing, so it's a good fit for a CI
-smoke check too.
-
-## 3-minute quickstart
-
-There are two ways to hand the CLI something to investigate.
-
-### Pipe in an alert
-
-If you already have an alert payload — from Alertmanager, Grafana, or a
-generic webhook — pipe it straight in:
-
-```bash
-cat alert.json | pl investigate --repo ./my-service
-```
-
-The CLI accepts a raw `FiringAlert` JSON or a webhook/Alertmanager-shaped
-payload; it pulls `alertname`/`severity` from the top level or falls back to
-`labels`.
-
-### Or just describe the problem
-
-No alert handy? Describe what's wrong and let the CLI synthesize one:
-
-```bash
-pl investigate --repo . --query "checkout latency spike after 14:00 UTC"
-```
-
-`--repo` defaults to the current directory, so inside a repo you can drop it
-entirely.
-
-Either path streams a live one-line timeline as the investigation runs, then
-prints the report and saves a copy under `~/.prismalens/runs/<runId>/`.
+Then head to the [Quickstart](/quickstart/) to run one end to end.
 
 ## What a report looks like
 
@@ -111,11 +79,15 @@ terminal or as JSON (`--json`):
 - **Coverage** — which sources were queried and which weren't.
 - **Next steps** to confirm or dig further.
 
-There are no numeric confidence scores — evidence is ordered, not scored.
+There are no numeric confidence scores — evidence is ordered, not scored. The
+full JSON field list is documented in the
+[Output shape](/cli/commands/#output-shape) reference.
 
 ## Next steps
 
+- [Quickstart](/quickstart/) — install to first report, one path end to end.
 - [Providers](/cli/providers/) — set up a model provider and harness binary for your setup.
 - [Commands](/cli/commands/) — the full flag reference for every `pl` subcommand.
 - [Unattended alerts](/cli/listen/) — point Alertmanager at `pl listen` and let it investigate on its own.
 - [Configuration](/cli/configuration/) — `prismalens.config.yaml`, layering, and BYO-key environment variables.
+- [Troubleshooting](/cli/troubleshooting/) — when a run or `pl doctor` fails.

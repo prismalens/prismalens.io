@@ -1,0 +1,62 @@
+---
+title: How PrismaLens works
+description: The two-tier mental model behind a PrismaLens investigation — a rented read-only harness gathers evidence, a model call synthesizes the report.
+---
+
+PrismaLens turns one firing alert into one ordered-evidence report. Under the
+hood it's a **two-tier** system, and those two tiers are worth naming once
+because the rest of the docs lean on them.
+
+## The two tiers
+
+- **Tier-2 — the investigation.** PrismaLens rents a coding-agent **harness**
+  (Claude Code by default) and drives it **read-only** against your repo and
+  telemetry. This tier does the legwork: running commands, reading source,
+  querying metrics and logs, gathering the raw evidence. It's the "hands."
+- **Tier-1 — the report.** Once the evidence is in, a single model call —
+  the **supervisor** — reduces everything the harness found into the structured
+  [ordered-evidence report](/concepts/ordered-evidence/): ranked hypotheses,
+  what was ruled out, coverage, next steps. It's the "judgment."
+
+Splitting the two matters: the harness that gathers evidence and the model that
+writes the verdict are chosen and credentialed independently. That's why a run
+can need a credential for each — see
+[Bring your own agent & key](/concepts/byo-agent-and-key/).
+
+## Decompose → fan-out → reduce
+
+The supervisor doesn't hand the whole alert to a single agent session and hope.
+It **decomposes** the alert into investigation angles, **fans** them out as
+branches the harness pursues, and **reduces** the branch results into one
+report. You get a focused investigation instead of a long, meandering transcript.
+
+## Reactive, pull-on-demand, single-alert
+
+PrismaLens is reactive: it does nothing until an alert arrives, then pulls
+exactly the telemetry that alert needs, live, at investigation time. There's no
+standing ingestion pipeline, no database of your metrics slowly filling up, no
+background agent. One alert in, one investigation out. (Grouping several alerts
+from the same incident into a single run is a [`pl listen`](/cli/listen/)
+convenience, not a change to this model.)
+
+## A report is a lead, not a verdict
+
+PrismaLens is LLM-driven, and that has a consequence worth stating plainly: it
+is **not deterministic**. Two runs of the same alert can reach different
+conclusions, and a confidently-worded report can still be wrong. Treat a report
+the way you'd treat a sharp colleague's first-pass theory at 3AM: a strong,
+evidence-linked **lead** that tells you where to look — not ground truth to act
+on blind.
+
+That's exactly why the report links every hypothesis to the evidence behind it
+and records what it did and didn't check. The structure is there so you can
+verify the lead quickly, not so you can skip verifying it. When a run genuinely
+has nothing to stand on, PrismaLens says "not determined" rather than inventing a
+cause.
+
+## Next steps
+
+- [Bring your own agent & key](/concepts/byo-agent-and-key/) — the harness and model choices.
+- [Ordered evidence](/concepts/ordered-evidence/) — why the report ranks instead of scores.
+- [Data & privacy](/concepts/data-and-privacy/) — what leaves your machine.
+- [CLI reference](/cli/) — install and run it.

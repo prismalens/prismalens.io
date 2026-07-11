@@ -1,0 +1,63 @@
+---
+title: Data & privacy
+description: What leaves your machine when PrismaLens investigates — what flows to your model provider, what PrismaLens stores, and the repo-secret risk to watch.
+---
+
+PrismaLens is local-first and BYO-key, so "what actually leaves my machine?" has
+a short, honest answer. If you're about to point it at production, read this
+first.
+
+## What leaves your machine
+
+An investigation is an LLM agent reading your repo and telemetry, so the raw
+material it looks at becomes part of the prompt sent to **the model provider you
+configured**:
+
+- **Repo source** the harness reads while investigating.
+- **Telemetry and log query results** it gathers (from the endpoints in your
+  `prismalens.config.yaml`).
+
+Both flow to your provider — Anthropic, OpenAI, Groq, your own Ollama, whichever
+you set — the same way they would if you used that provider's coding agent
+directly. There is no PrismaLens-operated model or relay in the middle.
+
+## What PrismaLens does *not* do
+
+- **It stores no key.** Credentials are read fresh from your environment on every
+  run and never written to disk or config (ADR-0006).
+- **It sends no usage telemetry and does not phone home.** PrismaLens has no
+  analytics endpoint of its own. The only outbound network traffic is to your
+  model provider and the telemetry/log endpoints you configured — nothing
+  reports back to the project.
+- **Everything else stays local.** Runs, events, and reports are written only to
+  `~/.prismalens/` on your machine (see [retention](/cli/configuration/#run-storage-and-retention)).
+
+## The repo-secret risk to watch
+
+The read-only posture stops the harness from *writing*, not from *reading*. A
+harness can still read any file in the repo you point it at — including a
+committed `.env`, a config file with an inline token, or a credentials file — and
+**anything it reads can enter the model context and be sent to your provider.**
+
+Two mitigations help, and it's worth knowing where each stops:
+
+- **The sandbox env allowlist** (the always-on `process` floor) trims the
+  harness's process environment down to a safe allowlist plus your configured
+  BYO-key credentials, so your shell's other environment variables — and
+  PrismaLens's own secrets — never reach the harness. It protects **environment
+  variables**, not files.
+- **The `srt` sandbox's egress allowlist** restricts which network hosts the
+  harness can reach to the telemetry domains you configured, narrowing where data
+  could go. It can't un-read a secret already pulled into the prompt.
+
+Neither stops a secret **file** inside the repo from being read. So the real
+control is hygiene: don't point `--repo` at a checkout that contains live
+credentials, and keep secrets out of the tree (or in an ignored path the harness
+won't wander into). See [Sandboxing & permissions](/cli/sandboxing/) for what
+each boundary enforces.
+
+## Next steps
+
+- [Sandboxing & permissions](/cli/sandboxing/) — the enforcement boundaries in detail.
+- [Configuration](/cli/configuration/) — where credentials come from and where runs are stored.
+- [Bring your own agent & key](/concepts/byo-agent-and-key/) — the BYO-key model.
