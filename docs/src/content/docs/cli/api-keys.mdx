@@ -78,7 +78,7 @@ pl doctor
 # ✔ LLM credential: Anthropic (source: env) — ping OK
 ```
 
-When `synth.provider` is unset, the CLI auto-selects the **first** provider with a key set, in this exact order: `anthropic`, `openai`, `google`, `groq`, `ollama`.
+When `synth.provider` is unset, the CLI auto-selects the **first** provider with a key set, in this exact order: `anthropic`, `openai`, `google`, `ollama`, `groq`.
 
 `pl doctor` actually calls the model to live-ping the credential (~1 token, network egress to the provider), so a fake or expired key will fail with a red error here naming the file/source:
 
