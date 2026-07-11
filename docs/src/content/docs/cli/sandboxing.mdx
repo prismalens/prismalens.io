@@ -34,7 +34,6 @@ into each harness's native mechanism and reports what actually resulted:
 | --- | --- | --- |
 | `deepagents` | cooperative | ACP `session/request_permission` is auto-approved — prompt-only, no programmatic block. The harness has to actually respect the read-only ask. |
 | `claude-code` | enforced | Agent SDK `disallowedTools` deny-list (`Edit`, `Write`, `MultiEdit`, `NotebookEdit`) plus `permissionMode` — a real block, not just a prompt. |
-| `codex` | — | Not implemented yet; selecting this harness throws. |
 
 `auto` and `dangerous` don't consult that table at all — they're always
 **advisory**, on every harness, because neither applies a read-only floor in

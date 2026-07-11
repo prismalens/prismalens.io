@@ -41,7 +41,7 @@ error.
 | `--query, -q <text>` | string | — | Synthesize an alert from this one-line description (alternative to piping a `FiringAlert` JSON on stdin). |
 | `--config <path>` | string | — | Path to a `prismalens.config.yaml` (skips the upward config search). |
 | `--model <id>` | string | — | Override `agent.model` — a **bare** model id, e.g. `gpt-oss:120b`. |
-| `--harness <name>` | enum: `deepagents` \| `claude-code` \| `codex` | `agent.default` in config (`claude-code`) | Tier-2 harness backend. `codex` is a reserved slot — selecting it throws (not implemented). |
+| `--harness <name>` | enum: `deepagents` \| `claude-code` | `agent.default` in config (`claude-code`) | Tier-2 harness backend. (`codex` is a reserved value but is planned, not yet available — selecting it throws.) |
 | `--mode <mode>` | enum: `read-only` \| `supervised` \| `auto` \| `dangerous` | `agent.permissions.mode` in config (`read-only`) | Permission posture the harness runs under. |
 | `--dangerously-skip-permissions` | boolean | `false` | Alias for `--mode dangerous`. Wins over `--mode` when set. |
 | `--sandbox <mode>` | enum: `auto` \| `process` \| `srt` \| `e2b` | `agent.sandbox` in config (`auto`) | Isolation boundary the harness runs in. `auto` uses `srt` (an enforced OS boundary) when its egress self-check passes, else the cooperative `process` floor — the degrade is logged, never silent. `e2b` is an explicit-only cloud/remote boundary that needs `E2B_API_KEY`. |
@@ -203,7 +203,7 @@ exactly as the `investigate` command writes it.
 | `alert` | object | A `FiringAlert` (or webhook-shaped payload), same as stdin for the CLI command. |
 | `query` | string | Alternative to `alert` — synthesizes an alert from a one-line description. |
 | `repo` | string | Repository path (defaults to the server's cwd). |
-| `harness` | string | `deepagents` \| `claude-code` \| `codex`. |
+| `harness` | string | `deepagents` \| `claude-code`. (`codex` is planned, not yet available.) |
 | `model` | string | Bare model id override. |
 | `config` | string | Path to a `prismalens.config.yaml`. |
 | `service` | string | Service name from `services` in config. |
@@ -252,7 +252,7 @@ non-zero **iff a hard check fails**. No flags.
 
 | Check | Hard/Soft | What it verifies |
 | --- | --- | --- |
-| Harness binary | Hard | The binary for the configured harness (`agent.default`) is on `PATH`: `deepagents` → `deepagents-acp`, `claude-code` → `claude`, `codex` → `codex`. |
+| Harness binary | Hard | The binary for the configured harness (`agent.default`) is on `PATH`: `deepagents` → `deepagents-acp`, `claude-code` → `claude`. |
 | LLM credential | Hard | Any of `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, `GOOGLE_API_KEY`, `OLLAMA_API_KEY`, `GROQ_API_KEY`, `CUSTOM_LLM_API_KEY` is set — or, for `claude-code`, a signed-in `~/.claude/.credentials.json`. |
 | Workspace | Soft | `workspace.base_dir` can be created and is writable. |
 | Listen token | Soft | Whether `listen.token` is set — only `pl listen` needs it, so an unset token is a notice, not a failure. |

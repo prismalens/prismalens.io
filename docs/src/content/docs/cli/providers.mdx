@@ -7,7 +7,7 @@ PrismaLens doesn't run its own model. It rents a coding-agent binary — a **har
 
 There are two independent choices to make:
 
-1. **Harness** — which agent binary PrismaLens drives (`deepagents`, `claude-code`, or `codex`).
+1. **Harness** — which agent binary PrismaLens drives (`claude-code` or `deepagents`).
 2. **Model provider** — whose model backs that harness, and which credential it needs.
 
 This page is the compatibility matrix for both, plus how to point PrismaLens at the provider you want.
@@ -18,9 +18,14 @@ This page is the compatibility matrix for both, plus how to point PrismaLens at 
 | --- | --- | --- | --- | --- |
 | `claude-code` (default) | `claude` | `npm install -g @anthropic-ai/claude-code` | Enforced — a tool deny-list blocks write/edit tools at the SDK level | Available |
 | `deepagents` | `deepagents-acp` | `npm install -g deepagents-acp @langchain/openai` | Cooperative — the harness auto-approves its own permission prompts; no OS-level enforcement yet | Available |
-| `codex` | `codex` | — | Enforced (planned) | **Not yet available** — selecting it exits with an error |
 
 Pick a harness with `--harness` on `prismalens investigate`, or set `agent.default` in `prismalens.config.yaml`. Whichever harness you pick, its binary must be on `PATH` — `prismalens doctor` checks this before every run.
+
+:::note[Codex — planned, not yet available]
+`codex` is a reserved harness value, but selecting it (`--harness codex` or
+`agent.default: codex`) exits with an error today — it isn't wired up yet. Don't
+plan a 0.1.0 setup around it.
+:::
 
 ## Model providers
 
@@ -32,7 +37,7 @@ An investigation drives a coding-agent harness through multiple tool calls, so a
 
 ### `deepagents` — OpenAI-protocol only
 
-`deepagents` speaks the OpenAI API shape, so it works with anything that exposes that protocol: Ollama, OpenAI itself, Groq, or a self-hosted OpenAI-compatible endpoint.
+`deepagents` is driven over the **Agent Client Protocol (ACP)** and speaks the OpenAI API shape, so it works with anything that exposes that protocol: Ollama, OpenAI itself, Groq, or a self-hosted OpenAI-compatible endpoint.
 
 <div class="providers-table">
 
@@ -78,6 +83,27 @@ claude   # follow the login prompt once, or set ANTHROPIC_API_KEY instead
 
 This is easy to miss: `claude-code` only covers the *investigation* itself (Tier-2). The final report — the ordered-evidence writeup — is always synthesized by an OpenAI-compatible model call (Tier-1 reduce), regardless of which harness you picked. So a `claude-code` run still needs `OLLAMA_API_KEY` or `OPENAI_API_KEY` set, on top of your Anthropic credential, or the run finishes the investigation but fails to synthesize the report.
 
+## Picking a model that's actually up to the job
+
+Bring-your-own-model doesn't mean any model. An investigation drives an agent
+through many tool calls and then reasons over everything it found — a small model
+silently produces shallow, wrong-more-often root-cause analysis, and it's easy to
+blame the tool instead of the model. There's a practical floor:
+
+- **`claude-code`** — a Claude Sonnet-class model or better. The Claude Agent SDK
+  defaults to `claude-sonnet-4-5`; Sonnet or Opus tier is the sweet spot.
+- **`deepagents`** (OpenAI-protocol) — a frontier or large open model. Good
+  choices: `gpt-oss:120b` (deepagents' own default, via Ollama Cloud), a current
+  OpenAI model (GPT-5 / GPT-5-mini class), or a 70B+ open model such as
+  `llama-3.3-70b-versatile` on Groq.
+- **The report-synthesis step** (Tier-1) has the same floor — it's the model that
+  writes the actual report, so a tiny model here gives you a thin writeup even if
+  the investigation went well.
+
+A small local model (roughly a ~20B or smaller Ollama model) is fine for a free
+smoke test to confirm your setup works, but treat its investigations as a demo,
+not a diagnosis.
+
 ## Choosing a harness and model
 
 ```bash
@@ -92,11 +118,9 @@ Or set them in `prismalens.config.yaml`:
 
 ```yaml
 agent:
-  default: claude-code           # claude-code | deepagents | codex
+  default: claude-code           # claude-code | deepagents
   model: gpt-oss:120b            # a BARE id — the chosen harness applies its own provider prefix
 ```
-
-`--harness` and `agent.default` accept `codex`, but selecting it throws immediately — it isn't wired up yet.
 
 ## Checking your setup
 

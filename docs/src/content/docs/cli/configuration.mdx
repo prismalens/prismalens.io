@@ -72,7 +72,8 @@ file. `${VAR}` interpolation is for non-secret settings like URLs; see
 
 # Tier-2 harness backend the supervisor rents.
 agent:
-  # Which agent harness to rent: deepagents | claude-code | codex
+  # Which agent harness to rent: deepagents | claude-code
+  # (codex is a reserved value — planned, not yet available)
   default: claude-code
 
   # BARE model id, e.g. "gpt-oss:120b" — the chosen harness applies its own
