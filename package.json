@@ -22,7 +22,7 @@
     "docs:generate:integrations": "tsx scripts/generate-integration-docs.ts"
   },
   "devDependencies": {
-    "@types/node": "^22.10.5",
+    "@types/node": "^26.1.0",
     "concurrently": "^9.2.1",
     "tsx": "^4.19.2"
   }
