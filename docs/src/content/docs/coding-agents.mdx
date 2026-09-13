@@ -1,0 +1,58 @@
+---
+title: Coding agents
+description: Which coding agents PrismaLens can drive, how it picks one, and how the agent signs in.
+---
+
+PrismaLens does not include a model or an agent. It drives a coding agent that
+is already installed on your machine, and that agent does the reading, the
+commands and the reasoning. PrismaLens talks to it over the
+[Agent Client Protocol](https://agentclientprotocol.com) (ACP), the same way an
+editor does.
+
+## Supported agents
+
+| Agent | Command PrismaLens looks for | Install | Picked automatically |
+| --- | --- | --- | --- |
+| OpenCode | `opencode` | `curl -fsSL https://opencode.ai/install \| bash` or `npm i -g opencode-ai` | Yes |
+| Claude Code | `claude-agent-acp` | `npm i -g @agentclientprotocol/claude-agent-acp` | No, pin it |
+| Codex | `codex-acp` | `npm i -g @agentclientprotocol/codex-acp` | No, pin it |
+| Gemini CLI | `gemini` | `npm i -g @google/gemini-cli` | No, pin it |
+| deepagents | `deepagents-acp` | `pip install deepagents-acp` | No, pin it |
+
+An agent is picked automatically only after it has passed an unattended test
+run in PrismaLens's CI: it started in the right folder, had a write refused,
+finished on its own and returned a valid report. OpenCode has passed. The
+others are expected to work, but nobody has proven it in CI yet, so you choose
+them on purpose.
+
+## How PrismaLens chooses
+
+1. `PRISMALENS_HARNESS`, if you set it when starting `pl up`. For example `PRISMALENS_HARNESS=claude-code pl up`.
+2. Otherwise the agent chosen under **Harness** in **Settings → Harness**.
+3. Otherwise the first automatically pickable agent that is on your `PATH`.
+
+If none of these finds an agent, Settings says **No investigation agent is
+available on this machine**, and `pl doctor` lists the install commands above.
+
+## Signing the agent in
+
+PrismaLens never reads, copies or stores an agent's login. Sign the agent in
+the way its own documentation says, or put its provider key (such as
+`ANTHROPIC_API_KEY`) in the environment you start `pl up` from. Then check it:
+
+```text
+$ pl doctor
+✔ Harness readiness: OpenCode: ready
+```
+
+A line that is not `ready` shows the agent's own error, or `no answer in 10s`.
+**Settings → Harness → Check readiness** runs the same check from the app.
+
+The agent does not inherit your whole environment. See
+[Credentials](/trust/#credentials).
+
+## Choosing a model
+
+Each agent has its own default model. To use a different one, fill in
+**Model** in **Settings → Harness**. The value is passed to the agent as is, in that agent's
+own format.

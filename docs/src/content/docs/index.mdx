@@ -1,11 +1,11 @@
 ---
-title: PrismaLens Documentation
-description: Open-source AI root-cause investigation from your terminal — bring your own agent and model key, get an ordered-evidence report back.
+title: PrismaLens
+description: A self-hosted app that investigates an incident with the coding agent you already use, and keeps the evidence.
 template: splash
 hero:
-  tagline: AI root-cause investigation from your terminal. Open source, BYO-agent, BYO-key, local-first.
+  tagline: Point it at an incident and the code behind it. Your own coding agent investigates, read-only, and you get a report that shows its evidence.
   actions:
-    - text: Quickstart
+    - text: Quick start
       link: /quickstart/
       icon: right-arrow
     - text: View on GitHub
@@ -16,70 +16,53 @@ hero:
 
 import { Card, CardGrid } from '@astrojs/starlight/components';
 
-PrismaLens is an open-source (Apache-2.0) command-line tool that investigates a
-firing alert the way an on-call engineer would: it reads your repo, queries your
-read-only telemetry, and hands back an **ordered-evidence report** — hypotheses
-ranked most to least plausible, each backed by evidence it actually gathered. It
-runs entirely on your machine. There's no PrismaLens account and no
-subscription.
+PrismaLens is an open-source app you run on your own machine with one command,
+`pl up`. When something breaks, you open an incident, and PrismaLens hands it to
+a coding agent you already have installed, such as OpenCode or Claude Code. The
+agent reads a fresh copy of the service's code, works out what went wrong, and
+writes a report. PrismaLens keeps the whole run: every command the agent ran,
+what it found, and what it ruled out.
 
-## Bring your own agent and key
+There is no PrismaLens account, no subscription and no model bill from us.
+PrismaLens never calls a model itself. Your agent does, with your login.
 
-PrismaLens doesn't ship a model. It **rents a coding-agent harness** — Claude
-Code today, with more on the way — to do the read-only legwork, and calls a
-model you configure to write the report. Both are BYO-key: you point it at
-whichever provider you already pay for (Anthropic, OpenAI, Groq, a local Ollama,
-any OpenAI-compatible endpoint), and PrismaLens reads the credential fresh from
-your environment on every run and stores nothing. See
-[Bring your own agent & key](/concepts/byo-agent-and-key/).
+## What a run looks like
 
-## Why not just point a coding agent at my cluster myself?
+1. An alert arrives from Prometheus, or you write the incident by hand.
+2. PrismaLens takes a snapshot of the service's repository, so your own checkout is never touched.
+3. Your coding agent investigates inside that snapshot. PrismaLens refuses its attempts to edit, delete or run a mutating command.
+4. You watch the agent work on the incident page, live.
+5. The report lists hypotheses in order, each with the evidence behind it, what was ruled out, and what to check next.
 
-You can — but you'd get a chat transcript, not an investigation. PrismaLens adds
-the structure that makes the output trustworthy at 3AM:
+## Why not just ask the agent yourself?
 
-- **A supervisor, not a single prompt.** It decomposes the alert, fans the work
-  out across investigation branches, and reduces the results into one report —
-  instead of one long, meandering agent session.
-- **An enforced report shape, not free text.** Every run ends in the same
-  ordered-evidence structure — ranked hypotheses, what was ruled out, what was
-  and wasn't covered — so you read leads, not a wall of tool output. Evidence is
-  ordered, never scored with a fake confidence number. See
-  [Ordered evidence](/concepts/ordered-evidence/) and our [Sample Report](/cli/sample-report/).
-- **A read-only posture with an honest fidelity report.** The harness runs under
-  a read-only permission posture — enforced outright on the default
-  `claude-code` harness — optionally backed by an OS-level sandbox, and every
-  report records what boundary was *actually* applied, not just what you asked
-  for. See [Sandboxing & permissions](/cli/sandboxing/).
-- **Unattended, with a queryable history.** Point Alertmanager at
-  [`pl listen`](/cli/listen/) and firing alerts investigate themselves while you
-  sleep — grouped, budget-capped, and delivered to Slack — with every run saved
-  to a local store you can query later.
+You can, and for a one-off question you should. PrismaLens is for the part
+around the question:
+
+- **It starts from the alert.** A webhook creates the incident, and the alert
+  details are already in the brief when the agent starts.
+- **It keeps the agent's hands off.** The run happens in a snapshot, and
+  PrismaLens answers every permission request with a read-only policy.
+- **It gives you a record, not a chat.** A week later the report, the evidence
+  and the full event stream are still on the incident.
 
 <CardGrid>
-  <Card title="Get running in a few minutes" icon="rocket">
-    Install, run `pl doctor`, and investigate your first alert. Start with the
-    [Quickstart](/quickstart/).
+  <Card title="Try it in ten minutes" icon="rocket">
+    Install, start the app, point a service at a folder, and run one
+    investigation. [Quick start](/quickstart/)
   </Card>
-  <Card title="Understand the model" icon="open-book">
-    How the two-tier engine works, what BYO-agent means, and why the report
-    ranks evidence instead of scoring it. See [Concepts](/concepts/how-it-works/).
+  <Card title="Pick a coding agent" icon="laptop">
+    Which agents work, which one gets picked, and how they sign in.
+    [Coding agents](/coding-agents/)
   </Card>
-  <Card title="Reach for a command" icon="laptop">
-    The full flag reference for every `pl` subcommand lives in the
-    [CLI reference](/cli/).
+  <Card title="Read a report" icon="open-book">
+    Why hypotheses are ranked and never scored, and how to check one fast.
+    [Reading the report](/guides/reports/)
   </Card>
-  <Card title="Know what leaves your machine" icon="approve-check">
-    Local-first and BYO-key — here's exactly what flows to your model provider,
-    and what doesn't. See [Data & privacy](/concepts/data-and-privacy/).
+  <Card title="Know what it touches" icon="approve-check">
+    What PrismaLens reads, what it never does, and where your data lives.
+    [What PrismaLens reads](/trust/)
   </Card>
 </CardGrid>
 
-:::note[What about the web UI?]
-The self-hosted PrismaLens server — web UI and team features on top of the same
-engine — is in development and not released yet. These docs cover the CLI, which
-is available on npm today (including unattended
-[`pl listen`](/cli/listen/) webhook intake).
-:::
-
-PrismaLens is [Apache-2.0 licensed](https://github.com/prismalens/prismalens/blob/main/LICENSE) — free to use, self-host, and modify.
+PrismaLens is [Apache-2.0 licensed](https://github.com/prismalens/prismalens/blob/main/LICENSE).

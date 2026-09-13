@@ -1,0 +1,88 @@
+---
+title: Reference
+description: The pl commands, the environment variables worth knowing, the limits a run can hit, and fixes for common problems.
+---
+
+## Commands
+
+PrismaLens has two commands. `prismalens` and `pl` are the same binary.
+
+### `pl up`
+
+Starts the app: the API and the web UI on one port, backed by SQLite.
+
+| Flag | Default | What it does |
+| --- | --- | --- |
+| `--port <port>` | `3001` | Port to listen on. |
+| `--host <host>` | `127.0.0.1` | Address to bind. Anything other than loopback makes the app reachable from your network and prints a warning. |
+| `--workspace <dir>` | `~/.prismalens` | Folder for the database, secrets, logs, mirrors and runs. |
+| `--verbose` | off | Stream every log line to the terminal. By default only warnings and errors appear. |
+
+### `pl doctor`
+
+Checks the machine `pl up` will run on and exits non-zero if a hard check
+fails. It checks the Node version, that the workspace folder is writable,
+which coding agents are on `PATH`, which one would be picked, whether each
+installed agent answers, where the webhook token file is, and the host and
+port. It never prints the token.
+
+## Environment variables
+
+Flags on `pl up` set the first three. The rest have no flag.
+
+| Variable | Default | What it does |
+| --- | --- | --- |
+| `PRISMALENS_PORT` | `3001` | Same as `--port`. |
+| `PRISMALENS_HOST` | `127.0.0.1` | Same as `--host`. |
+| `PRISMALENS_WORKSPACE_DIR` | `~/.prismalens` | Same as `--workspace`. |
+| `PRISMALENS_HARNESS` | unset | Pin a coding agent by id: `opencode`, `claude-code`, `codex`, `gemini`, `deepagents`. |
+| `PRISMALENS_SANDBOX` | `auto` | `auto`, `process` or `srt`. See [Sandboxing](/trust/#sandboxing). |
+| `PRISMALENS_SANDBOX_ALLOWED_HOSTS` | unset | Comma-separated hosts a sandboxed agent may reach, such as its model provider. |
+| `PRISMALENS_DISPATCH_CONCURRENCY` | `3` | How many investigations run at once. |
+| `PRISMALENS_ALLOWED_HOSTS` | loopback and IP addresses | Hostnames the app answers to. Set it when you reach the app by a name, such as `laptop.local`. |
+| `PRISMALENS_ALERT_FLAP_WINDOW_MINUTES` | `15` | An alert that fires again within this many minutes of resolving reopens instead of starting a new episode. |
+| `PRISMALENS_LOG_LEVEL` | `info` | `debug`, `info`, `warn` or `error` for the log file. |
+
+## Limits
+
+| Limit | Value |
+| --- | --- |
+| Agent start-up | 2 minutes |
+| One investigation | 15 minutes, then the agent is stopped |
+| Investigations at once | 3, set by `PRISMALENS_DISPATCH_CONCURRENCY` |
+| Webhook deliveries | 5 per second and 30 per minute |
+
+## Troubleshooting
+
+Logs are in `~/.prismalens/logs/`. Start with `pl doctor`.
+
+**`Harness available` fails.** No known coding agent is on `PATH`. Install one
+from [Coding agents](/coding-agents/), open a new terminal so `PATH` updates,
+and run `pl doctor` again.
+
+**An agent is on `PATH` but not picked.** Only agents that passed PrismaLens's
+CI test are picked automatically. Pin another with `PRISMALENS_HARNESS=<id>` or
+in **Settings → Harness**.
+
+**`Harness readiness` is not `ready`.** The line shows the agent's own error.
+Usually it is not signed in. Sign it in with its own CLI, or set its provider
+key, and restart `pl up` so the key is in its environment.
+
+**The service shows a git error.** It is git's message, word for word. Check
+that `git clone <the same URL>` works in your terminal. A clone that needs a
+password fails straight away, because PrismaLens never lets git prompt.
+
+**The report says the run was unmapped.** The incident has no service, or the
+service has no repository. Set the service's Repository field and run again.
+
+**A run failed.** The Investigation tab shows the error and the transcript
+path, `~/.prismalens/runs/<id>/transcript.jsonl`. If `pl up` was stopped
+during a run, that run is marked failed when the app starts again.
+
+**The sandbox never turns on under WSL2.** In `auto` mode PrismaLens does not
+use the sandbox on WSL. Set `PRISMALENS_SANDBOX=srt`, and switch WSL to NAT
+networking first. See [Sandboxing](/trust/#sandboxing).
+
+**Filing a bug.** Include the output of `pl doctor` and `pl --version`, and
+the relevant lines from the newest file in `~/.prismalens/logs/`. Open it at
+[github.com/prismalens/prismalens/issues](https://github.com/prismalens/prismalens/issues).

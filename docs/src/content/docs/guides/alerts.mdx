@@ -1,0 +1,86 @@
+---
+title: Sending alerts
+description: Send Prometheus Alertmanager alerts to PrismaLens so incidents open and resolve on their own.
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+You can always write an incident by hand. To have incidents open on their own,
+point Prometheus Alertmanager at PrismaLens.
+
+What happens then:
+
+- A **firing** alert creates an alert and an incident, or joins an open
+  incident that already has an alert with the same fingerprint.
+- A **resolved** alert resolves its alert, and resolves the incident once none
+  of its alerts are still firing.
+- An investigation does **not** start by itself. You click **Investigate**.
+
+## The webhook token
+
+The first `pl up` generates a token and saves it in your workspace:
+
+```text
+~/.prismalens/PRISMALENS_WEBHOOK_SECRET_FILE
+```
+
+Every delivery must carry it. A delivery without it gets `401`, and a wrong one
+gets `403`. `pl doctor` shows the file's path and never prints the token.
+
+## Configure Alertmanager
+
+Add a receiver that sends to PrismaLens and reads the token from the file:
+
+```yaml
+receivers:
+  - name: prismalens
+    webhook_configs:
+      - url: http://127.0.0.1:3001/api/webhooks/prometheus
+        send_resolved: true
+        http_config:
+          authorization:
+            type: Bearer
+            credentials_file: /home/you/.prismalens/PRISMALENS_WEBHOOK_SECRET_FILE
+```
+
+Then route the alerts you care about to the `prismalens` receiver.
+
+PrismaLens accepts 5 deliveries a second and 30 a minute. Keep Alertmanager's
+grouping on so a burst arrives as a few grouped deliveries.
+
+## Try it with curl
+
+```bash
+TOKEN=$(cat ~/.prismalens/PRISMALENS_WEBHOOK_SECRET_FILE)
+curl -s -X POST http://127.0.0.1:3001/api/webhooks/prometheus \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"version":"4","status":"firing","alerts":[{"status":"firing","labels":{"alertname":"HighErrorRate"},"annotations":{},"startsAt":"2026-09-13T10:00:00Z","fingerprint":"abc123"}]}'
+```
+
+```text
+{"received":1,"processed":1,"alertIds":["d0783551-1a41-4185-8414-a64cfc33519e"]}
+```
+
+Senders that cannot set a header can sign the body instead: send
+`X-Hub-Signature-256: sha256=<hex>`, the HMAC-SHA256 of the exact body bytes
+keyed with the token.
+
+## When Alertmanager runs on another machine
+
+PrismaLens listens on `127.0.0.1`, so only the same machine can reach it. To
+accept alerts from elsewhere on your network, start it on all addresses:
+
+```bash
+pl up --host 0.0.0.0
+```
+
+PrismaLens warns when it binds beyond loopback. If you reach it by a hostname
+rather than an IP address, add that name to `PRISMALENS_ALLOWED_HOSTS`.
+
+<Aside type="caution" title="A laptop misses alerts while it sleeps">
+A webhook needs PrismaLens running and reachable at the moment the alert fires.
+Deliveries sent while your laptop is asleep or offline are retried by
+Alertmanager for a short time, then dropped. Write the incident by hand for
+anything you missed.
+</Aside>

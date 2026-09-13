@@ -1,0 +1,102 @@
+---
+title: What PrismaLens reads and never does
+description: The read-only policy and its limits, sandboxing, what leaves your machine, credentials, and where your data lives.
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+PrismaLens puts a coding agent next to your code. This page says what that
+agent can reach, what PrismaLens does to limit it, and where those limits stop.
+
+## The short version
+
+- The agent works in a **copy** of your repository, never in your checkout.
+- PrismaLens **refuses** the agent's edits, deletes and known mutating commands. That is a guardrail, not a wall.
+- Runs are **unsandboxed** by default. The report says which you got.
+- PrismaLens sends **nothing** to us. Your agent sends your code and the alert to **its** model provider.
+- PrismaLens **never** reads or stores your agent's login.
+- Everything PrismaLens keeps is in **one folder**, `~/.prismalens`.
+
+## The read-only policy
+
+Coding agents ask their client before they act, and PrismaLens is that client.
+It refuses edit, delete and move tools, and shell commands that look like
+writes: redirects, `rm`, `mv`, `cp`, `chmod`, `sed -i`, state-changing git
+commands, package installs, `docker`, mutating `kubectl`, `helm` and
+`terraform` commands, `kill`, `wget`, and `curl` with `POST`, `PUT`, `PATCH` or
+`DELETE`. Reading, searching and commands like `ls`, `grep` and `git log` are
+allowed.
+
+<Aside type="caution" title="This is a guardrail">
+The shell rules match command text, so a command written to dodge them, such as
+a short Python script that writes a file, gets through. The policy catches an
+agent making a mistake. It does not stop an agent that was talked into
+misbehaving by text it read. For a real boundary, turn on the sandbox below and
+give the agent read-only credentials for anything outside the copy.
+</Aside>
+
+Alert fields reach the agent inside a block marked as untrusted data. If the
+agent spots text trying to give it orders, it quotes it in the report under
+**Content tried to instruct the agent**.
+
+## Sandboxing
+
+A sandbox makes the operating system enforce the boundary. Every run is one of:
+
+- **Sandboxed:** the agent can write only inside its run folder, and reach only allowlisted hosts.
+- **Unsandboxed:** the agent is a normal process under your user, with the read-only policy, a trimmed environment and a 15-minute limit. Nothing at the OS level blocks a write or a network call.
+
+**The default is unsandboxed.** The default mode only uses the sandbox after a
+network self-check passes, and this version has nothing configured for it to
+check. The run records that reason.
+
+To require the sandbox, install Anthropic's
+[sandbox-runtime](https://github.com/anthropic-experimental/sandbox-runtime)
+(Linux and macOS) and allowlist your agent's model provider:
+
+```bash
+npm install -g @anthropic-ai/sandbox-runtime
+PRISMALENS_SANDBOX=srt PRISMALENS_SANDBOX_ALLOWED_HOSTS=api.anthropic.com pl up
+```
+
+With `PRISMALENS_SANDBOX=srt` a run fails if the sandbox is missing, rather than
+running without it. On WSL2, `auto` never uses the sandbox. To force it there,
+switch WSL to NAT networking first (`networkingMode=nat` in `.wslconfig`),
+because mirrored networking silently cuts the sandbox's network.
+
+## What leaves your machine
+
+- **From PrismaLens:** nothing. No analytics, no crash reports, no update check. The app listens on `127.0.0.1` unless you pass `--host`.
+- **From your agent:** what it reads, including source code, command output and the alert, goes to its model provider, as it would if you used the agent directly.
+- **From git:** fetching a repository URL contacts that host with your git credentials.
+
+## Credentials
+
+| Credential | What PrismaLens does |
+| --- | --- |
+| Your agent's login | Never reads, copies or stores it. |
+| Provider keys in your environment, such as `ANTHROPIC_API_KEY` | Passes the keys the chosen agent reads into its environment. Never stores them. |
+| Your git credentials | Never reads them. Git uses them. |
+| A GitHub token you add in Settings | Stores it encrypted and sends it only with git requests to GitHub. |
+| PrismaLens's own secrets | Generated on first start, stored as owner-only files, never given to the agent. |
+
+Apart from those provider keys, the agent gets only `PATH`, `HOME`, `USER`,
+`SHELL`, locale, `TERM`, `TMPDIR` and `TZ` from your environment.
+
+The first person to open a fresh install becomes the owner, and sign-up closes.
+
+## Where your data lives
+
+Everything is under `~/.prismalens`, or the folder you pass to
+`pl up --workspace`.
+
+| Path | Contents |
+| --- | --- |
+| `prismalens.db` | Incidents, alerts, services, investigations, reports and their event streams |
+| `runs/<id>/repo` | The snapshot a run read |
+| `runs/<id>/transcript.jsonl` | Raw messages between PrismaLens and the agent, kept as a best effort |
+| `repos/` | Mirrors of repositories added by URL |
+| `logs/` | App logs |
+| `PRISMALENS_*_FILE` | Generated secrets |
+
+To remove everything, stop `pl up` and delete the folder.
