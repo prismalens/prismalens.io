@@ -35,6 +35,14 @@ misbehaving by text it read. For a real boundary, turn on the sandbox below and
 give the agent read-only credentials for anything outside the copy.
 </Aside>
 
+The agent can read any file your user can read, not only the snapshot. Keep
+that in mind before you run PrismaLens under an account that can read
+production credentials.
+
+The agent also honours agent configuration committed in the repository, such
+as a `.claude/settings.json` or an `opencode.json`. Only point PrismaLens at
+repositories whose committed agent config you trust.
+
 Alert fields reach the agent inside a block marked as untrusted data. If the
 agent spots text trying to give it orders, it quotes it in the report under
 **Content tried to instruct the agent**.
@@ -67,6 +75,7 @@ because mirrored networking silently cuts the sandbox's network.
 ## What leaves your machine
 
 - **From PrismaLens:** nothing. No analytics, no crash reports, no update check. The app listens on `127.0.0.1` unless you pass `--host`.
+- **At install:** a documentation dependency of the API contains an install-time analytics package (`@scarf/scarf`). Set `SCARF_ANALYTICS=false` before `npm install -g prismalens` to turn it off.
 - **From your agent:** what it reads, including source code, command output and the alert, goes to its model provider, as it would if you used the agent directly.
 - **From git:** fetching a repository URL contacts that host with your git credentials.
 

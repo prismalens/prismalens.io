@@ -52,6 +52,14 @@ Flags on `pl up` set the first three. The rest have no flag.
 | Investigations at once | 3, set by `PRISMALENS_DISPATCH_CONCURRENCY` |
 | Webhook deliveries | 5 per second and 30 per minute |
 
+## Known limits in 0.5.0
+
+- Runs on macOS, Linux and WSL2. Native Windows is not supported yet.
+- One `pl up` per workspace folder. Two processes on the same folder both start and corrupt each other's state.
+- There is no password reset. If you lose the owner password, stop `pl up`, move the workspace folder aside and start again.
+- Every run keeps its folder under `runs/`. Delete old run folders by hand when you need the space.
+- Installing needs a prebuilt `better-sqlite3` for your platform, or Python 3 and a C++ toolchain to build it.
+
 ## Troubleshooting
 
 Logs are in `~/.prismalens/logs/`. Start with `pl doctor`.
@@ -64,9 +72,13 @@ and run `pl doctor` again.
 CI test are picked automatically. Pin another with `PRISMALENS_HARNESS=<id>` or
 in **Settings → Harness**.
 
-**`Harness readiness` is not `ready`.** The line shows the agent's own error.
-Usually it is not signed in. Sign it in with its own CLI, or set its provider
-key, and restart `pl up` so the key is in its environment.
+**`Harness readiness` is not `answers ACP`.** The line shows the agent's own
+error. Usually it is not signed in: set its provider key and restart `pl up` so
+the key is in the agent's environment.
+
+**Doctor said `answers ACP` but the run failed "not signed in".** Some agents
+only check sign-in when the first investigation starts. Set the provider key
+and run again.
 
 **The service shows a git error.** It is git's message, word for word. Check
 that `git clone <the same URL>` works in your terminal. A clone that needs a

@@ -63,10 +63,15 @@ The copy lands in `~/.prismalens/runs/<investigation id>/repo`, and the agent
 starts there. The incident timeline records which source and which commit the
 run read.
 
-<Aside type="caution" title="Uncommitted changes are not investigated">
-A snapshot is the last commit. If you are debugging a change you have not
+<Aside type="caution" title="What a snapshot leaves out">
+A snapshot is the last commit. Uncommitted changes, git submodules and Git LFS
+file contents are not included. If you are debugging a change you have not
 committed yet, commit it (a local branch is fine) before you run.
 </Aside>
+
+Under WSL2, keep the repository on the Linux filesystem rather than under
+`/mnt/c`. Cloning across the two filesystems copies every object on every run
+and is slow.
 
 ## Private repositories
 

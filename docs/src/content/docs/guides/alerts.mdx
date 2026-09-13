@@ -26,6 +26,8 @@ The first `pl up` generates a token and saves it in your workspace:
 
 Every delivery must carry it. A delivery without it gets `401`, and a wrong one
 gets `403`. `pl doctor` shows the file's path and never prints the token.
+PrismaLens reads the file when it starts, so if you replace the token, restart
+`pl up` and update every sender.
 
 ## Configure Alertmanager
 
@@ -75,12 +77,19 @@ accept alerts from elsewhere on your network, start it on all addresses:
 pl up --host 0.0.0.0
 ```
 
-PrismaLens warns when it binds beyond loopback. If you reach it by a hostname
-rather than an IP address, add that name to `PRISMALENS_ALLOWED_HOSTS`.
+PrismaLens warns when it binds beyond loopback, and the app then serves plain
+HTTP without TLS, so do this only on a network you trust. If you reach it by a
+hostname rather than an IP address, add that name to `PRISMALENS_ALLOWED_HOSTS`.
+
+**Alertmanager in Docker on Linux** cannot reach `127.0.0.1` on the host. Start
+PrismaLens with `--host 0.0.0.0` and use the host's IP address in the receiver
+URL, or run the Alertmanager container with `network_mode: host`.
 
 <Aside type="caution" title="A laptop misses alerts while it sleeps">
-A webhook needs PrismaLens running and reachable at the moment the alert fires.
-Deliveries sent while your laptop is asleep or offline are retried by
-Alertmanager for a short time, then dropped. Write the incident by hand for
-anything you missed.
+A webhook needs PrismaLens running and reachable when the alert fires.
+Alertmanager does not retry a refused connection on its own. It sends the
+alert again only with the group's next notification, by default up to 4 hours
+later while the alert keeps firing. An alert that fires and resolves while
+your laptop is closed never arrives. Write the incident by hand for anything
+you missed.
 </Aside>

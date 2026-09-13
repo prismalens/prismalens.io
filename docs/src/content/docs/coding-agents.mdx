@@ -36,16 +36,21 @@ available on this machine**, and `pl doctor` lists the install commands above.
 
 ## Signing the agent in
 
-PrismaLens never reads, copies or stores an agent's login. Sign the agent in
-the way its own documentation says, or put its provider key (such as
-`ANTHROPIC_API_KEY`) in the environment you start `pl up` from. Then check it:
+PrismaLens never reads, copies or stores an agent's login. Each run gives the
+agent its own empty configuration folder, so a login stored in the agent's
+usual config folder is not visible to Claude Code or Codex. For those two, put
+the provider key (`ANTHROPIC_API_KEY`, `OPENAI_API_KEY`) in the environment you
+start `pl up` from. OpenCode's `opencode auth login` does carry over. Then check:
 
 ```text
 $ pl doctor
-✔ Harness readiness: OpenCode: ready
+✔ Harness readiness: OpenCode: answers ACP
 ```
 
-A line that is not `ready` shows the agent's own error, or `no answer in 10s`.
+`answers ACP` means the agent started and replied. It does not prove the agent
+is signed in: some agents only check that when the first investigation starts.
+The other results are `sign in needed`, `no answer in 10s` and
+`failed to start`, each with the agent's own message.
 **Settings → Harness → Check readiness** runs the same check from the app.
 
 The agent does not inherit your whole environment. See
