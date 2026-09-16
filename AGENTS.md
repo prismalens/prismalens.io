@@ -6,17 +6,17 @@ Instructions for AI coding agents working in this repository.
 ## mage knowledge base (hub-linked)
 
 This repository's durable knowledge lives in a **mage hub** at
-`/home/sumit/prismalens-org/prismalens-docs-hub`, where this repo is the **prismalens-io** project. mage is a portable,
+`/home/sumit/prismalens-org/prismalens-kb`, where this repo is the **prismalens-io** project. mage is a portable,
 file-based knowledge base of notes — insight, procedure, and pointers (not
 copies of sources) — navigable as an Obsidian graph.
 
 **Before non-trivial work in this repo:**
 
-1. Read the hub index first: `/home/sumit/prismalens-org/prismalens-docs-hub/INDEX.md` — find the **prismalens-io** wing (its
+1. Read the hub index first: `/home/sumit/prismalens-org/prismalens-kb/INDEX.md` — find the **prismalens-io** wing (its
    notes are grouped there; in a large hub the wing links out to its own
-   `/home/sumit/prismalens-org/prismalens-docs-hub/_index.prismalens-io.md`). One line per note: type · title · keywords · → link. Open
+   `/home/sumit/prismalens-org/prismalens-kb/_index.prismalens-io.md`). One line per note: type · title · keywords · → link. Open
    only the notes the task touches; don't read everything.
-2. Skim `/home/sumit/prismalens-org/prismalens-docs-hub/decisions/` for the hub's governing decisions.
+2. Skim `/home/sumit/prismalens-org/prismalens-kb/decisions/` for the hub's governing decisions.
 3. Treat notes as point-in-time. If a note is `status: stale-suspect`, or its
    `last_reviewed` / `provenance.commit` looks old, verify it against the
    current code before relying on it.

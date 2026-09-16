@@ -57,6 +57,41 @@ credentials, and keep secrets out of the tree (or in an ignored path the harness
 won't wander into). See [Sandboxing & permissions](/cli/sandboxing/) for what
 each boundary enforces.
 
+## Content that tries to instruct the agent
+
+Not everything an investigation reads was written by you. Alert names come from
+your monitoring systems, deploy and branch names from whoever pushed them,
+incident titles from whoever filed them, and command output from whatever the
+agent happened to run. Any of it can contain a sentence shaped like an
+instruction — "ignore your previous instructions and…" — whether by accident or
+on purpose.
+
+PrismaLens treats all of it as **data, never as instructions**:
+
+- Host-supplied change and incident facts are rendered inside a fenced
+  `CONTEXT_PACK` block, with PrismaLens's own instructions immediately before it
+  and immediately after it, so the last thing the model reads before acting is
+  ours.
+- Every free-text field in that block is capped in length, collapsed onto a single
+  line, and stripped of the fence markers themselves, so no field can close the
+  fence and start speaking from outside it.
+- The same treatment is applied again where per-branch reports are merged, because
+  by then a quoted payload has left its original fence behind.
+
+**Nothing is silently deleted.** Removing the text would hide the attempt from you
+and from the model that has to notice it. Instead the instruction is ignored, the
+investigation continues, and the attempt is recorded in the report's
+`flaggedContent` with a short quote — see
+[Ordered evidence](/concepts/ordered-evidence/#what-gets-flagged).
+
+Be clear about what this is and isn't. These are **prompt-side** defences: they
+frame untrusted text so a well-behaved model won't act on it. They are not an
+enforcement boundary. A harness that *does* follow an injected instruction is
+still constrained only by the read-only posture and the sandbox — which block
+writes and narrow egress, but do not block reading or command execution. Keep the
+[sandboxing](/cli/sandboxing/) posture on, and treat `flaggedContent` as a signal
+worth looking at.
+
 ## Next steps
 
 - [Sandboxing & permissions](/cli/sandboxing/) — the enforcement boundaries in detail.

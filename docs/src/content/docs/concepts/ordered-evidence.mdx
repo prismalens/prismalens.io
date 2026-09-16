@@ -30,6 +30,51 @@ score is a lossy summary of: the **evidence, ranked**.
 - **Coverage.** What was queried and what wasn't. An investigation that couldn't
   reach a data source says so, rather than letting silence read as "all clear."
 - **Next steps.** Concrete checks to confirm the top hypothesis or dig further.
+- **Flagged content.** Anything in the input that tried to *instruct* the model
+  rather than inform it — see [What gets flagged](#what-gets-flagged) below.
+
+## Where a piece of evidence came from
+
+Each evidence item carries an `origin`, because not everything a report cites was
+observed by the agent itself:
+
+- **`tool`** — a command, query, or file read the harness actually ran. This is
+  the default, and before host-supplied facts existed it was the only kind. If
+  `origin` is absent on an older stored report, read it as `tool`.
+- **`context-pack`** — a fact the **host** supplied that the agent could not have
+  reached by looking around: which services depend on the failing one, what
+  shipped in the alert window, which past incident this one rhymes with. Its
+  `source` is the fact family (`context-pack:changes`,
+  `context-pack:neighbors`, `context-pack:priorIncidents`), not a command string.
+
+A host-supplied fact is **always `inferred`, never `verified`**, and always has a
+null `toolCallId`. That is enforced after the model writes the report, not left
+to its discretion: a host fact can only become `verified` if the agent goes and
+re-observes it with a tool, in which case it cites that tool and its origin is
+`tool`. The model does not get the final word on where a claim came from — and
+it can't opt out by leaving the field blank either, because the rule keys off the
+`context-pack:` source prefix rather than the label.
+
+Host facts also carry no similarity score. A prior incident is listed because of
+the labels it shares with this one, and those shared labels are what the report
+shows you — the same reason ranking beats scoring everywhere else here.
+
+## What gets flagged
+
+Some of what an investigation reads is written by strangers: deploy names, branch
+names, alert names, commit text, a past incident's title. Occasionally that text
+tries to *give the model instructions* rather than inform it.
+
+PrismaLens renders that material inside a fenced data-only block and tells the
+model, on both sides of the fence, to treat it as data. When a line still tries
+to issue an instruction, the correct response is to **ignore it, keep
+investigating, and record it** — never to drop it quietly. Those records land in
+the report's `flaggedContent`: where it appeared (`context-pack` or
+`tool-output`), a short quote of the offending text, and why it was flagged.
+
+An empty or absent `flaggedContent` means nothing tried. If it isn't empty, read
+it — something in your change or incident data is shaped like an instruction, and
+you want to know that whether it was deliberate or not.
 
 ## Read it as a lead
 

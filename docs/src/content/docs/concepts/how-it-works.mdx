@@ -39,6 +39,33 @@ background agent. One alert in, one investigation out. (Grouping several alerts
 from the same incident into a single run is a [`pl listen`](/cli/listen/)
 convenience, not a change to this model.)
 
+## Facts the agent can't reach by looking around
+
+A capable agent with a shell will find most of what's reachable from your repo
+and your telemetry. What it *can't* reach by iterating is anything outside that
+box: that service B calls the failing service A, what shipped in the alert window
+on a platform it holds no credential for, or that this alert rhymes with an
+incident from three months ago. Those live in the host's records, not on the
+agent's filesystem.
+
+So the host assembles them into a **context pack** and puts it in the brief the
+harness reads, between the read-only surfaces it may query and the method it
+should follow. It carries the changes in the alert window, the one-hop service
+neighbourhood, the most similar prior incidents, and — honestly — the families
+the host *tried* to fill and couldn't.
+
+Two things about that block are deliberate:
+
+- **It's data, not instructions.** Deploy names, branch names and incident titles
+  are written outside your trust boundary, so the pack is rendered inside a fenced
+  data-only region with PrismaLens's own instructions on both sides of it. See
+  [Data & privacy](/concepts/data-and-privacy/#content-that-tries-to-instruct-the-agent).
+- **A change in window is a suspect, not a verdict.** That sentence is in the
+  prompt verbatim. Correlation in a time window is the most seductive false
+  positive an overlay introduces, and the pack is there to widen the search, not
+  to hand the agent a conclusion. Facts from it are cited as *inferred* until the
+  agent verifies them itself.
+
 ## A report is a lead, not a verdict
 
 PrismaLens is LLM-driven, and that has a consequence worth stating plainly: it
