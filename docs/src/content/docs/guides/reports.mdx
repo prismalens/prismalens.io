@@ -1,0 +1,82 @@
+---
+title: Reading the report
+description: What each part of an investigation report means, why hypotheses are ranked instead of scored, and how to check one quickly.
+---
+
+When an investigation finishes, its report appears on the incident's
+**Investigation** tab. This page explains each part and how to use it.
+
+## Treat it as a lead
+
+A report is a strong first theory from a colleague who read the code and ran
+the commands. It is not a verdict. Models are not deterministic, so two runs on
+the same incident can disagree, and a confident sentence can still be wrong.
+
+The report is built so you can check it fast. Every claim points at the
+command, file or log line behind it. If a run found nothing to stand on, the
+root cause says so instead of inventing one.
+
+## No confidence scores, on purpose
+
+You will not see "87% likely" anywhere. A model has no calibrated way to tell
+87 from 72, so a number like that looks precise and means nothing. PrismaLens
+shows what a score would have summarised: the hypotheses in order, and the
+evidence for and against each one.
+
+## The parts of a report
+
+**Summary.** Two or three sentences on what happened.
+
+**Root Cause Analysis.** The specific code path, configuration, dependency or resource
+the agent believes produced the alert, with a category: code, config,
+infrastructure, external, or unknown. It can be empty. An empty root cause
+means the agent could not tell, which is more useful than a guess.
+
+**Culprit.** When the agent can name them: the service, the change (a commit
+or deploy), and the mechanism. Any of the three can be blank.
+
+**Hypotheses.** Listed from most to least plausible. The order is the ranking.
+Each one has a status and its evidence:
+
+| Status | Meaning |
+| --- | --- |
+| `confirmed` | The evidence shows it directly. |
+| `supported` | The evidence points this way but does not prove it. |
+| `speculative` | Plausible, with no evidence yet. |
+| `refuted` | Checked and contradicted. |
+
+Each piece of evidence says whether it supports or contradicts the hypothesis,
+what was observed, where it came from (the command that was run or the file
+that was read), and whether the agent verified it or inferred it.
+
+**Ruled out.** Causes the agent considered and dropped, each with the reason
+and the evidence. This tells you which paths are already walked.
+
+**Coverage.** Two lists: what the agent queried, and what it did not. Something
+on the second list is not an all-clear, it was never looked at.
+
+**Next steps.** Concrete checks to confirm the top hypothesis or dig further.
+They also appear on the incident's **Recommendations** tab, where you can mark
+them done or dismiss them.
+
+**Content tried to instruct the agent.** Shown only when it happened: text in
+the alert or in command output that tried to give the agent orders, such as
+"ignore previous instructions", quoted with where it was found.
+
+**Fidelity badges.** How the run was protected. A badge such as
+`process · cooperative` or `srt · enforced` names the mechanism, and a
+`sandbox` badge shows the sandbox you asked for and the one you got. Hover for
+details. See [Sandboxing](/trust/#sandboxing).
+
+## Checking a hypothesis in two minutes
+
+1. Read the top hypothesis and its status.
+2. Open its first supporting piece of evidence and run the same command, or open the same file, yourself.
+3. Look at **Ruled out** before you chase the second hypothesis. The agent may already have been there.
+4. If the report is wrong, scroll the event ledger above it to see where the reasoning went off. Every tool call is recorded.
+
+## When there is no report
+
+A run that fails shows the error, the last events, and the path to the raw
+transcript on disk instead of a report. PrismaLens never fills in a report
+for a run that gathered no evidence.

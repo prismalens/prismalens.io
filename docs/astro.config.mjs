@@ -14,6 +14,21 @@ const siteBase = isDev ? 'http://localhost:4321' : 'https://prismalens.io';
 // https://astro.build/config
 export default defineConfig({
 	site: 'https://docs.prismalens.io',
+	// 0.5.0 retired the CLI investigator pages (prismalens.io#23); old links land on their successors.
+	redirects: {
+		'/cli': '/reference/',
+		'/cli/commands': '/reference/',
+		'/cli/configuration': '/reference/',
+		'/cli/troubleshooting': '/reference/#troubleshooting',
+		'/cli/api-keys': '/coding-agents/',
+		'/cli/listen': '/guides/alerts/',
+		'/cli/sandboxing': '/trust/#sandboxing',
+		'/cli/sample-report': '/guides/reports/',
+		'/concepts/how-it-works': '/',
+		'/concepts/byo-agent-and-key': '/coding-agents/',
+		'/concepts/ordered-evidence': '/guides/reports/',
+		'/concepts/data-and-privacy': '/trust/',
+	},
 	server: {
 		port: 4322,
 	},
@@ -42,31 +57,23 @@ export default defineConfig({
 				{ tag: 'meta', attrs: { name: 'twitter:image', content: 'https://docs.prismalens.io/og-default.png' } },
 			],
 			sidebar: [
-				// Server-app sections (Guides, Configuration Reference, Integrations, API,
-				// Onboarding) are staged in src/content/unreleased/ until the
-				// self-hosted server ships — the 0.1.0 launch is CLI-only.
-				{ label: 'Quickstart', slug: 'quickstart' },
 				{
-					label: 'Concepts',
+					label: 'Start here',
 					items: [
-						{ label: 'How PrismaLens works', slug: 'concepts/how-it-works' },
-						{ label: 'Bring your own agent & key', slug: 'concepts/byo-agent-and-key' },
-						{ label: 'Ordered evidence', slug: 'concepts/ordered-evidence' },
-						{ label: 'Data & privacy', slug: 'concepts/data-and-privacy' },
+						{ label: 'Quick start', slug: 'quickstart' },
+						{ label: 'Coding agents', slug: 'coding-agents' },
 					],
 				},
 				{
-					label: 'CLI Reference',
+					label: 'Using PrismaLens',
 					items: [
-						{ label: 'Overview & Install', slug: 'cli' },
-						{ label: 'Providers & Harnesses', slug: 'cli/api-keys' },
-						{ label: 'Commands', slug: 'cli/commands' },
-						{ label: 'Configuration', slug: 'cli/configuration' },
-						{ label: 'Unattended Alerts', slug: 'cli/listen' },
-						{ label: 'Sandboxing & Permissions', slug: 'cli/sandboxing' },
-						{ label: 'Troubleshooting', slug: 'cli/troubleshooting' },
+						{ label: 'Services and their code', slug: 'guides/services' },
+						{ label: 'Sending alerts', slug: 'guides/alerts' },
+						{ label: 'Reading the report', slug: 'guides/reports' },
 					],
 				},
+				{ label: 'What PrismaLens reads', slug: 'trust' },
+				{ label: 'Reference', slug: 'reference' },
 				{
 					label: 'Site',
 					items: [

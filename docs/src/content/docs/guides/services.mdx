@@ -1,0 +1,100 @@
+---
+title: Services and their code
+description: Point a service at a folder on your machine or a git URL, and what PrismaLens does with it on every run.
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+An investigation is only as good as the code the agent reads. In PrismaLens a
+**service** is the thing that alerts (an API, a worker, a database), and its
+**Repository** field says where that service's code lives.
+
+If a service has no repository, investigations still run, but in an empty
+folder. The report says so at the top, and it cannot describe the code that
+failed.
+
+## Set the Repository field
+
+Open **Services**, then **Add Service** (or edit an existing one), and fill in
+**Repository** with one of these:
+
+| You type | PrismaLens treats it as |
+| --- | --- |
+| `/home/me/code/payments` or `~/code/payments` | A folder on this machine |
+| `https://github.com/acme/payments.git` | A git URL over HTTPS |
+| `git@github.com:acme/payments.git` or `ssh://git@host/acme/payments.git` | A git URL over SSH |
+
+Relative paths and `file://` URLs are refused.
+
+When you save, PrismaLens asks git about the source and shows the answer on
+the service:
+
+```text
+main at 3f2c9a1b04de
+```
+
+If git cannot read it, you see git's own error, word for word, for example:
+
+```text
+fatal: repository 'https://github.com/acme/payments.git/' not found
+```
+
+The service still saves, so you can fix the problem and save again.
+
+<Aside type="tip" title="Monorepos">
+Point the field at the package folder, such as `~/code/platform/services/payments`.
+PrismaLens finds the top of the repository, snapshots all of it, and starts the
+agent in `services/payments`.
+</Aside>
+
+## What happens on every run
+
+PrismaLens never runs the agent in your own checkout. Each investigation gets
+its own copy:
+
+- **A folder** is cloned with `git clone` into the run's directory. Git
+  hardlinks the objects, so this takes about a second, needs no network and no
+  token.
+- **A URL** is kept as a bare mirror under `~/.prismalens/repos/`. Before each
+  run PrismaLens fetches the mirror, then clones the default branch from it into
+  the run's directory.
+
+The copy lands in `~/.prismalens/runs/<investigation id>/repo`, and the agent
+starts there. The incident timeline records which source and which commit the
+run read.
+
+<Aside type="caution" title="What a snapshot leaves out">
+A snapshot is the last commit. Uncommitted changes, git submodules and Git LFS
+file contents are not included. If you are debugging a change you have not
+committed yet, commit it (a local branch is fine) before you run.
+</Aside>
+
+Under WSL2, keep the repository on the Linux filesystem rather than under
+`/mnt/c`. Cloning across the two filesystems copies every object on every run
+and is slow.
+
+## Private repositories
+
+PrismaLens uses your own git, so whatever lets you run `git clone` in a
+terminal works here too:
+
+- **SSH:** your SSH agent and keys.
+- **HTTPS:** your git credential helper, such as the one `gh auth login` or Git
+  Credential Manager sets up.
+- **A GitHub connection:** if you imported the repository from a GitHub token
+  or GitHub App connection, PrismaLens sends that connection's token with the
+  clone. It is passed through the environment of the git process, never written
+  into the URL or the mirror's config.
+
+Git never prompts during a clone. A clone that would need a password fails
+straight away with git's message instead of hanging.
+
+PrismaLens needs `git` on the machine that runs `pl up`.
+
+## Importing from GitHub
+
+If you add a GitHub token or GitHub App connection under **Settings →
+Integrations**, **Import from VCS** on a service lists that account's
+repositories, and PrismaLens uses the connection's token to clone private
+ones. You do not need a connection if your own git can already clone the
+repository.
