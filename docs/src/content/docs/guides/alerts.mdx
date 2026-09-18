@@ -92,9 +92,12 @@ accept alerts from elsewhere on your network, start it on all addresses:
 pl up --host 0.0.0.0
 ```
 
-PrismaLens warns when it binds beyond loopback, and the app then serves plain
-HTTP without TLS, so do this only on a network you trust. If you reach it by a
-hostname rather than an IP address, add that name to `PRISMALENS_ALLOWED_HOSTS`.
+PrismaLens warns when it binds beyond loopback: over plain HTTP the traffic and
+the session cookie cross the network in clear, so do this only on a network you
+trust. Put a TLS proxy in front and set `PRISMALENS_PUBLIC_URL` to its `https://`
+address, and the cookie is marked `Secure`; or set `PRISMALENS_PROTOCOL=https`
+and `pl up` serves TLS itself. Either way, if you reach the app by a hostname
+rather than an IP address, add that name to `PRISMALENS_ALLOWED_HOSTS`.
 
 **Alertmanager in Docker on Linux** cannot reach `127.0.0.1` on the host. Start
 PrismaLens with `--host 0.0.0.0` and use the host's IP address in the receiver

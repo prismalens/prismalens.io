@@ -24,7 +24,8 @@ Checks the machine `pl up` will run on and exits non-zero if a hard check
 fails. It checks the Node version, that the workspace folder is writable,
 which coding agents are on `PATH`, which one would be picked, whether each
 installed agent answers, where the webhook token file is, and the host and
-port. It never prints the token.
+port. For each agent it prints the path the binary was found at, or the
+`PATH` it searched. It never prints the token.
 
 ## Environment variables
 
@@ -40,6 +41,8 @@ Flags on `pl up` set the first three. The rest have no flag.
 | `PRISMALENS_SANDBOX_ALLOWED_HOSTS` | unset | Comma-separated hosts a sandboxed agent may reach, such as its model provider. |
 | `PRISMALENS_DISPATCH_CONCURRENCY` | `3` | How many investigations run at once. |
 | `PRISMALENS_ALLOWED_HOSTS` | loopback and IP addresses | Hostnames the app answers to. Set it when you reach the app by a name, such as `laptop.local`. |
+| `PRISMALENS_PUBLIC_URL` | derived from host and port | The URL people open. Set it to the `https://` address of a TLS proxy in front of `pl up` so the session cookie is marked `Secure`. |
+| `PRISMALENS_PROTOCOL` | `http` | `https` makes `pl up` serve TLS itself. |
 | `PRISMALENS_ALERT_FLAP_WINDOW_MINUTES` | `15` | An alert that fires again within this many minutes of resolving reopens instead of starting a new episode. |
 | `PRISMALENS_LOG_LEVEL` | `info` | `debug`, `info`, `warn` or `error` for the log file. |
 
@@ -50,14 +53,15 @@ Flags on `pl up` set the first three. The rest have no flag.
 | Agent start-up | 2 minutes |
 | One investigation | 15 minutes, then the agent is stopped |
 | Investigations at once | 3, set by `PRISMALENS_DISPATCH_CONCURRENCY` |
-| Webhook deliveries | 20 per second and 600 per minute |
+| Webhook deliveries | 20 per second and 600 per minute. Over the limit a delivery gets `503` with `Retry-After`, which Alertmanager retries. |
+| Investigations per incident | One at a time. Investigate on an incident whose investigation is pending or running returns that investigation and starts nothing new. |
 
 ## Known limits in 0.5.0
 
 - Runs on macOS, Linux and WSL2. Native Windows is not supported yet.
 - One `pl up` per workspace folder. Two processes on the same folder both start and corrupt each other's state.
 - There is no password reset. If you lose the owner password, stop `pl up`, move the workspace folder aside and start again.
-- Every run keeps its folder under `runs/`. Delete old run folders by hand when you need the space.
+- Every run keeps its transcript under `runs/<id>/`. The repository clone is deleted when the run ends; delete old transcripts by hand when you need the space.
 - Installing needs a prebuilt `better-sqlite3` for your platform, or Python 3 and a C++ toolchain to build it.
 
 ## Troubleshooting

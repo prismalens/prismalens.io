@@ -12,6 +12,7 @@ agent can reach, what PrismaLens does to limit it, and where those limits stop.
 
 - The agent works in a **copy** of your repository, never in your checkout.
 - PrismaLens **refuses** the agent's edits, deletes and known mutating commands. That is a guardrail, not a wall.
+- The agent **cannot fetch URLs**. OpenCode also cannot web-search or read outside the snapshot.
 - Runs are **unsandboxed** by default. The report says which you got.
 - PrismaLens sends **nothing** to us. Your agent sends your code and the alert to **its** model provider.
 - PrismaLens **never** reads or stores your agent's login.
@@ -86,6 +87,7 @@ because mirrored networking silently cuts the sandbox's network.
 | --- | --- |
 | Your agent's login | Never reads, copies or stores it. |
 | Provider keys in your environment, such as `ANTHROPIC_API_KEY` | Passes the keys the chosen agent reads into its environment. Never stores them. |
+| A gateway for Claude Code | Set `ANTHROPIC_BASE_URL` and `ANTHROPIC_AUTH_TOKEN`; the model you set in Settings applies to every tier. The URL must be `https://` unless it is on this machine. |
 | Your git credentials | Never reads them. Git uses them. |
 | A GitHub token you add in Settings | Stores it encrypted and sends it only with git requests to GitHub. |
 | PrismaLens's own secrets | Generated on first start, stored as owner-only files, never given to the agent. |
@@ -94,7 +96,8 @@ Apart from those provider keys, the agent gets only `PATH`, `HOME`, `USER`,
 `LOGNAME`, `SHELL`, `PWD`, `LANG`, `LC_ALL`, `LC_CTYPE`, `TERM`, `TMPDIR` and
 `TZ` from your environment.
 
-The first person to open a fresh install becomes the owner, and sign-up closes.
+The first person to open a fresh install becomes the instance's only account.
+Sign-up closes after it, and there are no roles.
 
 ## Where your data lives
 
