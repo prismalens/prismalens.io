@@ -39,9 +39,10 @@ The agent can read any file your user can read, not only the snapshot. Keep
 that in mind before you run PrismaLens under an account that can read
 production credentials.
 
-The agent also honours agent configuration committed in the repository, such
-as a `.claude/settings.json` or an `opencode.json`. Only point PrismaLens at
-repositories whose committed agent config you trust.
+Agent configuration committed in the repository never reaches the agent:
+before a run starts, PrismaLens removes `.claude`, `.opencode`, `opencode.json`,
+`.mcp.json`, `.gemini` and `.codex` at any depth from the snapshot, so a
+repository cannot bring its own tools, hooks or instructions into the run.
 
 Alert fields reach the agent inside a block marked as untrusted data. If the
 agent spots text trying to give it orders, it quotes it in the report under
@@ -90,7 +91,8 @@ because mirrored networking silently cuts the sandbox's network.
 | PrismaLens's own secrets | Generated on first start, stored as owner-only files, never given to the agent. |
 
 Apart from those provider keys, the agent gets only `PATH`, `HOME`, `USER`,
-`SHELL`, locale, `TERM`, `TMPDIR` and `TZ` from your environment.
+`LOGNAME`, `SHELL`, `PWD`, `LANG`, `LC_ALL`, `LC_CTYPE`, `TERM`, `TMPDIR` and
+`TZ` from your environment.
 
 The first person to open a fresh install becomes the owner, and sign-up closes.
 
@@ -102,7 +104,7 @@ Everything is under `~/.prismalens`, or the folder you pass to
 | Path | Contents |
 | --- | --- |
 | `prismalens.db` | Incidents, alerts, services, investigations, reports and their event streams |
-| `runs/<id>/repo` | The snapshot a run read |
+| `runs/<id>/repo` | The snapshot a run read, deleted when the run ends, whatever its outcome |
 | `runs/<id>/transcript.jsonl` | Raw messages between PrismaLens and the agent, kept as a best effort |
 | `repos/` | Mirrors of repositories added by URL |
 | `logs/` | App logs |
