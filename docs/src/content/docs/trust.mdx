@@ -90,7 +90,7 @@ Usage telemetry is **off by default**. Nothing is sent until the instance owner 
 
 The question is asked once:
 
-- **On `/incidents`:** After setup and first login, a one-time consent banner appears above the incidents list (the post-login empty state). It offers **No thanks** and **Share usage data**. Choosing either hides the banner.
+- **On `/incidents`:** Until you answer, a consent banner sits above the incidents list. It offers **No thanks** and **Share usage data**. Choosing either hides the banner.
 - **In Settings:** Under **Settings → Usage data**, the **Share anonymous usage data** toggle lets you change your decision at any time.
 - **`pl up --telemetry=off`:** The CLI flag disables usage telemetry for that run (`--telemetry` accepts only `off`; turning telemetry on must be done in Settings). While undecided, `pl up` prints a one-line notice pointing at Settings, but never prompts in the terminal.
 
