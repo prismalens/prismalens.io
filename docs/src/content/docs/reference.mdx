@@ -17,6 +17,7 @@ Starts the app: the API and the web UI on one port, backed by SQLite.
 | `--host <host>` | `127.0.0.1` | Address to bind. Anything other than loopback makes the app reachable from your network and prints a warning. |
 | `--workspace <dir>` | `~/.prismalens` | Folder for the database, secrets, logs, mirrors and runs. |
 | `--verbose` | off | Stream every log line to the terminal. By default only warnings and errors appear. |
+| `--telemetry=off` | unset | Turn off opt-in usage telemetry for this run regardless of Settings. See [Usage telemetry](/trust/#usage-telemetry). |
 
 ### `pl doctor`
 
@@ -29,13 +30,16 @@ port. For each agent it prints the path the binary was found at, or the
 
 ## Environment variables
 
-Flags on `pl up` set the first three. The rest have no flag.
+Flags on `pl up` set `PRISMALENS_PORT`, `PRISMALENS_HOST`, `PRISMALENS_WORKSPACE_DIR` and `PRISMALENS_TELEMETRY`. The rest have no flag.
 
 | Variable | Default | What it does |
 | --- | --- | --- |
 | `PRISMALENS_PORT` | `3001` | Same as `--port`. |
 | `PRISMALENS_HOST` | `127.0.0.1` | Same as `--host`. |
 | `PRISMALENS_WORKSPACE_DIR` | `~/.prismalens` | Same as `--workspace`. |
+| `PRISMALENS_TELEMETRY` | unset | `off` forces usage telemetry off for the process regardless of Settings (also accepts `0` or `false`). Set by `--telemetry=off`. Also honours `DO_NOT_TRACK` and `CI`. See [Usage telemetry](/trust/#usage-telemetry). |
+| `PRISMALENS_UPDATE_CHECK` | unset | `off` turns off the daily GitHub Releases update check. Also turned off by `DO_NOT_TRACK` or `CI`. See [What leaves your machine](/trust/#what-leaves-your-machine). |
+| `DO_NOT_TRACK` | unset | Standard cross-vendor variable. Any value other than `0`, `false` or `off` turns off both usage telemetry and the update check. See [Usage telemetry](/trust/#usage-telemetry). |
 | `PRISMALENS_HARNESS` | unset | Pin a coding agent by id: `opencode`, `claude-code`, `codex`, `gemini`, `deepagents`. |
 | `PRISMALENS_SANDBOX` | `auto` | `auto`, `process` or `srt`. See [Sandboxing](/trust/#sandboxing). |
 | `PRISMALENS_SANDBOX_ALLOWED_HOSTS` | unset | Comma-separated hosts a sandboxed agent may reach, such as its model provider. |
