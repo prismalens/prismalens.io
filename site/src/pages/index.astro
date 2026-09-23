@@ -19,12 +19,12 @@ const features = [
   },
   {
     title: 'It works on a copy of your code',
-    description: 'Each run gets a fresh snapshot of the service\'s last commit. Your checkout is never the working directory, and agent config committed in the repository is stripped before the agent starts.',
+    description: 'Each run gets a fresh snapshot of the service\'s last commit, and your checkout is never the working directory. The agent works from the alert and the code; PrismaLens does not connect it to your metrics, logs or traces.',
     icon: 'layers',
   },
   {
     title: 'Read-only, and honest about it',
-    description: 'PrismaLens refuses the agent\'s edits, deletes and mutating commands. That is a guardrail, not a wall. Add a sandbox for an OS-enforced boundary, and every report says which one you got.',
+    description: 'PrismaLens refuses the agent\'s edits, deletes and mutating commands. That is a guardrail, not a wall, and runs are unsandboxed until you add one. Every report says which you got.',
     icon: 'shield',
   },
   {
@@ -38,14 +38,6 @@ const features = [
     icon: 'command',
   },
 ]
-
-const limits = [
-  'Runs are unsandboxed unless you install the sandbox runtime and ask for it.',
-  'Prometheus Alertmanager is the only alert source.',
-  'The agent gets the alert and the code. It does not connect to your metrics, logs or traces.',
-  'One account per install, no roles.',
-  'macOS, Linux and WSL2. Native Windows is not supported yet.',
-]
 ---
 
 <BaseLayout title="PrismaLens — your coding agent, investigating your incidents">
@@ -53,7 +45,7 @@ const limits = [
     title="Point it at an incident and the code behind it."
     subtitle="PrismaLens is an open-source app you run with one command. When an alert fires, your own coding agent investigates a read-only copy of the service's code, and you get a report that shows its evidence."
     code={['npm install -g prismalens', 'pl up']}
-    codeNote="Node.js 24+. Opens the dashboard at localhost:3001."
+    codeNote="Node.js 24+ on macOS, Linux or WSL2. Opens the dashboard at localhost:3001."
     primaryCta={{ href: `${docsBase}/quickstart/`, label: 'Quick start' }}
     secondaryCta={{
       href: 'https://github.com/prismalens/prismalens',
@@ -89,23 +81,10 @@ const limits = [
         <p>You can, and for a one-off question you should. PrismaLens is for everything around the question:</p>
         <ul class="space-y-3 pl-5 list-disc">
           <li><strong style="color: var(--foreground);">It starts from the alert.</strong> The alert details are already in the brief when the agent starts, and nobody has to be awake to paste them.</li>
-          <li><strong style="color: var(--foreground);">It keeps the agent's hands off.</strong> The run happens in a snapshot, and PrismaLens answers every permission request with a read-only policy.</li>
+          <li><strong style="color: var(--foreground);">It keeps the agent's hands off.</strong> The run happens in a snapshot, and PrismaLens answers every permission request with a read-only policy. <a href={`${docsBase}/trust/`} class="underline" style="color: var(--primary);">What it reads and never does</a>.</li>
           <li><strong style="color: var(--foreground);">It leaves a record, not a chat.</strong> A week later the report, the evidence and every command the agent ran are still on the incident.</li>
         </ul>
       </div>
-    </div>
-  </section>
-
-  <section class="px-4 pb-16 sm:px-6 lg:px-8">
-    <div class="mx-auto max-w-3xl rounded-2xl p-8" style="border: 1px dashed var(--border); background: color-mix(in srgb, var(--card) 60%, transparent);">
-      <h2 class="text-xl font-bold mb-4" style="color: var(--foreground);">What 0.5.0 does not do</h2>
-      <ul class="space-y-2 pl-5 list-disc text-base" style="color: var(--muted-foreground);">
-        {limits.map((item) => <li>{item}</li>)}
-      </ul>
-      <p class="mt-4 text-sm" style="color: var(--muted-foreground);">
-        The full account of what PrismaLens reads, sends and stores is in
-        <a href={`${docsBase}/trust/`} class="underline" style="color: var(--primary);">What PrismaLens reads and never does</a>.
-      </p>
     </div>
   </section>
 
