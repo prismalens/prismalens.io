@@ -50,6 +50,12 @@ export default defineConfig({
 			// marketing site ships; wired here because Starlight emits no og:image
 			// on its own.
 			head: [
+				// The synced tokens switch themes on a `.dark` class; Starlight switches on data-theme.
+				{
+					tag: 'script',
+					content:
+						"const r=document.documentElement;const s=()=>r.classList.toggle('dark',r.dataset.theme!=='light');s();new MutationObserver(s).observe(r,{attributeFilter:['data-theme']});",
+				},
 				{ tag: 'meta', attrs: { property: 'og:image', content: 'https://docs.prismalens.io/og-default.png' } },
 				{ tag: 'meta', attrs: { property: 'og:image:width', content: '1200' } },
 				{ tag: 'meta', attrs: { property: 'og:image:height', content: '630' } },
