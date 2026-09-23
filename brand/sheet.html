@@ -9,12 +9,12 @@
 <style>
   * { margin: 0; box-sizing: border-box; }
   body { display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; overflow: hidden; font-family: Inter, sans-serif; }
-  body.dark { --ink: #E2E8F0; --muted: #94A3B8; background: radial-gradient(ellipse at 50% 0%, #1E2640 0%, #0F172A 45%, #0B1120 100%); }
-  body.light { --ink: #0F172A; --muted: #475569; background: radial-gradient(ellipse at 50% 0%, #FFFFFF 0%, #F1F5F9 60%, #E2E8F0 100%); }
+  body.dark { --ray: #818CF8; --ink: #E2E8F0; --muted: #94A3B8; background: radial-gradient(ellipse at 50% 0%, #1E2640 0%, #0F172A 45%, #0B1120 100%); }
+  body.light { --ray: #4F46E5; --ink: #0F172A; --muted: #475569; background: radial-gradient(ellipse at 50% 0%, #FFFFFF 0%, #F1F5F9 60%, #E2E8F0 100%); }
   body.og { width: 1200px; height: 630px; }
   body.banner { width: 1600px; height: 400px; }
   body.og::before { content: ''; position: absolute; inset: 0; background-image: linear-gradient(to right, rgb(148 163 184 / .06) 1px, transparent 1px), linear-gradient(to bottom, rgb(148 163 184 / .06) 1px, transparent 1px); background-size: 40px 40px; }
-  body::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 6px; background: linear-gradient(to right, #38BDF8, #6366F1, #8B5CF6, #C026D3); }
+  body::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 6px; background: linear-gradient(to right, var(--ray), transparent); }
   .lockup { display: flex; align-items: center; gap: 28px; position: relative; }
   .lockup svg { width: 132px; height: 132px; }
   .word { font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 92px; letter-spacing: -0.02em; line-height: 1; }
@@ -32,12 +32,12 @@
   <div class="lockup">
     <svg viewBox="0 0 64 64" fill="none" stroke-linecap="round">
       <path d="M2 34H20" stroke="var(--ink)" opacity=".55" stroke-width="3"/>
-      <path d="M20.6 34 41.5 29.5" stroke="var(--ink)" opacity=".22" stroke-width="2.5"/>
-      <path d="M43.5 28.3 62 17" stroke="#38BDF8" stroke-width="3"/>
-      <path d="M44 29 62 26" stroke="#6366F1" stroke-width="3"/>
-      <path d="M44 30.2 62 35" stroke="#8B5CF6" stroke-width="3"/>
-      <path d="M43.5 31 62 44" stroke="#C026D3" stroke-width="3"/>
-      <path d="M32 12 51 47H13Z" stroke="var(--ink)" stroke-width="3.5" stroke-linejoin="round"/>
+      <path d="M20.6 34 40.4 29.6" stroke="var(--ink)" opacity=".22" stroke-width="2.5"/>
+      <path d="M42.8 28.3 62 17" stroke="var(--ray)" stroke-width="3"/>
+      <path d="M43.2 29 62 26" stroke="var(--ray)" stroke-width="3" opacity=".7"/>
+      <path d="M43.9 30.2 62 35" stroke="var(--ray)" stroke-width="3" opacity=".5"/>
+      <path d="M44.4 31 62 44" stroke="var(--ray)" stroke-width="3" opacity=".35"/>
+      <path d="M32 14.1 51 47H13Z" stroke="var(--ink)" stroke-width="3.5" stroke-linejoin="round"/>
     </svg>
     <div class="word"><span>Prisma</span><span>Lens</span></div>
   </div>

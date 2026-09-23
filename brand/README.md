@@ -1,7 +1,7 @@
 # PrismaLens brand assets
 
 Canonical home of the PrismaLens identity — the **refraction mark**: one mixed beam
-enters the prism, ordered spectrum bands leave it. That is the product's own
+enters the prism, ordered bands leave it, fading in rank. That is the product's own
 epistemics (an incident in, ordered evidence out) drawn as physics.
 
 ## Palette
@@ -11,7 +11,7 @@ epistemics (an incident in, ordered evidence out) drawn as physics.
 | Ink dark | `#0F172A` | mark/wordmark on light backgrounds |
 | Ink light | `#E2E8F0` | mark/wordmark on dark backgrounds |
 | Indigo | `#6366F1` | primary accent, "Prisma" in the wordmark |
-| Spectrum | `#38BDF8 → #6366F1 → #8B5CF6 → #C026D3` | the four refracted rays, gradient rules |
+| Ray indigo | `#4F46E5` on light, `#818CF8` on dark, at 100 / 70 / 50 / 35% opacity | the refracted rays, in order; the favicon's three use 100 / 70 / 45% |
 | Found-it green | `#34D399` | terminal "root cause identified" moments only |
 | Deep space | `#0F172A` / `#0B1120` | icon chips, dark canvases |
 
