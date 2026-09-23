@@ -2,12 +2,23 @@
 // The brand mark as a diagram: one alert enters the prism, the agent's evidence
 // leaves it in order. Every line is from a real 0.5.0 run on a demo service.
 const evidence = [
-  { text: 'config.rateCacheTtl is 60_000, and the comment says ms', source: 'src/config.js:5', color: '#38BDF8' },
-  { text: 'The freshness check divides it by 1000, so 60 ms', source: 'src/rates.js:7', color: '#6366F1' },
-  { text: '1.5.0 changed rateCacheTtlSeconds * 1000 to rateCacheTtl / 1000', source: 'git show 6907f00', color: '#8B5CF6' },
-  { text: '/checkout awaits getRate() on every request', source: 'src/server.js:8', color: '#C026D3' },
+  { text: 'config.rateCacheTtl is 60_000, and the comment says ms', source: 'src/config.js:5' },
+  { text: 'The freshness check divides it by 1000, so 60 ms', source: 'src/rates.js:7' },
+  { text: '1.5.0 changed rateCacheTtlSeconds * 1000 to rateCacheTtl / 1000', source: 'git show 6907f00' },
+  { text: '/checkout awaits getRate() on every request', source: 'src/server.js:8' },
 ]
 const rowY = [32, 96, 160, 224]
+// One accent, fading down the list: the evidence reads in the order the report gives it.
+const shade = [100, 70, 50, 35].map((pct) => `color-mix(in oklch, var(--primary) ${pct}%, transparent)`)
+
+// Equilateral prism, side 60, centroid at (80, 128). Rays leave the right face.
+const side = 60
+const height = (side * Math.sqrt(3)) / 2
+const apex = { x: 80, y: 128 - (height * 2) / 3 }
+const baseY = apex.y + height
+const rightFaceX = (y: number) => apex.x + ((y - apex.y) / height) * (side / 2) + 1
+const prism = `M${apex.x} ${apex.y.toFixed(1)} ${apex.x + side / 2} ${baseY.toFixed(1)}H${apex.x - side / 2}Z`
+const exitY = (i: number) => 121 + i * 3
 ---
 
 <figure class="refraction" aria-label="An alert goes into PrismaLens and four pieces of evidence come out, each with the file or commit it came from">
@@ -18,17 +29,17 @@ const rowY = [32, 96, 160, 224]
   </div>
 
   <svg class="beam" width="220" height="256" viewBox="0 0 220 256" fill="none" aria-hidden="true">
-    <path class="draw in" d="M0 128H65" stroke="currentColor" stroke-opacity=".5" stroke-width="2.5" stroke-linecap="round" />
-    <path d="M65.5 128 93 124" stroke="currentColor" stroke-opacity=".2" stroke-width="2" stroke-linecap="round" />
+    <path class="draw in" d="M0 128H60" stroke="currentColor" stroke-opacity=".5" stroke-width="2.5" stroke-linecap="round" />
+    <path d={`M60.5 128 ${rightFaceX(124).toFixed(1)} 124`} stroke="currentColor" stroke-opacity=".2" stroke-width="2" stroke-linecap="round" />
     {rowY.map((y, i) => (
-      <path class="draw" style={`--i:${i}`} d={`M94 ${121 + i * 3} 220 ${y}`} stroke={evidence[i].color} stroke-width="2.5" stroke-linecap="round" />
+      <path class="draw" d={`M${rightFaceX(exitY(i)).toFixed(1)} ${exitY(i)} 220 ${y}`} style={`--i:${i};stroke:${shade[i]}`} stroke-width="2.5" stroke-linecap="round" />
     ))}
-    <path d="M80 92 108 160H52Z" stroke="currentColor" stroke-width="3" stroke-linejoin="round" />
+    <path d={prism} stroke="currentColor" stroke-width="3" stroke-linejoin="round" />
   </svg>
 
   <ol class="rows">
     {evidence.map((e, i) => (
-      <li style={`--c:${e.color};--i:${i}`}>
+      <li style={`--c:${shade[i]};--i:${i}`}>
         <span>{e.text}</span>
         <code>{e.source}</code>
       </li>
@@ -85,12 +96,23 @@ const rowY = [32, 96, 160, 224]
     flex-direction: column;
     justify-content: center;
     gap: 0.125rem;
-    border-left: 3px solid var(--c);
+    position: relative;
     padding-left: 0.875rem;
     font-size: 0.9375rem;
     line-height: 1.35;
     animation: show 400ms ease-out both;
     animation-delay: calc(700ms + var(--i) * 120ms);
+  }
+
+  .rows li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0.75rem;
+    bottom: 0.75rem;
+    width: 3px;
+    border-radius: 2px;
+    background: var(--c);
   }
 
   .rows code {
