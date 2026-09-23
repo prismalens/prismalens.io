@@ -75,6 +75,7 @@ export default defineConfig({
 					items: [
 						{ label: 'Services and their code', slug: 'guides/services' },
 						{ label: 'Sending alerts', slug: 'guides/alerts' },
+						{ label: 'Opening it from other devices', slug: 'guides/devices' },
 						{ label: 'Reading the report', slug: 'guides/reports' },
 					],
 				},

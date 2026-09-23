@@ -5,7 +5,7 @@ description: The pl commands, the environment variables worth knowing, the limit
 
 ## Commands
 
-PrismaLens has two commands. `prismalens` and `pl` are the same binary.
+PrismaLens has four commands. `prismalens` and `pl` are the same binary.
 
 ### `pl up`
 
@@ -17,6 +17,25 @@ Starts the app: the API and the web UI on one port, backed by SQLite.
 | `--host <host>` | `127.0.0.1` | Address to bind. Anything other than loopback makes the app reachable from your network and prints a warning. |
 | `--workspace <dir>` | `~/.prismalens` | Folder for the database, secrets, logs, mirrors and runs. |
 | `--verbose` | off | Stream every log line to the terminal. By default only warnings and errors appear. |
+| `--no-open` | opens | Print the pairing link without opening a browser. |
+
+### `pl pair`
+
+Prints a one-time pairing link for a running `pl up`. It works once, for 15
+minutes. See [Opening it from other devices](/guides/devices/).
+
+| Flag | Default | What it does |
+| --- | --- | --- |
+| `--address <url>` | `http://localhost:<port>` | The address the other device will open, such as a LAN IP or a tailnet name. |
+| `--label <name>` | none | A name shown under **Settings → Devices** until the device sends its own. |
+| `--operator` | off | A link for the host's own browser, which may also pair and revoke devices. |
+| `--workspace <dir>` | `~/.prismalens` | The workspace `pl up` is running on. |
+
+### `pl reset`
+
+Deletes the workspace: the database, secrets, logs and runs. Stop `pl up`
+first. It asks before deleting (`--yes` skips the question), and it refuses a
+folder that has no `prismalens.db`.
 
 ### `pl doctor`
 
@@ -59,8 +78,7 @@ Flags on `pl up` set the first three. The rest have no flag.
 ## Known limits in 0.5.0
 
 - Runs on macOS, Linux and WSL2. Native Windows is not supported yet.
-- One `pl up` per workspace folder. Two processes on the same folder both start and corrupt each other's state.
-- There is no password reset. If you lose the owner password, stop `pl up`, move the workspace folder aside and start again.
+- One `pl up` per workspace folder. A second one on the same folder refuses to start and names the process holding it.
 - Every run keeps its transcript under `runs/<id>/`. The repository clone is deleted when the run ends; delete old transcripts by hand when you need the space.
 - Installing needs a prebuilt `better-sqlite3` for your platform, or Python 3 and a C++ toolchain to build it.
 

@@ -96,8 +96,10 @@ Apart from those provider keys, the agent gets only `PATH`, `HOME`, `USER`,
 `LOGNAME`, `SHELL`, `PWD`, `LANG`, `LC_ALL`, `LC_CTYPE`, `TERM`, `TMPDIR` and
 `TZ` from your environment.
 
-The first person to open a fresh install becomes the instance's only account.
-Sign-up closes after it, and there are no roles.
+There are no accounts. A browser gets in only by opening a one-time pairing
+link that `pl up` or `pl pair` prints on the host; no address, `localhost`
+included, grants access by itself. Only the host's own session can pair or
+revoke other devices. See [Opening it from other devices](/guides/devices/).
 
 ## Where your data lives
 
