@@ -8,6 +8,7 @@ The marketing site at https://prismalens.io, built with Astro and Tailwind CSS.
 |---|---|
 | `/` | `src/pages/index.astro` (`/features` redirects here) |
 | `/about` | `src/pages/about.astro` |
+| any unknown path | `src/pages/404.astro`, built to `404.html`, which Cloudflare Pages serves with a 404 status |
 
 `src/unreleased-pages/` holds pages kept for later. Astro does not route them.
 
