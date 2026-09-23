@@ -1,0 +1,56 @@
+<!doctype html>
+<!-- Renders the OG card and README banners. Open with ?v=og | banner-dark | banner-light;
+     brand/README.md has the capture sizes. The mark geometry is copied from logo.svg. -->
+<html>
+<head>
+<meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@700&family=Inter:wght@500&family=JetBrains+Mono:wght@500&display=block" rel="stylesheet">
+<style>
+  * { margin: 0; box-sizing: border-box; }
+  body { display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; overflow: hidden; font-family: Inter, sans-serif; }
+  body.dark { --ray: #818CF8; --ink: #E2E8F0; --muted: #94A3B8; background: radial-gradient(ellipse at 50% 0%, #1E2640 0%, #0F172A 45%, #0B1120 100%); }
+  body.light { --ray: #4F46E5; --ink: #0F172A; --muted: #475569; background: radial-gradient(ellipse at 50% 0%, #FFFFFF 0%, #F1F5F9 60%, #E2E8F0 100%); }
+  body.og { width: 1200px; height: 630px; }
+  body.banner { width: 1600px; height: 400px; }
+  body.og::before { content: ''; position: absolute; inset: 0; background-image: linear-gradient(to right, rgb(148 163 184 / .06) 1px, transparent 1px), linear-gradient(to bottom, rgb(148 163 184 / .06) 1px, transparent 1px); background-size: 40px 40px; }
+  body::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 6px; background: linear-gradient(to right, var(--ray), transparent); }
+  .lockup { display: flex; align-items: center; gap: 28px; position: relative; }
+  .lockup svg { width: 132px; height: 132px; }
+  .word { font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 92px; letter-spacing: -0.02em; line-height: 1; }
+  .word span:first-child { color: #6366F1; } .word span:last-child { color: var(--ink); }
+  .tag { margin-top: 26px; font-size: 30px; color: var(--muted); position: relative; }
+  .term { position: relative; margin-top: 40px; width: 760px; border: 1px solid rgb(148 163 184 / .18); border-radius: 16px; background: rgb(15 23 42 / .75); box-shadow: 0 20px 60px rgb(99 102 241 / .15); font-family: 'JetBrains Mono', monospace; font-size: 24px; }
+  .term .bar { display: flex; gap: 9px; padding: 16px 20px; border-bottom: 1px solid rgb(148 163 184 / .12); }
+  .term .bar i { width: 13px; height: 13px; border-radius: 50%; }
+  .term pre { padding: 26px 32px 30px; line-height: 1.9; color: #E2E8F0; font: inherit; }
+  .p { color: #6366F1; } .ok { color: #34D399; }
+  body.og .lockup svg { width: 96px; height: 96px; } body.og .word { font-size: 76px; } body.og .tag { margin-top: 34px; font-size: 28px; }
+</style>
+</head>
+<body>
+  <div class="lockup">
+    <svg viewBox="0 0 64 64" fill="none" stroke-linecap="round">
+      <path d="M2 34H20" stroke="var(--ink)" opacity=".55" stroke-width="3"/>
+      <path d="M20.6 34 40.4 29.6" stroke="var(--ink)" opacity=".22" stroke-width="2.5"/>
+      <path d="M42.8 28.3 62 17" stroke="var(--ray)" stroke-width="3"/>
+      <path d="M43.2 29 62 26" stroke="var(--ray)" stroke-width="3" opacity=".7"/>
+      <path d="M43.9 30.2 62 35" stroke="var(--ray)" stroke-width="3" opacity=".5"/>
+      <path d="M44.4 31 62 44" stroke="var(--ray)" stroke-width="3" opacity=".35"/>
+      <path d="M32 14.1 51 47H13Z" stroke="var(--ink)" stroke-width="3.5" stroke-linejoin="round"/>
+    </svg>
+    <div class="word"><span>Prisma</span><span>Lens</span></div>
+  </div>
+  <div class="term" hidden>
+    <div class="bar"><i style="background:#F87171"></i><i style="background:#FBBF24"></i><i style="background:#34D399"></i></div>
+    <pre><span class="p">$</span> pl up
+<span class="ok">✔ PrismaLens is ready at http://localhost:3001</span></pre>
+  </div>
+  <p class="tag">Your coding agent, investigating your incidents</p>
+  <script>
+    const v = new URLSearchParams(location.search).get('v') || 'og'
+    document.body.className = v === 'og' ? 'og dark' : `banner ${v.split('-')[1]}`
+    document.querySelector('.term').hidden = v !== 'og'
+  </script>
+</body>
+</html>

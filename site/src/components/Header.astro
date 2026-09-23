@@ -1,55 +1,31 @@
 ---
 import ThemeToggle from './react/ThemeToggle.tsx'
 import MobileNav from './react/MobileNav.tsx'
-import { buttonVariants } from '@/components/ui/button'
+import Mark from './Mark.astro'
 
 const navLinks = [
-  { href: '/features', label: 'Features' },
   { href: import.meta.env.DEV ? 'http://localhost:4322' : 'https://docs.prismalens.io', label: 'Docs' },
   { href: '/about', label: 'About' },
+  { href: 'https://github.com/prismalens/prismalens', label: 'GitHub' },
 ]
 ---
 
-<header class="sticky top-0 z-50 backdrop-blur-lg header-bg">
-  <nav class="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
-    <a href="/" class="flex items-center gap-2 text-xl font-bold">
-      <svg width="24" height="24" viewBox="0 0 64 64" fill="none" aria-hidden="true">
-        <g stroke-linecap="round">
-          <path d="M2 34H20" stroke="currentColor" opacity=".55" stroke-width="3"/>
-          <path d="M43.5 28.3 62 17" stroke="#38BDF8" stroke-width="3"/>
-          <path d="M44 29 62 26" stroke="#6366F1" stroke-width="3"/>
-          <path d="M44 30.2 62 35" stroke="#8B5CF6" stroke-width="3"/>
-          <path d="M43.5 31 62 44" stroke="#C026D3" stroke-width="3"/>
-          <path d="M32 12 51 47H13Z" stroke="currentColor" stroke-width="3.5" stroke-linejoin="round"/>
-        </g>
-      </svg>
-      <span class="whitespace-nowrap"><span style="color: var(--primary);">Prisma</span><span class="logo-lens">Lens</span></span>
+<header class="sticky top-0 z-50 border-b border-border bg-background">
+  <nav class="mx-auto flex h-14 max-w-6xl items-center justify-between px-4 sm:px-6">
+    <a href="/" class="flex items-center gap-2 text-lg font-semibold tracking-tight">
+      <Mark size={22} />
+      <span><span class="text-primary">Prisma</span>Lens</span>
     </a>
 
-    <!-- Desktop nav -->
-    <div class="hidden items-center gap-8 md:flex">
+    <div class="hidden items-center gap-7 md:flex">
       {navLinks.map((link) => (
-        <a
-          href={link.href}
-          class="text-sm transition-colors nav-link"
-        >
+        <a href={link.href} class="text-sm text-muted-foreground transition-colors hover:text-foreground">
           {link.label}
         </a>
       ))}
-
       <ThemeToggle client:load />
-
-      <a
-        href="https://github.com/prismalens/prismalens"
-        target="_blank"
-        rel="noopener noreferrer"
-        class={buttonVariants({ variant: 'default', size: 'sm' })}
-      >
-        View on GitHub
-      </a>
     </div>
 
-    <!-- Mobile controls -->
     <div class="flex items-center gap-2 md:hidden">
       <ThemeToggle client:load />
       <MobileNav client:load navLinks={navLinks} />

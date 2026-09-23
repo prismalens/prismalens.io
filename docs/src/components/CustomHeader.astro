@@ -1,6 +1,5 @@
 ---
 import ThemeSelect from '@astrojs/starlight/components/ThemeSelect.astro'
-import { buttonVariants } from '@/components/ui/button'
 
 const siteBase = import.meta.env.DEV ? 'http://localhost:4321' : 'https://prismalens.io';
 ---
@@ -13,11 +12,12 @@ const siteBase = import.meta.env.DEV ? 'http://localhost:4321' : 'https://prisma
       <svg width="24" height="24" viewBox="0 0 64 64" fill="none" aria-hidden="true">
         <g stroke-linecap="round">
           <path d="M2 34H20" stroke="var(--sl-color-white)" opacity=".55" stroke-width="3"/>
-          <path d="M43.5 28.3 62 17" stroke="#38BDF8" stroke-width="3"/>
-          <path d="M44 29 62 26" stroke="#6366F1" stroke-width="3"/>
-          <path d="M44 30.2 62 35" stroke="#8B5CF6" stroke-width="3"/>
-          <path d="M43.5 31 62 44" stroke="#C026D3" stroke-width="3"/>
-          <path d="M32 12 51 47H13Z" stroke="var(--sl-color-white)" stroke-width="3.5" stroke-linejoin="round"/>
+          <path d="M20.6 34 40.4 29.6" stroke="var(--sl-color-white)" opacity=".22" stroke-width="2.5"/>
+          <path class="ray" d="M42.8 28.3 62 17" stroke-width="3"/>
+          <path class="ray" d="M43.2 29 62 26" stroke-width="3" opacity=".7"/>
+          <path class="ray" d="M43.9 30.2 62 35" stroke-width="3" opacity=".5"/>
+          <path class="ray" d="M44.4 31 62 44" stroke-width="3" opacity=".35"/>
+          <path d="M32 14.1 51 47H13Z" stroke="var(--sl-color-white)" stroke-width="3.5" stroke-linejoin="round"/>
         </g>
       </svg>
       <span class="whitespace-nowrap"><span style="color: var(--sl-color-accent);">Prisma</span><span style="color: var(--sl-color-white);">Lens</span></span>
@@ -28,13 +28,6 @@ const siteBase = import.meta.env.DEV ? 'http://localhost:4321' : 'https://prisma
   <div class="hidden items-center gap-6 md:flex">
     <!-- Marketing site links -->
     <a
-      href={`${siteBase}/features`}
-      class="docs-header-link text-sm transition-colors"
-      style="color: var(--sl-color-gray-2);"
-    >
-      Features
-    </a>
-    <a
       href={`${siteBase}/about`}
       class="docs-header-link text-sm transition-colors"
       style="color: var(--sl-color-gray-2);"
@@ -44,14 +37,12 @@ const siteBase = import.meta.env.DEV ? 'http://localhost:4321' : 'https://prisma
 
     <ThemeSelect />
 
-    <!-- GitHub link -->
     <a
       href="https://github.com/prismalens/prismalens"
-      target="_blank"
-      rel="noopener noreferrer"
-      class={buttonVariants({ variant: 'default', size: 'sm' })}
+      class="docs-header-link text-sm transition-colors"
+      style="color: var(--sl-color-gray-2);"
     >
-      View on GitHub
+      GitHub
     </a>
   </div>
 </div>
@@ -60,6 +51,14 @@ const siteBase = import.meta.env.DEV ? 'http://localhost:4321' : 'https://prisma
   /* The Starlight header shell already paints var(--sl-color-bg-nav) + hairline; just add blur. */
   :global(header.header) {
     backdrop-filter: blur(12px);
+  }
+
+  .ray {
+    stroke: #4f46e5;
+  }
+
+  :global([data-theme='dark']) .ray {
+    stroke: #818cf8;
   }
 
   .docs-header a {

@@ -1,71 +1,51 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro'
-import Hero from '../components/Hero.astro'
-import CTA from '../components/CTA.astro'
 ---
 
-<BaseLayout title="About" description="Learn about PrismaLens and our mission to make incident response faster and smarter.">
-  <Hero
-    title="About PrismaLens"
-    subtitle="We're building the future of incident investigation — where AI does the searching and your team does the fixing."
-  />
-  <section class="mx-auto max-w-3xl px-4 py-16 sm:px-6 lg:px-8">
-    <div class="space-y-6 text-muted-foreground">
-      <h2 class="text-2xl font-bold text-foreground">Why We Built This</h2>
+<BaseLayout title="About" description="Why PrismaLens exists and the rules it is built on.">
+  <article class="mx-auto max-w-2xl px-4 py-16 leading-relaxed sm:px-6 sm:py-24">
+    <h1 class="text-4xl font-semibold tracking-tight">About PrismaLens</h1>
 
-      <p>
-        At 2:47am on a Tuesday, our payment API started timing out. Revenue dropped
-        to zero. The on-call engineer spent 90 minutes jumping between Grafana dashboards,
-        grepping logs, and correlating deployment times before finding the cause: a database
-        migration that added an unindexed column.
-      </p>
+    <p class="mt-8 text-lg">
+      When an alert fires, the answer is usually already somewhere in your dashboards and your
+      code. Finding it is the slow part: which deploy, which change, which line. Coding agents
+      have become good at reading a codebase and following that kind of trail, and most engineers
+      already have one installed and signed in.
+    </p>
 
-      <p>
-        That engineer had all the right tools — Prometheus, Grafana, distributed tracing,
-        structured logs. The problem wasn't <em>observability</em>. It was
-        <span class="text-primary font-semibold">correlation</span>. Connecting the dots
-        across systems, timelines, and signal types is cognitive work that takes time and
-        drains focus.
-      </p>
+    <p class="mt-5 text-muted-foreground">
+      PrismaLens puts that agent on the incident. It opens the incident from the alert, gives the
+      agent a copy of the service's code, refuses anything that would change it, and keeps the
+      whole run: the report, the evidence and every command the agent ran.
+    </p>
 
-      <p>
-        <strong class="text-foreground">The PrismaLens CLI automates that correlation.</strong> Point
-        it at a repo, pipe in a firing alert (or describe the problem with <code>--query</code>), and it
-        rents a harness — a coding agent it drives locally — to gather evidence read-only, then hands back a report:
-        hypotheses ranked most to least plausible, each backed by the evidence that supports or
-        contradicts it — no numeric confidence scores, just an ordered trail you can check.
-      </p>
+    <h2 class="mt-14 text-2xl font-semibold tracking-tight">The rules it follows</h2>
 
-      <p>
-        We built PrismaLens because we believe incident response should be about
-        <em>fixing</em> problems, not <em>finding</em> them. Your observability tools
-        already captured the evidence. Let AI do the detective work.
-      </p>
+    <p class="mt-5 text-muted-foreground">
+      <strong class="text-foreground">Evidence over scores.</strong> A report ranks the causes and
+      shows what each one rests on. It never prints a confidence percentage. A number you cannot
+      check is worse than no number.
+    </p>
 
-      <h3 class="text-xl font-bold text-foreground mt-8">Open Source by Design</h3>
+    <p class="mt-5 text-muted-foreground">
+      <strong class="text-foreground">Your agent, your login.</strong> PrismaLens never calls a model
+      and never reads your agent's credentials. There is no PrismaLens account and nothing to pay us.
+    </p>
 
-      <p>
-        PrismaLens is open source (Apache-2.0) because incident response tools should be
-        transparent. You should know exactly how investigations run, what data gets queried, and
-        how conclusions are reached. Run it with your own model provider key — no PrismaLens
-        account, no subscription, and every run's events and report stay on your machine under
-        <code>~/.prismalens/runs/</code>.
-      </p>
+    <p class="mt-5 text-muted-foreground">
+      <strong class="text-foreground">Say where the limits are.</strong> The read-only policy is a
+      guardrail, not a wall, and the docs say so. Every report states whether the run was sandboxed.
+    </p>
 
-      <h3 class="text-xl font-bold text-foreground mt-8">Built for SREs, by SREs</h3>
+    <p class="mt-5 text-muted-foreground">
+      <strong class="text-foreground">Yours to run.</strong> PrismaLens is Apache-2.0 and runs on your
+      machine. Everything it keeps is in <code>~/.prismalens</code>, and it sends nothing to us.
+    </p>
 
-      <p>
-        We're not building another observability platform. The CLI is a terminal-first tool
-        that reads your repo and investigates read-only — it doesn't ask you to migrate off
-        Prometheus, Grafana, Datadog, or New Relic. A self-hosted server that connects to those
-        tools directly is on the roadmap, but not released yet.
-      </p>
-    </div>
-  </section>
-  <CTA
-    title="Join the community"
-    description="PrismaLens is open source. Star us on GitHub, open an issue with feedback or bug reports, or just say hello — code contributions open up a little later."
-    href="https://github.com/prismalens/prismalens"
-    label="View on GitHub"
-  />
+    <p class="mt-14">
+      Feedback and bug reports go to
+      <a href="https://github.com/prismalens/prismalens/issues" class="underline underline-offset-4">GitHub issues</a>.
+      Code contributions open up a little later.
+    </p>
+  </article>
 </BaseLayout>

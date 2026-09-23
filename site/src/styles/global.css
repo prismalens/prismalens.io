@@ -1,5 +1,4 @@
 @import "tailwindcss";
-@plugin "@tailwindcss/typography";
 
 @import "@fontsource-variable/ibm-plex-sans";
 @import "@fontsource/ibm-plex-mono/400.css";
@@ -13,144 +12,25 @@
 /* The theme toggle sets a `.dark` class on <html>; stock `dark:` follows the OS instead */
 @custom-variant dark (&:where(.dark, .dark *));
 
-/* Theme-aware body styles */
 body {
   background-color: var(--background);
   color: var(--foreground);
-  transition: background-color 0.3s ease, color 0.3s ease;
+  font-feature-settings: "calt" 1;
+  -webkit-font-smoothing: antialiased;
 }
 
-/* ── Grid background pattern ── */
-.grid-background {
-  background-color: var(--background);
-  background-image:
-    linear-gradient(to right, color-mix(in srgb, var(--border) 50%, transparent) 1px, transparent 1px),
-    linear-gradient(to bottom, color-mix(in srgb, var(--border) 50%, transparent) 1px, transparent 1px);
-  background-size: 40px 40px;
-  position: relative;
-  transition: background-color 0.3s ease;
+code, pre, kbd {
+  font-family: var(--font-mono);
 }
 
-.grid-background::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(circle at 50% 0%, color-mix(in srgb, var(--primary) 15%, transparent), transparent 50%);
-  pointer-events: none;
+:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
 }
 
-/* ── Terminal-style glow effect ── */
-.terminal-glow {
-  box-shadow:
-    0 0 20px color-mix(in srgb, var(--primary) 10%, transparent),
-    0 0 40px color-mix(in srgb, var(--primary) 5%, transparent);
-}
-
-/* ── Code block styling ── */
-pre {
-  background-color: var(--card);
-  border: 1px solid var(--border);
-  @apply rounded-lg p-4 overflow-x-auto font-mono text-sm;
-}
-
-code {
-  color: var(--primary);
-  @apply font-mono;
-}
-
-/* ── Header ── */
-.header-bg {
-  border-bottom: 1px solid var(--border);
-  background: color-mix(in srgb, var(--background) 80%, transparent);
-  backdrop-filter: blur(8px);
-  transition: background-color 0.3s ease, border-color 0.3s ease;
-}
-
-.logo-lens {
-  color: var(--foreground);
-  transition: color 0.3s ease;
-}
-
-.nav-link {
-  color: var(--muted-foreground);
-  transition: color 0.3s ease;
-}
-
-.nav-link:hover {
-  color: var(--primary);
-}
-
-/* ── Hero ── */
-.hero-title {
-  color: var(--foreground);
-  transition: color 0.3s ease, text-shadow 0.3s ease;
-}
-
-.dark .hero-title {
-  text-shadow: 0 4px 20px rgba(0,0,0,0.5), 0 0 40px color-mix(in srgb, var(--primary) 30%, transparent);
-}
-
-.hero-subtitle {
-  color: var(--muted-foreground);
-  transition: color 0.3s ease, text-shadow 0.3s ease;
-}
-
-.dark .hero-subtitle {
-  text-shadow: 0 2px 10px rgba(0,0,0,0.5);
-}
-
-/* ── Feature cards ── */
-.feature-card-bg {
-  background: linear-gradient(135deg, color-mix(in srgb, var(--card) 80%, transparent) 0%, color-mix(in srgb, var(--background) 90%, transparent) 100%);
-  border: 1px solid var(--border);
-  transition: background 0.3s ease, border-color 0.3s ease;
-}
-
-.feature-title {
-  color: var(--foreground);
-  transition: color 0.3s ease;
-}
-
-.feature-description {
-  color: var(--muted-foreground);
-  transition: color 0.3s ease;
-}
-
-/* ── Footer ── */
-.footer-bg {
-  border-top: 1px solid var(--border);
-  background: var(--background);
-  transition: background-color 0.3s ease, border-color 0.3s ease;
-}
-
-.footer-text {
-  color: var(--muted-foreground);
-  transition: color 0.3s ease;
-}
-
-.footer-heading {
-  color: var(--foreground);
-  transition: color 0.3s ease;
-}
-
-.footer-copyright {
-  color: var(--muted-foreground);
-  transition: color 0.3s ease;
-}
-
-/* ── CTA ── */
-.cta-card-bg {
-  border: 2px solid color-mix(in srgb, var(--primary) 50%, transparent);
-  background: linear-gradient(135deg, var(--card) 0%, var(--background) 100%);
-  transition: background 0.3s ease, border-color 0.3s ease;
-}
-
-.cta-title {
-  color: var(--foreground);
-  transition: color 0.3s ease;
-}
-
-.cta-description {
-  color: var(--muted-foreground);
-  transition: color 0.3s ease;
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation: none !important;
+    transition: none !important;
+  }
 }
