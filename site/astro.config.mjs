@@ -10,7 +10,7 @@ export default defineConfig({
   site: 'https://prismalens.io',
   integrations: [react(), sitemap()],
   redirects: {
-    '/features': '/#features',
+    '/features': '/',
   },
 
   vite: {

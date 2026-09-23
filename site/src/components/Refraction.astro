@@ -1,0 +1,156 @@
+---
+// The brand mark as a diagram: one alert enters the prism, the agent's evidence
+// leaves it in order. Every line is from a real 0.5.0 run on a demo service.
+const evidence = [
+  { text: 'config.rateCacheTtl is 60_000, and the comment says ms', source: 'src/config.js:5', color: '#38BDF8' },
+  { text: 'The freshness check divides it by 1000, so 60 ms', source: 'src/rates.js:7', color: '#6366F1' },
+  { text: '1.5.0 changed rateCacheTtlSeconds * 1000 to rateCacheTtl / 1000', source: 'git show 6907f00', color: '#8B5CF6' },
+  { text: '/checkout awaits getRate() on every request', source: 'src/server.js:8', color: '#C026D3' },
+]
+const rowY = [32, 96, 160, 224]
+---
+
+<figure class="refraction" aria-label="An alert goes into PrismaLens and four pieces of evidence come out, each with the file or commit it came from">
+  <div class="alert">
+    <p class="alert-name">CheckoutLatencyHigh <span class="alert-sev">critical</span></p>
+    <p>service=checkout</p>
+    <p>p99 on /checkout went from 120ms to 2.4s after the 1.5.0 deploy</p>
+  </div>
+
+  <svg class="beam" width="220" height="256" viewBox="0 0 220 256" fill="none" aria-hidden="true">
+    <path class="draw in" d="M0 128H65" stroke="currentColor" stroke-opacity=".5" stroke-width="2.5" stroke-linecap="round" />
+    <path d="M65.5 128 93 124" stroke="currentColor" stroke-opacity=".2" stroke-width="2" stroke-linecap="round" />
+    {rowY.map((y, i) => (
+      <path class="draw" style={`--i:${i}`} d={`M94 ${121 + i * 3} 220 ${y}`} stroke={evidence[i].color} stroke-width="2.5" stroke-linecap="round" />
+    ))}
+    <path d="M80 92 108 160H52Z" stroke="currentColor" stroke-width="3" stroke-linejoin="round" />
+  </svg>
+
+  <ol class="rows">
+    {evidence.map((e, i) => (
+      <li style={`--c:${e.color};--i:${i}`}>
+        <span>{e.text}</span>
+        <code>{e.source}</code>
+      </li>
+    ))}
+  </ol>
+
+  <p class="verdict">
+    <strong>Root cause.</strong> The 1.5.0 unit change turned a 60 second rate cache into a 60 millisecond one, so every checkout calls the rates API.
+  </p>
+</figure>
+
+<style>
+  .refraction {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 220px minmax(0, 1.6fr);
+    align-items: center;
+    column-gap: 0;
+    row-gap: 1.25rem;
+  }
+
+  .alert {
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--card);
+    padding: 1rem 1.125rem;
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+    line-height: 1.6;
+    color: var(--muted-foreground);
+  }
+
+  .alert-name {
+    color: var(--foreground);
+    font-weight: 600;
+  }
+
+  .alert-sev {
+    margin-left: 0.5rem;
+    color: var(--sev-critical);
+    font-weight: 500;
+  }
+
+  .beam {
+    color: var(--foreground);
+  }
+
+  .rows {
+    display: grid;
+    grid-template-rows: repeat(4, 64px);
+  }
+
+  .rows li {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 0.125rem;
+    border-left: 3px solid var(--c);
+    padding-left: 0.875rem;
+    font-size: 0.9375rem;
+    line-height: 1.35;
+    animation: show 400ms ease-out both;
+    animation-delay: calc(700ms + var(--i) * 120ms);
+  }
+
+  .rows code {
+    font-size: 0.8125rem;
+    color: var(--muted-foreground);
+  }
+
+  .verdict {
+    grid-column: 3;
+    max-width: 36rem;
+    font-size: 0.9375rem;
+    line-height: 1.5;
+    color: var(--muted-foreground);
+    animation: show 400ms ease-out both;
+    animation-delay: 1300ms;
+  }
+
+  .verdict strong {
+    color: var(--foreground);
+  }
+
+  .draw {
+    stroke-dasharray: 240;
+    stroke-dashoffset: 240;
+    animation: draw 500ms ease-out forwards;
+    animation-delay: calc(300ms + var(--i, 0) * 120ms);
+  }
+
+  .draw.in {
+    animation-delay: 0ms;
+  }
+
+  @keyframes draw {
+    to { stroke-dashoffset: 0; }
+  }
+
+  @keyframes show {
+    from { opacity: 0; transform: translateX(-6px); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .draw { stroke-dashoffset: 0; }
+  }
+
+  @media (max-width: 767px) {
+    .refraction {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .beam {
+      display: none;
+    }
+
+    .rows {
+      grid-template-rows: none;
+      gap: 0.875rem;
+    }
+
+    .verdict {
+      grid-column: 1;
+    }
+  }
+</style>

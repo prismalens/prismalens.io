@@ -6,7 +6,7 @@ The marketing site at https://prismalens.io, built with Astro and Tailwind CSS.
 
 | Route | File |
 |---|---|
-| `/` | `src/pages/index.astro` (includes the feature grid; `/features` redirects to `/#features`) |
+| `/` | `src/pages/index.astro` (`/features` redirects here) |
 | `/about` | `src/pages/about.astro` |
 
 `src/unreleased-pages/` holds pages kept for later. Astro does not route them.

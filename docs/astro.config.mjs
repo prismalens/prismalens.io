@@ -1,7 +1,6 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
 import starlight from '@astrojs/starlight';
-import react from '@astrojs/react';
 import tailwindcss from '@tailwindcss/vite';
 
 // The marketing site's header collapses About below md, and Starlight's
@@ -66,6 +65,7 @@ export default defineConfig({
 				{
 					label: 'Start here',
 					items: [
+						{ label: 'What PrismaLens is', link: '/' },
 						{ label: 'Quick start', slug: 'quickstart' },
 						{ label: 'Coding agents', slug: 'coding-agents' },
 					],
@@ -88,7 +88,6 @@ export default defineConfig({
 				},
 			],
 		}),
-		react(),
 	],
 	vite: {
 		plugins: [tailwindcss()],

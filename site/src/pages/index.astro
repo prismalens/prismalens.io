@@ -1,97 +1,110 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro'
-import Hero from '../components/Hero.astro'
-import FeatureGrid from '../components/FeatureGrid.astro'
-import CTA from '../components/CTA.astro'
+import Refraction from '../components/Refraction.astro'
 
 const docsBase = import.meta.env.DEV ? 'http://localhost:4322' : 'https://docs.prismalens.io'
 
-const features = [
-  {
-    title: 'It starts from the alert',
-    description: 'Point Prometheus Alertmanager at PrismaLens. A firing alert opens an incident, and a critical or high alert on a known service starts an investigation on arrival. You pick the policy per service, or write the incident by hand.',
-    icon: 'activity',
-  },
-  {
-    title: 'Your coding agent, your login',
-    description: 'PrismaLens hands the incident to an agent you already have: OpenCode by default, or Claude Code, Codex or Gemini CLI. It never calls a model itself. No PrismaLens account, no subscription, no model bill from us.',
-    icon: 'bot',
-  },
-  {
-    title: 'It works on a copy of your code',
-    description: 'Each run gets a fresh snapshot of the service\'s last commit, and your checkout is never the working directory. The agent works from the alert and the code; PrismaLens does not connect it to your metrics, logs or traces.',
-    icon: 'layers',
-  },
-  {
-    title: 'Read-only, and honest about it',
-    description: 'PrismaLens refuses the agent\'s edits, deletes and mutating commands. That is a guardrail, not a wall, and runs are unsandboxed until you add one. Every report says which you got.',
-    icon: 'shield',
-  },
-  {
-    title: 'Ordered evidence, not scores',
-    description: 'Hypotheses ranked most to least plausible, each backed by a file, line or command it actually ran. What was ruled out, what was and wasn\'t checked, and what to do next. No confidence percentages.',
-    icon: 'search',
-  },
-  {
-    title: 'One command, one folder',
-    description: 'pl up serves the API and the dashboard on one port with SQLite in ~/.prismalens. No Docker, no Redis, nothing to host. pl doctor checks your agent before the first run.',
-    icon: 'command',
-  },
+const steps = [
+  'An alert arrives from Prometheus Alertmanager, or you write the incident yourself.',
+  'PrismaLens copies the service\'s repository at its last commit. Your own checkout is left alone.',
+  'Your coding agent investigates inside the copy. PrismaLens refuses its edits, deletes and mutating commands.',
+  'You watch the run on the incident page while it happens.',
+  'The report ranks the causes, shows the evidence for each, and lists what was ruled out and what to check next.',
 ]
 ---
 
-<BaseLayout title="PrismaLens — your coding agent, investigating your incidents">
-  <Hero
-    title="Point it at an incident and the code behind it."
-    subtitle="PrismaLens is an open-source app you run with one command. When an alert fires, your own coding agent investigates a read-only copy of the service's code, and you get a report that shows its evidence."
-    code={['npm install -g prismalens', 'pl up']}
-    codeNote="Node.js 24+ on macOS, Linux or WSL2. Opens the dashboard at localhost:3001."
-    primaryCta={{ href: `${docsBase}/quickstart/`, label: 'Quick start' }}
-    secondaryCta={{
-      href: 'https://github.com/prismalens/prismalens',
-      label: 'View on GitHub',
-    }}
-  />
-
-  <section class="px-4 pb-24 sm:px-6 lg:px-8">
-    <div class="mx-auto max-w-5xl">
-      <p class="mb-4 text-center text-sm" style="color: var(--muted-foreground);">
-        A real 0.5.0 report. The alert said checkout latency jumped after a deploy; OpenCode found the unit bug that release introduced.
+<BaseLayout title="Your coding agent, investigating your incidents">
+  <section class="mx-auto max-w-6xl px-4 pt-16 pb-20 sm:px-6 sm:pt-24">
+    <div class="max-w-3xl">
+      <h1 class="text-4xl font-semibold leading-[1.1] tracking-tight sm:text-6xl">
+        Point it at an incident and the code behind it.
+      </h1>
+      <p class="mt-6 max-w-2xl text-lg leading-relaxed text-muted-foreground">
+        PrismaLens opens an incident from your alert, hands it to the coding agent you already use, and
+        keeps that agent on a read-only copy of the code. You get the likely causes in order, each tied
+        to the file, line or commit that supports it.
       </p>
+
+      <div class="mt-8 flex flex-col gap-6 sm:flex-row sm:items-end">
+        <pre class="rounded-md border border-border bg-card px-4 py-3 text-sm leading-7"><span class="select-none text-muted-foreground">$ </span>npm install -g prismalens
+<span class="select-none text-muted-foreground">$ </span>pl up</pre>
+        <div class="flex items-center gap-6 pb-1">
+          <a
+            href={`${docsBase}/quickstart/`}
+            class="rounded-md bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+          >
+            Read the quick start
+          </a>
+          <a href="https://github.com/prismalens/prismalens" class="text-sm font-medium underline-offset-4 hover:underline">
+            Source on GitHub
+          </a>
+        </div>
+      </div>
+      <p class="mt-3 text-sm text-muted-foreground">Needs Node.js 24 or later on macOS, Linux or WSL2.</p>
+    </div>
+
+    <div class="mt-16 sm:mt-20">
+      <Refraction />
+    </div>
+  </section>
+
+  <section class="border-t border-border">
+    <div class="mx-auto grid max-w-6xl gap-10 px-4 py-20 sm:px-6 md:grid-cols-[1fr_2fr]">
+      <h2 class="text-2xl font-semibold tracking-tight">What happens in a run</h2>
+      <ol class="space-y-5">
+        {steps.map((step, i) => (
+          <li class="grid grid-cols-[2rem_1fr] text-base leading-relaxed">
+            <span class="font-mono text-muted-foreground">{i + 1}</span>
+            <span>{step}</span>
+          </li>
+        ))}
+      </ol>
+    </div>
+  </section>
+
+  <section class="mx-auto max-w-6xl px-4 pb-20 sm:px-6">
+    <a href="/screenshots/report-0.5.0.webp" class="block">
       <img
         src="/screenshots/report-0.5.0.webp"
         width="1600"
         height="1246"
-        alt="PrismaLens investigation report: the root cause names src/rates.js line 7 and commit 6907f00, a single supported hypothesis lists four pieces of evidence with file and line sources, the coverage panel separates what was checked from what was not, and a next step says how to fix it"
-        class="w-full rounded-xl"
-        style="border: 1px solid var(--border); box-shadow: 0 20px 60px color-mix(in srgb, var(--primary) 10%, transparent);"
+        alt="The PrismaLens report for the run above: root cause, culprit commit, coverage of what was and was not checked, the supported hypothesis with its four pieces of evidence, and the next step"
+        class="w-full rounded-lg border border-border"
         loading="lazy"
       />
-    </div>
+    </a>
+    <p class="mt-3 text-sm text-muted-foreground">
+      The report for the run above, as the 0.5.0 dashboard shows it. The coverage panel names what the
+      agent did not check.
+    </p>
   </section>
 
-  <FeatureGrid features={features} />
-
-  <section class="px-4 py-24 sm:px-6 lg:px-8">
-    <div class="mx-auto max-w-3xl">
-      <h2 class="text-3xl font-bold tracking-tight sm:text-4xl mb-6" style="color: var(--foreground);">
-        Why not just ask the agent yourself?
-      </h2>
-      <div class="space-y-4 text-lg leading-relaxed" style="color: var(--muted-foreground);">
-        <p>You can, and for a one-off question you should. PrismaLens is for everything around the question:</p>
-        <ul class="space-y-3 pl-5 list-disc">
-          <li><strong style="color: var(--foreground);">It starts from the alert.</strong> The alert details are already in the brief when the agent starts, and nobody has to be awake to paste them.</li>
-          <li><strong style="color: var(--foreground);">It keeps the agent's hands off.</strong> The run happens in a snapshot, and PrismaLens answers every permission request with a read-only policy. <a href={`${docsBase}/trust/`} class="underline" style="color: var(--primary);">What it reads and never does</a>.</li>
-          <li><strong style="color: var(--foreground);">It leaves a record, not a chat.</strong> A week later the report, the evidence and every command the agent ran are still on the incident.</li>
-        </ul>
+  <section class="border-t border-border">
+    <div class="mx-auto grid max-w-6xl gap-10 px-4 py-20 sm:px-6 md:grid-cols-[1fr_2fr]">
+      <div>
+        <h2 class="text-2xl font-semibold tracking-tight">Why not just ask your agent?</h2>
+        <p class="mt-3 text-muted-foreground">For a one-off question, do. PrismaLens is for the rest of the incident.</p>
+      </div>
+      <div class="grid gap-x-10 gap-y-8 leading-relaxed sm:grid-cols-2">
+        <p><strong>Nobody pastes the alert.</strong> Alertmanager posts to PrismaLens, and a critical or high alert on a known service starts a run. You can change that per service.</p>
+        <p><strong>It uses the agent you already have.</strong> OpenCode by default, or Claude Code, Codex or Gemini CLI. PrismaLens never calls a model and has no account to sign up for.</p>
+        <p><strong>Your checkout stays yours.</strong> Every run gets its own copy of the last commit, with any agent config committed in the repository removed.</p>
+        <p><strong>It reads code, not dashboards.</strong> 0.5.0 gives the agent the alert and the repository. It does not connect to your metrics, logs or traces.</p>
+        <p><strong>It tells you where the limits are.</strong> The read-only policy is a guardrail, not a wall, and runs are unsandboxed until you add a sandbox. The report says which you got. <a href={`${docsBase}/trust/`} class="underline underline-offset-4">What it reads and never does</a></p>
+        <p><strong>It keeps the record.</strong> A week later the report, the evidence and every command the agent ran are still on the incident.</p>
       </div>
     </div>
   </section>
 
-  <CTA
-    title="Try it in ten minutes"
-    description="Install, start the app, point a service at a folder, and run one investigation. No alert source needed."
-    href={`${docsBase}/quickstart/`}
-    label="Quick start"
-  />
+  <section class="border-t border-border">
+    <div class="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-16 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+      <p class="text-lg">The quick start takes about ten minutes and needs no alert source.</p>
+      <a
+        href={`${docsBase}/quickstart/`}
+        class="self-start rounded-md bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 sm:self-auto"
+      >
+        Read the quick start
+      </a>
+    </div>
+  </section>
 </BaseLayout>

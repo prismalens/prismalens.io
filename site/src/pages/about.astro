@@ -1,63 +1,51 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro'
-import Hero from '../components/Hero.astro'
-import CTA from '../components/CTA.astro'
 ---
 
 <BaseLayout title="About" description="Why PrismaLens exists and the rules it is built on.">
-  <Hero
-    title="About PrismaLens"
-    subtitle="Most of an incident is finding the cause. PrismaLens gives that part to a coding agent and keeps the evidence where you can check it."
-  />
-  <section class="mx-auto max-w-3xl px-4 py-16 sm:px-6 lg:px-8">
-    <div class="space-y-6 text-muted-foreground">
-      <h2 class="text-2xl font-bold text-foreground">Why it exists</h2>
+  <article class="mx-auto max-w-2xl px-4 py-16 leading-relaxed sm:px-6 sm:py-24">
+    <h1 class="text-4xl font-semibold tracking-tight">About PrismaLens</h1>
 
-      <p>
-        When an alert fires, the dashboards usually already hold the answer. The slow part is
-        connecting them: which deploy, which change, which line of code. Coding agents have
-        become good at reading a codebase and following a trail, and most engineers already
-        have one installed and signed in.
-      </p>
+    <p class="mt-8 text-lg">
+      When an alert fires, the answer is usually already somewhere in your dashboards and your
+      code. Finding it is the slow part: which deploy, which change, which line. Coding agents
+      have become good at reading a codebase and following that kind of trail, and most engineers
+      already have one installed and signed in.
+    </p>
 
-      <p>
-        PrismaLens puts that agent to work on the incident. It opens the incident from the
-        alert, gives the agent a read-only copy of the service's code, refuses anything that
-        would change it, and keeps the whole run: the report, the evidence and every command
-        the agent ran.
-      </p>
+    <p class="mt-5 text-muted-foreground">
+      PrismaLens puts that agent on the incident. It opens the incident from the alert, gives the
+      agent a copy of the service's code, refuses anything that would change it, and keeps the
+      whole run: the report, the evidence and every command the agent ran.
+    </p>
 
-      <h3 class="text-xl font-bold text-foreground mt-8">What it is built on</h3>
+    <h2 class="mt-14 text-2xl font-semibold tracking-tight">The rules it follows</h2>
 
-      <p>
-        <strong class="text-foreground">Evidence over scores.</strong> A report ranks hypotheses
-        and shows what each one rests on. It never prints a confidence percentage, because a
-        number you cannot check is worse than none.
-      </p>
+    <p class="mt-5 text-muted-foreground">
+      <strong class="text-foreground">Evidence over scores.</strong> A report ranks the causes and
+      shows what each one rests on. It never prints a confidence percentage. A number you cannot
+      check is worse than no number.
+    </p>
 
-      <p>
-        <strong class="text-foreground">Your agent, your login.</strong> PrismaLens never calls a
-        model and never reads your agent's credentials. There is no PrismaLens account and
-        nothing to pay us.
-      </p>
+    <p class="mt-5 text-muted-foreground">
+      <strong class="text-foreground">Your agent, your login.</strong> PrismaLens never calls a model
+      and never reads your agent's credentials. There is no PrismaLens account and nothing to pay us.
+    </p>
 
-      <p>
-        <strong class="text-foreground">Say where the limits are.</strong> The read-only policy is
-        a guardrail, not a wall, and the docs say so. Every report states whether the run was
-        sandboxed.
-      </p>
+    <p class="mt-5 text-muted-foreground">
+      <strong class="text-foreground">Say where the limits are.</strong> The read-only policy is a
+      guardrail, not a wall, and the docs say so. Every report states whether the run was sandboxed.
+    </p>
 
-      <p>
-        <strong class="text-foreground">Yours to run.</strong> PrismaLens is open source
-        (Apache-2.0) and runs on your machine. Everything it keeps is in one folder,
-        <code>~/.prismalens</code>, and nothing is sent to us.
-      </p>
-    </div>
-  </section>
-  <CTA
-    title="Join the community"
-    description="Star the repo, open an issue with feedback or bug reports, or just say hello. Code contributions open up a little later."
-    href="https://github.com/prismalens/prismalens"
-    label="View on GitHub"
-  />
+    <p class="mt-5 text-muted-foreground">
+      <strong class="text-foreground">Yours to run.</strong> PrismaLens is Apache-2.0 and runs on your
+      machine. Everything it keeps is in <code>~/.prismalens</code>, and it sends nothing to us.
+    </p>
+
+    <p class="mt-14">
+      Feedback and bug reports go to
+      <a href="https://github.com/prismalens/prismalens/issues" class="underline underline-offset-4">GitHub issues</a>.
+      Code contributions open up a little later.
+    </p>
+  </article>
 </BaseLayout>

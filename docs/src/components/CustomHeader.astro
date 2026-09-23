@@ -1,6 +1,5 @@
 ---
 import ThemeSelect from '@astrojs/starlight/components/ThemeSelect.astro'
-import { buttonVariants } from '@/components/ui/button'
 
 const siteBase = import.meta.env.DEV ? 'http://localhost:4321' : 'https://prismalens.io';
 ---
@@ -37,14 +36,12 @@ const siteBase = import.meta.env.DEV ? 'http://localhost:4321' : 'https://prisma
 
     <ThemeSelect />
 
-    <!-- GitHub link -->
     <a
       href="https://github.com/prismalens/prismalens"
-      target="_blank"
-      rel="noopener noreferrer"
-      class={buttonVariants({ variant: 'default', size: 'sm' })}
+      class="docs-header-link text-sm transition-colors"
+      style="color: var(--sl-color-gray-2);"
     >
-      View on GitHub
+      GitHub
     </a>
   </div>
 </div>
