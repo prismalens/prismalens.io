@@ -4,7 +4,7 @@ import Icon from './Icon.astro'
 interface Props {
   title: string
   subtitle: string
-  code?: string
+  code?: string[]
   codeNote?: string
   primaryCta?: { href: string; label: string }
   secondaryCta?: { href: string; label: string }
@@ -43,9 +43,11 @@ const { title, subtitle, code, codeNote, primaryCta, secondaryCta } = Astro.prop
           <span class="h-2.5 w-2.5 rounded-full" style="background: var(--warning, #eab308);"></span>
           <span class="h-2.5 w-2.5 rounded-full" style="background: var(--success);"></span>
         </div>
-        <code class="font-mono text-base sm:text-lg" style="color: var(--foreground);">
-          <span style="color: var(--muted-foreground);">$</span> {code}
-        </code>
+        {code.map((line) => (
+          <code class="block font-mono text-base sm:text-lg" style="color: var(--foreground);">
+            <span style="color: var(--muted-foreground);">$</span> {line}
+          </code>
+        ))}
       </div>
     )}
     {codeNote && (

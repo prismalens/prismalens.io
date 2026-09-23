@@ -4,7 +4,7 @@ import starlight from '@astrojs/starlight';
 import react from '@astrojs/react';
 import tailwindcss from '@tailwindcss/vite';
 
-// The marketing site's header collapses Features/About below md, and Starlight's
+// The marketing site's header collapses About below md, and Starlight's
 // mobile drawer only shows the page tree — so those links need a sidebar entry
 // too, or mobile readers have no way to reach them. `astro dev` vs `astro build`
 // both put their subcommand in argv, so this is a reliable dev/prod switch.
@@ -83,7 +83,6 @@ export default defineConfig({
 				{
 					label: 'Site',
 					items: [
-						{ label: 'Features', link: `${siteBase}/features` },
 						{ label: 'About', link: `${siteBase}/about` },
 					],
 				},

@@ -32,9 +32,10 @@ epistemics (an incident in, ordered evidence out) drawn as physics.
 ## Wordmark
 
 Space Grotesk Bold, tight tracking (−0.02em): <span>Prisma</span> in Indigo,
-<span>Lens</span> in ink. Tagline: "AI root-cause investigation, in your terminal"
+<span>Lens</span> in ink. Tagline: "Your coding agent, investigating your incidents"
 (Inter Medium, muted).
 
-Rasters are rendered from an HTML sheet via headless Chromium (no design-tool
-dependency); the mark geometry lives in the SVGs above — keep them the single
-source of truth.
+Rasters are rendered from `sheet.html` via headless Chromium (no design-tool
+dependency): open it with `?v=og` at 1200×630, `?v=banner-dark` or
+`?v=banner-light` at 1600×400, and screenshot the viewport. The mark geometry
+lives in the SVGs above — keep them the single source of truth.
