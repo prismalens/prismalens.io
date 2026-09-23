@@ -28,6 +28,7 @@ prismalens.io/
 ├── site/          # Marketing website (Astro)
 ├── docs/          # Documentation site (Astro Starlight)
 ├── brand/         # Canonical brand assets (logomark SVGs, banners) — see brand/README.md
+├── design-tokens/ # Colours, fonts, radius — synced from the app, never edited here
 ├── mage/          # Link marker to the org knowledge hub (see AGENTS.md)
 └── package.json   # Root workspace configuration
 ```
@@ -106,6 +107,20 @@ pnpm build:site && pnpm build:docs
 pnpm build:site
 pnpm build:docs
 ```
+
+### Design tokens
+
+`site/` and `docs/` share the app's tokens (`packages/frontend/src/styles/` in the
+main repo), copied into `design-tokens/` and pinned to a commit named in each file's
+header. To pick up token changes from the app:
+
+```bash
+pnpm tokens:sync          # latest main
+pnpm tokens:sync v0.6.0   # or any tag, branch or SHA
+```
+
+Commit the result. Never edit `design-tokens/` by hand; change the tokens in the
+app and sync.
 
 ## Related Repositories
 

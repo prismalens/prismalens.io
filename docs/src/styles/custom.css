@@ -3,104 +3,88 @@
 /* Cascade layer order — Starlight v0.34+ requirement */
 @layer base, starlight, theme, components, utilities;
 
-/* Starlight <-> Tailwind bridge (handles Preflight + dark: variant) */
+/* Starlight <-> Tailwind bridge (handles Preflight) */
 @import '@astrojs/starlight-tailwind';
 
 /* Tailwind v4 split imports with layer assignments */
 @import 'tailwindcss/theme.css' layer(theme);
 @import 'tailwindcss/utilities.css' layer(utilities);
 
-/* Fonts + design tokens */
-@import "@fontsource-variable/inter";
-@import "@fontsource-variable/jetbrains-mono";
-@import "./design-tokens/starlight.css";
+@import "@fontsource-variable/ibm-plex-sans";
+@import "@fontsource/ibm-plex-mono/400.css";
+@import "@fontsource/ibm-plex-mono/500.css";
+@import "@fontsource/ibm-plex-mono/600.css";
 
-/* Theme synchronization */
+/* Shared with the app — synced by `pnpm tokens:sync`, never edited here */
+@import "../../../design-tokens/tokens.css";
+@import "../../../design-tokens/tailwind-preset.css";
+
+/* The head script in astro.config.mjs mirrors Starlight's data-theme onto a `.dark` class */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Starlight palette → PrismaLens tokens. The tokens switch on `.dark`, so these
+   hold for both themes. Starlight's gray ramp runs text → background; it is
+   mixed from foreground/background so it inverts with the theme. */
 :root {
   color-scheme: dark;
+
+  --sl-font: 'IBM Plex Sans Variable', 'IBM Plex Sans', system-ui, sans-serif;
+  --sl-font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+
+  --sl-color-accent-low: color-mix(in oklch, var(--primary) 25%, var(--background));
+  --sl-color-accent: var(--primary);
+  --sl-color-accent-high: color-mix(in oklch, var(--primary) 60%, var(--foreground));
+
+  --sl-color-white: var(--foreground);
+  --sl-color-gray-1: color-mix(in oklch, var(--foreground) 92%, var(--background));
+  --sl-color-gray-2: color-mix(in oklch, var(--foreground) 80%, var(--background));
+  --sl-color-gray-3: var(--muted-foreground);
+  --sl-color-gray-4: color-mix(in oklch, var(--foreground) 40%, var(--background));
+  --sl-color-gray-5: var(--border);
+  --sl-color-gray-6: color-mix(in oklch, var(--foreground) 6%, var(--background));
+  --sl-color-black: var(--background);
+
+  --sl-color-bg: var(--background);
+  --sl-color-bg-sidebar: var(--background);
+  --sl-color-bg-inline-code: var(--muted);
+  --sl-color-hairline: var(--border);
 }
 
 :root[data-theme="light"] {
   color-scheme: light;
 }
 
-/* Fix active sidebar link contrast (Accessibility) */
-[data-theme="dark"] .sidebar a[aria-current="page"] {
-  color: var(--sl-color-white) !important;
-  background-color: oklch(0.585 0.233 277.117 / 0.2) !important;
+/* Active sidebar link */
+.sidebar a[aria-current="page"] {
+  color: var(--sl-color-white);
+  background-color: color-mix(in oklch, var(--primary) 20%, transparent);
   font-weight: 600;
 }
 
-[data-theme="dark"] .sidebar a[aria-current="page"]:hover {
-  background-color: oklch(0.585 0.233 277.117 / 0.3) !important;
+.sidebar a[aria-current="page"]:hover {
+  background-color: color-mix(in oklch, var(--primary) 30%, transparent);
 }
 
-/* Light theme active link */
-[data-theme="light"] .sidebar a[aria-current="page"] {
-  color: var(--sl-color-white) !important;
-  background-color: oklch(0.585 0.233 277.117 / 0.15) !important;
+.sidebar a:not([aria-current="page"]):hover {
+  background-color: color-mix(in oklch, var(--primary) 10%, transparent);
+  color: var(--sl-color-accent);
+}
+
+/* Table of contents */
+.right-sidebar a {
+  color: var(--muted-foreground);
+}
+
+.right-sidebar a:hover,
+.right-sidebar a[aria-current="true"] {
+  color: var(--sl-color-accent);
+}
+
+.right-sidebar a[aria-current="true"] {
   font-weight: 600;
-}
-
-[data-theme="light"] .sidebar a[aria-current="page"]:hover {
-  background-color: oklch(0.585 0.233 277.117 / 0.25) !important;
-}
-
-/* Sidebar hover */
-[data-theme="dark"] .sidebar a:not([aria-current="page"]):hover {
-  background-color: oklch(0.585 0.233 277.117 / 0.1);
-  color: var(--sl-color-accent);
-}
-
-/* Table of contents styling */
-[data-theme="dark"] .right-sidebar a {
-  color: var(--sl-color-gray-4);
-}
-
-[data-theme="dark"] .right-sidebar a:hover {
-  color: var(--sl-color-accent);
-}
-
-[data-theme="dark"] .right-sidebar a[aria-current="true"] {
-  color: var(--sl-color-accent);
-  font-weight: 600;
-}
-
-/* Search input */
-[data-theme="dark"] .search-input {
-  background-color: oklch(0.21 0.006 285.885 / 0.6) !important;
-  border-color: var(--sl-color-hairline) !important;
-  color: var(--sl-color-text) !important;
 }
 
 /* Code blocks */
-[data-theme="dark"] .expressive-code {
-  --ec-brdCol: var(--sl-color-hairline);
-  --ec-codeBg: oklch(0.21 0.006 285.885);
-}
-
-/* Provider tables (cli/providers) — the Notes column was wrapping into ragged
-   4-6-line cells at the default auto column widths. Scoped to .providers-table
-   so it doesn't touch other tables (e.g. the Commands flags table). */
-.providers-table table td:last-child {
-  min-width: 18rem;
-}
-
-/* Light theme equivalents */
-[data-theme="light"] .sidebar a:not([aria-current="page"]):hover {
-  background-color: oklch(0.585 0.233 277.117 / 0.08);
-  color: var(--sl-color-accent);
-}
-
-[data-theme="light"] .right-sidebar a {
-  color: var(--sl-color-gray-3);
-}
-
-[data-theme="light"] .right-sidebar a:hover {
-  color: var(--sl-color-accent);
-}
-
-[data-theme="light"] .right-sidebar a[aria-current="true"] {
-  color: var(--sl-color-accent);
-  font-weight: 600;
+.expressive-code {
+  --ec-brdCol: var(--border);
 }

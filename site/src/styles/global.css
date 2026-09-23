@@ -1,13 +1,17 @@
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
 
-/* Import PrismaLens brand fonts */
-@import "@fontsource-variable/inter";
-@import "@fontsource-variable/jetbrains-mono";
+@import "@fontsource-variable/ibm-plex-sans";
+@import "@fontsource/ibm-plex-mono/400.css";
+@import "@fontsource/ibm-plex-mono/500.css";
+@import "@fontsource/ibm-plex-mono/600.css";
 
-/* Shared design tokens (light :root + .dark overrides) */
-@import "./design-tokens/tokens.css";
-@import "./design-tokens/tailwind-preset.css";
+/* Shared with the app — synced by `pnpm tokens:sync`, never edited here */
+@import "../../../design-tokens/tokens.css";
+@import "../../../design-tokens/tailwind-preset.css";
+
+/* The theme toggle sets a `.dark` class on <html>; stock `dark:` follows the OS instead */
+@custom-variant dark (&:where(.dark, .dark *));
 
 /* Theme-aware body styles */
 body {
@@ -40,16 +44,6 @@ body {
   box-shadow:
     0 0 20px color-mix(in srgb, var(--primary) 10%, transparent),
     0 0 40px color-mix(in srgb, var(--primary) 5%, transparent);
-}
-
-/* ── Status indicator pulse ── */
-.status-indicator {
-  animation: statusPulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
-
-@keyframes statusPulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
 }
 
 /* ── Code block styling ── */
