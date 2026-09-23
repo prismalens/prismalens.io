@@ -58,6 +58,42 @@ The agent does not inherit your whole environment. See
 
 ## Choosing a model
 
-Each agent has its own default model. To use a different one, fill in
-**Model** in **Settings → Harness**. The value is passed to the agent as is, in that agent's
-own format.
+Each agent has its own default model. To use a different one, click the model
+next to the agent picker, under the composer or in **Settings → Harness**, and
+type an id in that agent's own format. It is sent exactly as typed, and it is
+kept per agent: a model you set for Claude Code never reaches OpenCode.
+
+The list under the field is a suggestion. Once you click **Check readiness** on
+an agent that offers its own list, that list is shown; otherwise PrismaLens
+shows its bundled model catalogue. An id missing from the list is noted ("sent
+as typed"), never refused.
+
+Codex, Gemini CLI and deepagents take no model setting. A model stored for one
+of them stops the next run before it starts, with the reason in **Settings →
+Harness** and on the Investigate button, until you clear it.
+
+### Correcting the catalogue between releases
+
+PrismaLens never downloads a catalogue. To correct one before the next release,
+put a `model-catalogue.json` in the workspace folder. It replaces the bundled
+one only if its `updatedAt` is newer; a file that fails to parse is ignored with
+a warning in the log.
+
+```json
+{
+  "version": 1,
+  "updatedAt": "2026-10-01T00:00:00Z",
+  "harnesses": {
+    "claude-code": {
+      "models": [
+        { "id": "claude-sonnet-5", "name": "Claude Sonnet 5", "status": "current" },
+        { "id": "claude-haiku-4-5-20251001", "name": "Claude Haiku 4.5", "status": "legacy" }
+      ]
+    }
+  }
+}
+```
+
+With that file in `~/.prismalens`, the Claude Code suggestions show those two
+models, and Haiku is marked legacy. Delete the file and the bundled catalogue
+returns, unless the bundled one is already newer.

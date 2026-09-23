@@ -21,7 +21,7 @@ export default defineConfig({
 		'/cli/troubleshooting': '/reference/#troubleshooting',
 		'/cli/api-keys': '/coding-agents/',
 		'/cli/listen': '/guides/alerts/',
-		'/cli/sandboxing': '/trust/#sandboxing',
+		'/cli/sandboxing': '/trust/#the-read-only-policy',
 		'/cli/sample-report': '/guides/reports/',
 		'/concepts/how-it-works': '/',
 		'/concepts/byo-agent-and-key': '/coding-agents/',
