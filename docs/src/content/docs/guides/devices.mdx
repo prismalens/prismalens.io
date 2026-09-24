@@ -1,6 +1,6 @@
 ---
 title: Opening it from other devices
-description: How a browser gets into PrismaLens, how to pair a phone or a second laptop, and how to reach the app over your LAN or a tailnet.
+description: How a browser gets into PrismaLens, how to pair a phone or a second computer, and how to reach the app over your LAN or a tailnet.
 ---
 
 import { Aside } from '@astrojs/starlight/components';
@@ -30,7 +30,7 @@ browser, print another one on the host:
 pl pair --operator
 ```
 
-## A phone or a second laptop
+## A phone or a second computer
 
 On the host, print a link carrying an address the other device can reach:
 
@@ -69,19 +69,19 @@ tailscale serve --bg 3001
 ```
 
 Tailscale Serve forwards the browser's original `Host` header, such as
-`laptop.tail1234.ts.net`, so tell PrismaLens that name, and tell it the public
+`prismalens.tail1234.ts.net`, so tell PrismaLens that name, and tell it the public
 address so the session cookie is marked `Secure`:
 
 ```bash
-PRISMALENS_ALLOWED_HOSTS=laptop.tail1234.ts.net \
-PRISMALENS_PUBLIC_URL=https://laptop.tail1234.ts.net \
+PRISMALENS_ALLOWED_HOSTS=prismalens.tail1234.ts.net \
+PRISMALENS_PUBLIC_URL=https://prismalens.tail1234.ts.net \
 pl up
 ```
 
 Then pair each device with that address:
 
 ```bash
-pl pair --address https://laptop.tail1234.ts.net --label "phone"
+pl pair --address https://prismalens.tail1234.ts.net --label "phone"
 ```
 
 <Aside type="caution" title="What this does not do">
