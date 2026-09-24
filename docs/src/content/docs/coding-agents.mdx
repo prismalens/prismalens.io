@@ -11,25 +11,28 @@ editor does.
 
 ## Supported agents
 
-| Agent | Command PrismaLens looks for | Install | Picked automatically |
+| Agent | Command PrismaLens looks for | Install | Tested with |
 | --- | --- | --- | --- |
-| OpenCode | `opencode` | `curl -fsSL https://opencode.ai/install \| bash` or `npm i -g opencode-ai` | Yes |
-| Claude Code | `claude-agent-acp` | `npm i -g @agentclientprotocol/claude-agent-acp` | No, pin it |
-| Codex | `codex-acp` | `npm i -g @agentclientprotocol/codex-acp` | No, pin it |
-| Gemini CLI | `gemini` | `npm i -g @google/gemini-cli` | No, pin it |
-| deepagents | `deepagents-acp` | `pip install deepagents-acp` | No, pin it |
+| OpenCode | `opencode` | `curl -fsSL https://opencode.ai/install \| bash` or `npm i -g opencode-ai` | 1.18.30 |
+| Claude Code | `claude-agent-acp` | `npm i -g @agentclientprotocol/claude-agent-acp` | 0.81.1 |
+| Codex | `codex-acp` | `npm i -g @agentclientprotocol/codex-acp` | — |
+| Gemini CLI | `gemini` | `npm i -g @google/gemini-cli` | — |
+| deepagents | `dcode` | `uv tool install -U deepagents-code --with deepagents-acp` | 0.1.75 |
 
-An agent is picked automatically only after it has passed an unattended test
-run in PrismaLens's CI: it started in the right folder, had a write refused,
-finished on its own and returned a valid report. OpenCode has passed. The
-others are expected to work, but nobody has proven it in CI yet, so you choose
-them on purpose.
+**Tested with** is the version that completed an unattended investigation in
+PrismaLens's CI: it started in the right folder, finished on its own and
+returned a valid report. A dash means no such run yet; the agent is still
+supported and selectable.
+
+Each agent runs with its own behaviour and permissions, as it would in your
+terminal. PrismaLens drives it; it does not make it safe. See
+[Trust](/trust/) for what PrismaLens does and does not limit.
 
 ## How PrismaLens chooses
 
 1. `PRISMALENS_HARNESS`, if you set it when starting `pl up`. For example `PRISMALENS_HARNESS=claude-code pl up`.
 2. Otherwise the agent chosen under **Harness** in **Settings → Harness**.
-3. Otherwise the first automatically pickable agent that is on your `PATH`.
+3. Otherwise the first agent in the table above that is on your `PATH`.
 
 If none of these finds an agent, Settings says **No investigation agent is
 available on this machine**, and `pl doctor` lists the install commands above.
