@@ -148,7 +148,9 @@ Watch the repo if you want to catch the moment PRs open up.
 
 ## License
 
-Apache-2.0 — see the [LICENSE](https://github.com/prismalens/prismalens/blob/main/LICENSE) file in the main [PrismaLens](https://github.com/prismalens/prismalens) repository.
+- Site code: Apache-2.0, see [LICENSE](LICENSE).
+- Documentation text (`docs/src/content/`): CC-BY-4.0, see [LICENSE-docs](LICENSE-docs).
+- The PrismaLens name, logo and the files in `brand/` are trademarks. Neither license grants rights to use them.
 
 ## Community & Support
 
