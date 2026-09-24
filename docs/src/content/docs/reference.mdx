@@ -57,7 +57,7 @@ Flags on `pl up` set the first three. The rest have no flag.
 | `PRISMALENS_WORKSPACE_DIR` | `~/.prismalens` | Same as `--workspace`. |
 | `PRISMALENS_HARNESS` | unset | Pin a coding agent by id: `opencode`, `claude-code`, `codex`, `gemini`, `deepagents`. |
 | `PRISMALENS_DISPATCH_CONCURRENCY` | `3` | How many investigations run at once. |
-| `PRISMALENS_ALLOWED_HOSTS` | loopback and IP addresses | Hostnames the app answers to. Set it when you reach the app by a name, such as `laptop.local`. |
+| `PRISMALENS_ALLOWED_HOSTS` | loopback and IP addresses | Hostnames the app answers to. Set it when you reach the app by a name, such as `prismalens.local`. |
 | `PRISMALENS_PUBLIC_URL` | derived from host and port | The URL people open. Set it to the `https://` address of a TLS proxy in front of `pl up` so the session cookie is marked `Secure`. |
 | `PRISMALENS_PROTOCOL` | `http` | `https` makes `pl up` serve TLS itself. |
 | `PRISMALENS_ALERT_FLAP_WINDOW_MINUTES` | `15` | An alert that fires again within this many minutes of resolving reopens instead of starting a new episode. |
