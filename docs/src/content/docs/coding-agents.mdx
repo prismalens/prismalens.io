@@ -39,12 +39,11 @@ available on this machine**, and `pl doctor` lists the install commands above.
 
 ## Signing the agent in
 
-PrismaLens never reads, copies or stores an agent's login. On your laptop the
-agent uses its own login, so `claude /login`, `codex login` and
-`opencode auth login` carry over. On a server (`PRISMALENS_PLACEMENT=server`)
-each run gets an empty configuration folder, so put the provider key
-(`ANTHROPIC_API_KEY`, `OPENAI_API_KEY`) in the environment you start `pl up`
-from. Then check:
+The agent uses its own configuration and sign-in, as it would in your terminal:
+`claude /login`, `codex login`, `gemini` and `opencode auth login` carry over.
+Or put the provider key (`ANTHROPIC_API_KEY`, `OPENAI_API_KEY`,
+`GEMINI_API_KEY`) in the environment you start `pl up` from. PrismaLens does not
+read, copy or store the login. Then check:
 
 ```text
 $ pl doctor
