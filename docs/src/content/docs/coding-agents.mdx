@@ -61,6 +61,47 @@ The agent does not inherit your whole environment. See
 
 ## Choosing a model
 
-Each agent has its own default model. To use a different one, fill in
-**Model** in **Settings → Harness**. The value is passed to the agent as is, in that agent's
-own format.
+Each agent has its own default model. To use a different one, open the model
+pill next to the agent in **Settings → Harness** (or under the composer) and
+pick or type a model id in that agent's own format. The model is saved per
+agent, so switching agents never carries one agent's model to another. The id
+is sent exactly as typed.
+
+Codex, Gemini CLI and deepagents do not take a model setting from PrismaLens.
+For them the pill is greyed out. If one has a model saved anyway, the run does
+not start until you clear it, and the pill offers only **Clear model**.
+
+Upgrading from 0.5.0 drops the single shared model setting. Enter the model
+again for each agent that needs one.
+
+### Where the suggestions come from
+
+The pill suggests models from, in order:
+
+1. The agent's own list, once **Check readiness** has seen the agent offer one.
+2. The model catalogue: a file bundled with PrismaLens, or your own
+   `model-catalogue.json` in the workspace directory, whichever has the newer
+   `updatedAt`.
+
+The catalogue only adds suggestions and marks old models `legacy`. It never
+blocks an id it does not know. PrismaLens never downloads a catalogue.
+
+For example, if the bundled catalogue has `"updatedAt": "2026-09-23T00:00:00Z"`:
+
+```json title="<workspace>/model-catalogue.json"
+{
+  "version": 1,
+  "updatedAt": "2026-10-01T00:00:00Z",
+  "harnesses": {
+    "opencode": {
+      "models": [
+        { "id": "opencode/muse-spark-1.3-contributor-free", "name": "Muse Spark 1.3 (free)", "status": "current" }
+      ]
+    }
+  }
+}
+```
+
+This file wins, because 2026-10-01 is newer. With `"updatedAt": "2026-09-01T00:00:00Z"`
+the bundled one wins. A file that does not match the format is ignored: the
+bundled catalogue stays in use and the server log says why.
