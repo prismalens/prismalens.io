@@ -15,7 +15,7 @@ editor does.
 | --- | --- | --- | --- |
 | OpenCode | `opencode` | `curl -fsSL https://opencode.ai/install \| bash` or `npm i -g opencode-ai` | 1.18.30 |
 | Claude Code | `claude-agent-acp` | `npm i -g @agentclientprotocol/claude-agent-acp` | 0.81.1 |
-| Codex | `codex-acp` | `npm i -g @agentclientprotocol/codex-acp` | — |
+| Codex | `codex-acp` | `npm i -g @agentclientprotocol/codex-acp` | 1.13.1 |
 | Gemini CLI | `gemini` | `npm i -g @google/gemini-cli` | — |
 | deepagents | `dcode` | `uv tool install -U deepagents-code --with deepagents-acp` | 0.1.75 |
 
@@ -39,11 +39,12 @@ available on this machine**, and `pl doctor` lists the install commands above.
 
 ## Signing the agent in
 
-PrismaLens never reads, copies or stores an agent's login. Each run gives the
-agent its own empty configuration folder, so a login stored in the agent's
-usual config folder is not visible to Claude Code or Codex. For those two, put
-the provider key (`ANTHROPIC_API_KEY`, `OPENAI_API_KEY`) in the environment you
-start `pl up` from. OpenCode's `opencode auth login` does carry over. Then check:
+PrismaLens never reads, copies or stores an agent's login. On your laptop the
+agent uses its own login, so `claude /login`, `codex login` and
+`opencode auth login` carry over. On a server (`PRISMALENS_PLACEMENT=server`)
+each run gets an empty configuration folder, so put the provider key
+(`ANTHROPIC_API_KEY`, `OPENAI_API_KEY`) in the environment you start `pl up`
+from. Then check:
 
 ```text
 $ pl doctor
