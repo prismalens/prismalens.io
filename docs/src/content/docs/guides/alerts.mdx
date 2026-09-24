@@ -103,11 +103,11 @@ rather than an IP address, add that name to `PRISMALENS_ALLOWED_HOSTS`.
 PrismaLens with `--host 0.0.0.0` and use the host's IP address in the receiver
 URL, or run the Alertmanager container with `network_mode: host`.
 
-<Aside type="caution" title="A laptop misses alerts while it sleeps">
+<Aside type="caution" title="A machine that sleeps misses alerts">
 A webhook needs PrismaLens running and reachable when the alert fires.
 Alertmanager does not retry a refused connection on its own. It sends the
 alert again only with the group's next notification, by default up to 4 hours
 later while the alert keeps firing. An alert that fires and resolves while
-your laptop is closed never arrives. Write the incident by hand for anything
+the machine is asleep never arrives. Write the incident by hand for anything
 you missed.
 </Aside>

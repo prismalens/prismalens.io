@@ -21,7 +21,7 @@ export default defineConfig({
 		'/cli/troubleshooting': '/reference/#troubleshooting',
 		'/cli/api-keys': '/coding-agents/',
 		'/cli/listen': '/guides/alerts/',
-		'/cli/sandboxing': '/trust/#sandboxing',
+		'/cli/sandboxing': '/trust/#the-read-only-policy',
 		'/cli/sample-report': '/guides/reports/',
 		'/concepts/how-it-works': '/',
 		'/concepts/byo-agent-and-key': '/coding-agents/',
@@ -76,6 +76,7 @@ export default defineConfig({
 					items: [
 						{ label: 'Services and their code', slug: 'guides/services' },
 						{ label: 'Sending alerts', slug: 'guides/alerts' },
+						{ label: 'Opening it from other devices', slug: 'guides/devices' },
 						{ label: 'Reading the report', slug: 'guides/reports' },
 					],
 				},
