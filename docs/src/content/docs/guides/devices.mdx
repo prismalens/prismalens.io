@@ -1,0 +1,92 @@
+---
+title: Opening it from other devices
+description: How a browser gets into PrismaLens, how to pair a phone or a second computer, and how to reach the app over your LAN or a tailnet.
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+PrismaLens has no accounts. A browser gets in by opening a one-time pairing
+link, which only someone at the host machine can produce. No address grants
+access by itself, not even `localhost`.
+
+## The machine running `pl up`
+
+`pl up` prints a link and opens your browser on it:
+
+```text
+✔ PrismaLens is ready at http://localhost:3001
+ℹ Open: http://localhost:3001/pair#9f1c…
+ℹ It works once, for 15 minutes; treat it as a password. `pl pair --operator` prints another.
+```
+
+The page pairs as soon as it opens and lands on your incidents. That browser
+keeps its session, so the next `pl up` needs no link. Pass `--no-open` to
+print the link without opening a browser.
+
+If the link has expired, or you want this machine's session in a second
+browser, print another one on the host:
+
+```bash
+pl pair --operator
+```
+
+## A phone or a second computer
+
+On the host, print a link carrying an address the other device can reach:
+
+```bash
+pl pair --address http://192.168.1.5:3001 --label "phone"
+```
+
+Open the link on that device within 15 minutes. It works once. The device then
+appears under **Settings → Devices**, where you can revoke it. A paired device
+can read and run investigations. Only this machine's own session can pair or
+revoke devices.
+
+Without `--address`, the link points at `localhost`, which reaches only the
+host itself, and `pl pair` says so.
+
+## Reaching the app over your network
+
+PrismaLens listens on `127.0.0.1`. To accept connections from your LAN, bind
+all addresses:
+
+```bash
+pl up --host 0.0.0.0
+```
+
+Over plain HTTP, the pairing link and the session cookie cross the network in
+clear, so do this only on a network you trust.
+
+## Reaching it over a tailnet
+
+[Tailscale Serve](https://tailscale.com/docs/features/tailscale-serve) puts
+HTTPS in front of the app and keeps it on your tailnet. PrismaLens can stay
+bound to `127.0.0.1`.
+
+```bash
+tailscale serve --bg 3001
+```
+
+Tailscale Serve forwards the browser's original `Host` header, such as
+`prismalens.tail1234.ts.net`, so tell PrismaLens that name, and tell it the public
+address so the session cookie is marked `Secure`:
+
+```bash
+PRISMALENS_ALLOWED_HOSTS=prismalens.tail1234.ts.net \
+PRISMALENS_PUBLIC_URL=https://prismalens.tail1234.ts.net \
+pl up
+```
+
+Then pair each device with that address:
+
+```bash
+pl pair --address https://prismalens.tail1234.ts.net --label "phone"
+```
+
+<Aside type="caution" title="What this does not do">
+PrismaLens is built for one person's machine. It has no users or roles, and
+anyone holding a paired device can read every incident and run
+investigations. Pair only devices you control, and revoke a device you lose
+under **Settings → Devices**.
+</Aside>

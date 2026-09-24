@@ -5,7 +5,7 @@ description: The pl commands, the environment variables worth knowing, the limit
 
 ## Commands
 
-PrismaLens has two commands. `prismalens` and `pl` are the same binary.
+PrismaLens has four commands. `prismalens` and `pl` are the same binary.
 
 ### `pl up`
 
@@ -17,6 +17,25 @@ Starts the app: the API and the web UI on one port, backed by SQLite.
 | `--host <host>` | `127.0.0.1` | Address to bind. Anything other than loopback makes the app reachable from your network and prints a warning. |
 | `--workspace <dir>` | `~/.prismalens` | Folder for the database, secrets, logs, mirrors and runs. |
 | `--verbose` | off | Stream every log line to the terminal. By default only warnings and errors appear. |
+| `--no-open` | opens | Print the pairing link without opening a browser. |
+
+### `pl pair`
+
+Prints a one-time pairing link for a running `pl up`. It works once, for 15
+minutes. See [Opening it from other devices](/guides/devices/).
+
+| Flag | Default | What it does |
+| --- | --- | --- |
+| `--address <url>` | `http://localhost:<port>` | The address the other device will open, such as a LAN IP or a tailnet name. |
+| `--label <name>` | none | A name shown under **Settings → Devices** until the device sends its own. |
+| `--operator` | off | A link for the host's own browser, which may also pair and revoke devices. |
+| `--workspace <dir>` | `~/.prismalens` | The workspace `pl up` is running on. |
+
+### `pl reset`
+
+Deletes the workspace: the database, secrets, logs and runs. Stop `pl up`
+first. It asks before deleting (`--yes` skips the question), and it refuses a
+folder that has no `prismalens.db`.
 
 ### `pl doctor`
 
@@ -37,10 +56,8 @@ Flags on `pl up` set the first three. The rest have no flag.
 | `PRISMALENS_HOST` | `127.0.0.1` | Same as `--host`. |
 | `PRISMALENS_WORKSPACE_DIR` | `~/.prismalens` | Same as `--workspace`. |
 | `PRISMALENS_HARNESS` | unset | Pin a coding agent by id: `opencode`, `claude-code`, `codex`, `gemini`, `deepagents`. |
-| `PRISMALENS_SANDBOX` | `auto` | `auto`, `process` or `srt`. See [Sandboxing](/trust/#sandboxing). |
-| `PRISMALENS_SANDBOX_ALLOWED_HOSTS` | unset | Comma-separated hosts a sandboxed agent may reach, such as its model provider. |
 | `PRISMALENS_DISPATCH_CONCURRENCY` | `3` | How many investigations run at once. |
-| `PRISMALENS_ALLOWED_HOSTS` | loopback and IP addresses | Hostnames the app answers to. Set it when you reach the app by a name, such as `laptop.local`. |
+| `PRISMALENS_ALLOWED_HOSTS` | loopback and IP addresses | Hostnames the app answers to. Set it when you reach the app by a name, such as `prismalens.local`. |
 | `PRISMALENS_PUBLIC_URL` | derived from host and port | The URL people open. Set it to the `https://` address of a TLS proxy in front of `pl up` so the session cookie is marked `Secure`. |
 | `PRISMALENS_PROTOCOL` | `http` | `https` makes `pl up` serve TLS itself. |
 | `PRISMALENS_ALERT_FLAP_WINDOW_MINUTES` | `15` | An alert that fires again within this many minutes of resolving reopens instead of starting a new episode. |
@@ -59,8 +76,7 @@ Flags on `pl up` set the first three. The rest have no flag.
 ## Known limits in 0.5.0
 
 - Runs on macOS, Linux and WSL2. Native Windows is not supported yet.
-- One `pl up` per workspace folder. Two processes on the same folder both start and corrupt each other's state.
-- There is no password reset. If you lose the owner password, stop `pl up`, move the workspace folder aside and start again.
+- One `pl up` per workspace folder. A second one on the same folder refuses to start and names the process holding it.
 - Every run keeps its transcript under `runs/<id>/`. The repository clone is deleted when the run ends; delete old transcripts by hand when you need the space.
 - Installing needs a prebuilt `better-sqlite3` for your platform, or Python 3 and a C++ toolchain to build it.
 
@@ -94,10 +110,6 @@ service has no repository. Set the service's Repository field and run again.
 **A run failed.** The Investigation tab shows the error and the transcript
 path, `~/.prismalens/runs/<id>/transcript.jsonl`. If `pl up` was stopped
 during a run, that run is marked failed when the app starts again.
-
-**The sandbox never turns on under WSL2.** In `auto` mode PrismaLens does not
-use the sandbox on WSL. Set `PRISMALENS_SANDBOX=srt`, and switch WSL to NAT
-networking first. See [Sandboxing](/trust/#sandboxing).
 
 **Filing a bug.** Include the output of `pl doctor` and `pl --version`, and
 the relevant lines from the newest file in `~/.prismalens/logs/`. Open it at
