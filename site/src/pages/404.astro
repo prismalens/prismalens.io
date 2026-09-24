@@ -1,0 +1,20 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro'
+
+const docsBase = import.meta.env.DEV ? 'http://localhost:4322' : 'https://docs.prismalens.io'
+---
+
+<BaseLayout title="Page not found" description="There is no page at this address.">
+  <section class="mx-auto max-w-2xl px-4 py-24 sm:px-6 sm:py-32">
+    <h1 class="text-4xl font-semibold tracking-tight">There is no page at this address.</h1>
+    <p class="mt-6 text-lg leading-relaxed text-muted-foreground">
+      The blog and the old features page have been removed. The home page describes the product,
+      and the docs cover setup.
+    </p>
+    <ul class="mt-8 space-y-2">
+      <li><a href="/" class="underline underline-offset-4">Home</a></li>
+      <li><a href={`${docsBase}/quickstart/`} class="underline underline-offset-4">Quick start</a></li>
+      <li><a href="https://github.com/prismalens/prismalens/issues" class="underline underline-offset-4">Report a broken link</a></li>
+    </ul>
+  </section>
+</BaseLayout>
