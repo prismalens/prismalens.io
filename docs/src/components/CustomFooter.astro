@@ -1,0 +1,21 @@
+---
+import Default from '@astrojs/starlight/components/Footer.astro'
+---
+
+<Default><slot /></Default>
+<p class="docs-license">
+  Docs text is licensed
+  <a href="https://creativecommons.org/licenses/by/4.0/">CC-BY-4.0</a>. PrismaLens is open source under
+  <a href="https://github.com/prismalens/prismalens/blob/main/LICENSE">Apache-2.0</a>.
+</p>
+
+<style>
+  .docs-license {
+    margin-top: 1.5rem;
+    font-size: var(--sl-text-xs);
+    color: var(--sl-color-gray-3);
+  }
+  .docs-license a {
+    color: inherit;
+  }
+</style>
