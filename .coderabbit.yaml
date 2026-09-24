@@ -1,0 +1,10 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+# Auto review is off: the hourly review queue in prismalens/gh-workflows summons one PR per hour
+# across every repo, because the CodeRabbit allowance is per developer (Sumit1993/rig#150).
+language: en-US
+reviews:
+  profile: chill
+  auto_review:
+    enabled: false
+    drafts: false
+    auto_pause_after_reviewed_commits: 1
