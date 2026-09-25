@@ -55,6 +55,45 @@ for (const { name, mod } of modules) {
       });
     });
 
+    describe('stripQuery', () => {
+      it('drops the query string and fragment from a URL', () => {
+        assert.equal(
+          mod.stripQuery('https://docs.prismalens.io/guides/alerts/?q=secret#setup'),
+          'https://docs.prismalens.io/guides/alerts/',
+        );
+      });
+
+      it('returns a non-URL unchanged', () => {
+        assert.equal(mod.stripQuery('$direct'), '$direct');
+      });
+    });
+
+    describe('sanitizeEvent', () => {
+      it('strips queries from URL and referrer properties, including $set_once, and leaves others alone', () => {
+        const event = {
+          uuid: 'u',
+          event: '$pageview',
+          properties: {
+            $current_url: 'https://prismalens.io/?token=abc',
+            $referrer: 'https://example.com/search?q=private',
+            $pathname: '/',
+            site: 'site',
+          },
+          $set_once: { $initial_current_url: 'https://prismalens.io/?utm_source=x' },
+        };
+        const out = mod.sanitizeEvent(event as never);
+        assert.equal(out?.properties.$current_url, 'https://prismalens.io/');
+        assert.equal(out?.properties.$referrer, 'https://example.com/search');
+        assert.equal(out?.properties.$pathname, '/');
+        assert.equal(out?.properties.site, 'site');
+        assert.equal(out?.$set_once?.$initial_current_url, 'https://prismalens.io/');
+      });
+
+      it('passes a dropped event through as null', () => {
+        assert.equal(mod.sanitizeEvent(null), null);
+      });
+    });
+
     describe('copiedCommand', () => {
       it('identifies npm_global commands (npm i -g, npm install -g, npm install --global)', () => {
         assert.equal(mod.copiedCommand('npm i -g prismalens'), 'npm_global');

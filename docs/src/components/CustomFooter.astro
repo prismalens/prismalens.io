@@ -11,7 +11,7 @@ import Default from '@astrojs/starlight/components/Footer.astro'
 
 <script>
   import { initAnalytics } from '../scripts/analytics'
-  initAnalytics()
+  initAnalytics().catch(() => {})
 </script>
 
 <style>

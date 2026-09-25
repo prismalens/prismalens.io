@@ -52,7 +52,7 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site)
     <Footer />
     <script>
       import { initAnalytics } from '../scripts/analytics'
-      initAnalytics()
+      initAnalytics().catch(() => {})
     </script>
   </body>
 </html>
