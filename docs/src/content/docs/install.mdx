@@ -1,0 +1,186 @@
+---
+title: Install, upgrade and uninstall
+description: Every way to install PrismaLens, how each one upgrades and uninstalls, and what happens to your data when two copies share a machine.
+---
+
+import { Aside, Tabs, TabItem } from '@astrojs/starlight/components';
+
+PrismaLens is one command under two names, `pl` and `prismalens`. Pick one way
+to install it and stick to it: every copy on a machine shares one workspace,
+`~/.prismalens`.
+
+## Install
+
+<Tabs syncKey="channel">
+<TabItem label="npm">
+
+Needs Node.js 24 or newer.
+
+```bash
+npm install -g prismalens
+```
+
+To try it once without installing: `npx prismalens@latest up`.
+
+</TabItem>
+<TabItem label="macOS and Linux">
+
+No Node needed. The installer brings its own.
+
+```bash
+curl -fsSL https://prismalens.io/install.sh | sh
+```
+
+It finds the newest release, checks the download against that release's
+`SHA256SUMS`, and puts the runtime in `~/.local/share/prismalens` and `pl` in
+`~/.local/bin`. If that folder isn't on your `PATH`, it adds one marked line to
+your shell's rc file (`~/.zshrc`, `~/.bashrc` or fish's `conf.d`).
+
+| Option | What it does |
+| --- | --- |
+| `--version 0.5.1` | Install that version instead of the newest. |
+| `--no-modify-path` | Leave your rc file alone. |
+| `--uninstall` | Remove what the installer added. |
+| `--help` | List the options and environment variables. |
+
+Pass options after `sh -s --`, for example
+`curl -fsSL https://prismalens.io/install.sh | sh -s -- --version 0.5.1`.
+
+</TabItem>
+<TabItem label="Windows">
+
+No Node needed. The installer brings its own. In PowerShell:
+
+```powershell
+irm https://prismalens.io/install.ps1 | iex
+```
+
+It puts the runtime and `pl` under `%LOCALAPPDATA%\prismalens` and adds the
+`bin` folder to your user `PATH`. With options:
+
+```powershell
+& ([scriptblock]::Create((irm https://prismalens.io/install.ps1))) -Version 0.5.1
+```
+
+`-NoModifyPath`, `-Uninstall` and `-Help` work the same way.
+
+</TabItem>
+<TabItem label="Homebrew">
+
+```bash
+brew install prismalens/tap/prismalens
+```
+
+</TabItem>
+<TabItem label="Scoop">
+
+```powershell
+scoop bucket add prismalens https://github.com/prismalens/scoop-bucket
+scoop install prismalens
+```
+
+</TabItem>
+<TabItem label="Desktop app">
+
+Download the zip for your OS from the
+[latest release](https://github.com/prismalens/prismalens/releases/latest). It
+is a preview and unsigned, so your OS warns before opening it.
+
+</TabItem>
+</Tabs>
+
+### Check a download yourself
+
+Every archive is built in GitHub Actions and attested. With the
+[GitHub CLI](https://cli.github.com):
+
+```bash
+gh attestation verify prismalens-0.5.1-darwin-arm64.tar.gz --repo prismalens/prismalens
+```
+
+## Upgrade
+
+```bash
+pl upgrade
+```
+
+`pl upgrade` knows how it was installed and runs that channel's own upgrade.
+Stop `pl up` first; it refuses while `pl up` is running.
+
+| Installed with | `pl upgrade` runs |
+| --- | --- |
+| npm | `npm install -g prismalens@latest` |
+| The installer | the installer again, for the new version |
+| Homebrew | `brew upgrade prismalens` |
+| Scoop | `scoop update prismalens` |
+| The desktop app | nothing; the app shows a notification with a download link |
+
+`pl upgrade --check` only says whether a newer version exists.
+`pl upgrade --version 0.5.1` installs a specific version (not on Homebrew).
+
+When a newer release is out, `pl up` says so in one line, and the desktop app
+shows a notification. Neither sends anything about you: both ask GitHub which
+release is newest, the same request a browser makes.
+`PRISMALENS_UPDATE_CHECK=off` or `DO_NOT_TRACK=1` turns that off.
+
+Your database upgrades itself the first time the new version runs `pl up`.
+Before migrating, it copies the database to `prismalens.db.bak-<time>` in your
+workspace.
+
+## Two copies, and going back a version
+
+All copies of PrismaLens on a machine read the same workspace. A newer copy
+migrates the database, and an older copy then refuses to open it rather than
+risk damaging it:
+
+```text
+$ pl up
+✖ The database at ~/.prismalens/prismalens.db was written by a newer PrismaLens:
+  it records a migration this build does not ship (20260921000000_devices).
+  Nothing was applied. Upgrade this copy with `pl upgrade`, restore the
+  prismalens.db.bak-* file the newer version made before migrating, or point
+  PRISMALENS_WORKSPACE_DIR at a different directory to start fresh.
+```
+
+So keep one copy. `pl doctor` lists every `pl` on your `PATH` and warns when
+there's more than one:
+
+```text
+$ pl doctor
+⚠ PrismaLens 0.5.1 (installer): 2 on PATH, sharing one workspace:
+  ~/.local/bin/pl (installer, 0.5.1); /usr/local/bin/pl (npm, 0.5.0).
+  An older one stops once a newer one has migrated the database; remove all but one.
+```
+
+To go back a version on purpose:
+
+1. Stop `pl up`.
+2. Replace `prismalens.db` in your workspace with the `prismalens.db.bak-*`
+   file the newer version made before migrating.
+3. Install the older version. The installer asks you to confirm with
+   `PRISMALENS_ALLOW_DOWNGRADE=1`.
+
+The installer keeps the version you upgraded from next to the new one, so
+switching back doesn't need a download.
+
+## Uninstall
+
+Uninstalling removes the program and leaves your workspace
+(`~/.prismalens`: database, secrets, logs). To delete the workspace as well,
+run `pl reset` first.
+
+| Installed with | Uninstall |
+| --- | --- |
+| npm | `npm uninstall -g prismalens` |
+| The installer (macOS, Linux) | `curl -fsSL https://prismalens.io/install.sh \| sh -s -- --uninstall` |
+| The installer (Windows) | `& ([scriptblock]::Create((irm https://prismalens.io/install.ps1))) -Uninstall` |
+| Homebrew | `brew uninstall prismalens` |
+| Scoop | `scoop uninstall prismalens` |
+| The desktop app | delete the app |
+
+<Aside>
+The installer's uninstall removes only what it added: the `pl` and
+`prismalens` wrappers, the marked line in your rc file or the user `PATH`
+entry, and `~/.local/share/prismalens` (`%LOCALAPPDATA%\prismalens` on
+Windows).
+</Aside>
