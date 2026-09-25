@@ -45,10 +45,17 @@ export function installTarget(href: string): "npm" | "desktop" | "github" | null
   }
 }
 
-export function copiedCommand(text: string): "npm_global" | "npx" | "other" | null {
-  if (!text.toLowerCase().includes("prismalens")) {
+export function copiedCommand(
+  text: string,
+): "npm_global" | "npx" | "install_script_sh" | "install_script_ps1" | "other" | null {
+  const lower = text.toLowerCase();
+  if (!lower.includes("prismalens")) {
     return null;
   }
+
+  // The Node-free installers (prismalens#717) are served from prismalens.io.
+  if (lower.includes("install.ps1")) return "install_script_ps1";
+  if (lower.includes("install.sh")) return "install_script_sh";
 
   const isNpm = /\bnpm\b/.test(text);
   const isGlobal = /(?:^|\s)(?:-g|--global)(?:\s|$)/m.test(text);

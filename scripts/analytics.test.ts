@@ -70,6 +70,17 @@ for (const { name, mod } of modules) {
         assert.equal(mod.copiedCommand('pl up'), null);
       });
 
+      it('identifies the installer scripts served from prismalens.io', () => {
+        assert.equal(
+          mod.copiedCommand('curl -fsSL https://prismalens.io/install.sh | sh'),
+          'install_script_sh',
+        );
+        assert.equal(
+          mod.copiedCommand('irm https://prismalens.io/install.ps1 | iex'),
+          'install_script_ps1',
+        );
+      });
+
       it('returns other for curl or other commands containing "prismalens"', () => {
         assert.equal(mod.copiedCommand('curl -fsSL https://example.com | prismalens'), 'other');
       });
