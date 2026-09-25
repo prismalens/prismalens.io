@@ -69,6 +69,7 @@ export default defineConfig({
 					items: [
 						{ label: 'What PrismaLens is', link: '/' },
 						{ label: 'Quick start', slug: 'quickstart' },
+						{ label: 'Install, upgrade, uninstall', slug: 'install' },
 						{ label: 'Coding agents', slug: 'coding-agents' },
 					],
 				},

@@ -93,7 +93,7 @@ When forced off, the Settings checkbox is disabled with a note explaining the en
 ### What is sent
 
 - An install id: a random identifier created once for this workspace.
-- The PrismaLens version, whether it is a release or a development build, how it was launched (npm or the desktop app), the operating system, CPU architecture and Node major version.
+- The PrismaLens version, whether it is a release or a development build, how it was installed (npm, the installer, Homebrew, Scoop or the desktop app), the operating system, CPU architecture and Node major version.
 - One event per milestone, carrying fixed categories only: setup finished; a service gained a repository (local folder or git); an integration was configured (which vendor); the first alert this install ever received (which source); an investigation started (which coding agent, and whether it was asked for by hand or by an alert); an investigation ended (its outcome, how long it took as one of four ranges, and a category for the failure); a report was viewed; a report was exported (Markdown, Slack or a GitHub comment); an incident was closed.
 - Once a day while PrismaLens is running and sharing is on: a sign that this install is active, with nothing else attached.
 
@@ -126,7 +126,7 @@ Every event sent when telemetry is enabled carries a common platform block, plus
 | --- | --- | --- |
 | `distinct_id` | UUID string | The workspace install ID. |
 | `app_version` | string | Current PrismaLens version (e.g. `0.5.1`). |
-| `run_mode` | `npm` \| `electron` | How it was launched: npm, or the desktop app. |
+| `run_mode` | `npm` \| `installer` \| `homebrew` \| `scoop` \| `electron` | How it was installed: npm, the installer, Homebrew, Scoop or the desktop app. |
 | `build` | `release` \| `dev` | A release build, or a development build. |
 | `placement` | `laptop` \| `server` | Machine kind (resolved from `PRISMALENS_PLACEMENT` or `CI`). |
 | `os` | `aix` \| `darwin` \| `freebsd` \| `linux` \| `openbsd` \| `sunos` \| `win32` | Operating system platform (`process.platform`). |

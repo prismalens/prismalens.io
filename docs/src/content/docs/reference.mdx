@@ -79,7 +79,7 @@ Flags on `pl up` set `PRISMALENS_PORT`, `PRISMALENS_HOST`, `PRISMALENS_WORKSPACE
 
 ## Known limits in 0.5.0
 
-- Runs on macOS, Linux and WSL2. Native Windows is not supported yet.
+- Runs on macOS, Linux and WSL2. Native Windows is a preview: it installs and runs, and CI checks it on every change, but expect rough edges.
 - One `pl up` per workspace folder. A second one on the same folder refuses to start and names the process holding it.
 - Every run keeps its transcript under `runs/<id>/`. The repository clone is deleted when the run ends; delete old transcripts by hand when you need the space.
 - Installing needs a prebuilt `better-sqlite3` for your platform, or Python 3 and a C++ toolchain to build it.

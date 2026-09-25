@@ -10,8 +10,8 @@ have run one investigation against real code and read its report.
 
 ## Before you start
 
-- **macOS, Linux or WSL2.** Native Windows is not supported in 0.5.0.
-- **Node.js 24** and **git**.
+- **macOS, Linux or WSL2.** Native Windows is a preview.
+- **git**, and **Node.js 24** if you install with npm. The installer and Homebrew bring their own Node.
 - **A coding agent** on your `PATH`, signed in. OpenCode is the one PrismaLens picks automatically: `npm i -g opencode-ai`, then sign it in. See [Coding agents](/coding-agents/) for the others.
 - **A git repository** on this machine, or a git URL you can clone.
 
@@ -23,7 +23,16 @@ have run one investigation against real code and read its report.
    npm install -g prismalens
    ```
 
-   This installs one command under two names, `prismalens` and `pl`.
+   Without Node, use the installer, which brings its own:
+
+   ```bash
+   curl -fsSL https://prismalens.io/install.sh | sh
+   ```
+
+   Windows, Homebrew, Scoop and the desktop app are on
+   [Install, upgrade and uninstall](/install/).
+
+   Either way you get one command under two names, `prismalens` and `pl`.
 
 2. **Check your machine**
 
