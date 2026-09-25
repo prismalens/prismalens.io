@@ -11,7 +11,8 @@ secrets in this repo. `.nvmrc` pins Node 22 for the Pages build.
 ## Two Pages projects, one repo
 
 Create two projects in the Cloudflare dashboard, both connected to the
-`prismalens/prismalens.io` repo, production branch `main`:
+`prismalens/prismalens.io` repo (production branch: `main` for the site, `live`
+for the docs; see below):
 
 | Project | Build command | Build output dir | Root dir |
 |---|---|---|---|
@@ -24,6 +25,19 @@ Create two projects in the Cloudflare dashboard, both connected to the
   the pnpm workspace resolves — do not set it to `site/` or `docs/`.
 - If a build ever skips install, set the build command to
   `pnpm install --frozen-lockfile && pnpm --filter <app> build`.
+
+## Docs go live with the release
+
+`prismalens-docs` uses **`live`** as its production branch; `prismalens-site`
+stays on `main`. Docs PRs merge to `main` whenever they are ready, and `main`
+builds to the preview alias `main.prismalens-docs.pages.dev`.
+
+`.github/workflows/publish-docs.yml` checks npm every 15 minutes. When
+`prismalens@latest` is a version with no `docs-v<version>` tag, it fast-forwards
+`live` to `main` and tags it, so docs.prismalens.io changes within 15 minutes of
+the release and never before it. Never commit to `live`: the workflow refuses to
+publish once `live` has commits `main` lacks. To publish a docs-only fix without
+a release, run the workflow by hand with **force**; it publishes all of `main`.
 
 ## Custom domains (DNS is automatic — no A/AAAA)
 

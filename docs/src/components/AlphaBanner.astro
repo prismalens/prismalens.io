@@ -1,0 +1,25 @@
+---
+import Default from '@astrojs/starlight/components/Banner.astro';
+---
+
+<div class="alpha-banner" data-pagefind-ignore>
+	PrismaLens is alpha: any 0.x release may break. These docs describe the version
+	<code>npm install -g prismalens</code> installs; read the
+	<a href="https://github.com/prismalens/prismalens/releases">release notes</a> before upgrading.
+</div>
+<Default />
+
+<style>
+	.alpha-banner {
+		padding: 0.5rem var(--sl-nav-pad-x);
+		background-color: var(--sl-color-bg-accent);
+		color: var(--sl-color-text-invert);
+		font-size: var(--sl-text-sm);
+		text-align: center;
+		text-wrap: balance;
+	}
+	.alpha-banner a,
+	.alpha-banner code {
+		color: inherit;
+	}
+</style>

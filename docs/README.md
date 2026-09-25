@@ -28,7 +28,7 @@ docs/
 │   │       ├── guides/
 │   │       ├── integrations/
 │   │       └── reference/
-│   └── styles/           # Starlight theme overrides + design tokens
+│   └── styles/           # Starlight theme mapped onto ../../design-tokens
 ├── astro.config.mjs      # Astro & Starlight configuration (sidebar lives here)
 └── tsconfig.json
 ```

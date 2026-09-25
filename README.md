@@ -1,23 +1,23 @@
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="brand/banner-dark.png">
-    <img alt="PrismaLens — AI root-cause investigation, in your terminal" src="brand/banner-light.png" width="830">
+    <img alt="PrismaLens — your coding agent, investigating your incidents" src="brand/banner-light.png" width="830">
   </picture>
 </p>
 
 # PrismaLens Marketing Website & Documentation
 
-This repository contains the marketing website and documentation for **PrismaLens**, an open-source AI root-cause investigation CLI.
+This repository contains the marketing website and documentation for **PrismaLens**, an open-source app that investigates incidents with the coding agent you already use.
 
-> **Project Status:** PrismaLens is currently in active development. This repository hosts the marketing site and documentation—not the application itself.
+> This repository hosts the marketing site and documentation, not the application itself.
 
 ## What is PrismaLens?
 
-PrismaLens is an open-source (Apache-2.0), local-first CLI. Point it at a repo, pipe in a firing alert, and it:
+PrismaLens is an open-source (Apache-2.0) app you run on your own machine with `pl up`. When an alert fires, it:
 
-- **Investigates the way an on-call engineer would** — a coding agent it drives locally gathers evidence with read-only commands through your existing tooling and auth context
-- **Returns an ordered-evidence report** — hypotheses ranked most to least plausible, each linked to the evidence behind it, no numeric confidence scores
-- **Uses your own model key** — any OpenAI-compatible provider or Claude Code; no PrismaLens account, no subscription
+- **Opens an incident from the alert** — Prometheus Alertmanager posts to a webhook, and a critical or high alert on a known service starts an investigation
+- **Hands it to your coding agent** — OpenCode, Claude Code, Codex or Gemini CLI investigates a read-only snapshot of the service's code; PrismaLens never calls a model itself
+- **Keeps an ordered-evidence report** — hypotheses ranked most to least plausible, each with the evidence behind it, and no numeric confidence scores
 
 ## Monorepo Structure
 
@@ -28,6 +28,7 @@ prismalens.io/
 ├── site/          # Marketing website (Astro)
 ├── docs/          # Documentation site (Astro Starlight)
 ├── brand/         # Canonical brand assets (logomark SVGs, banners) — see brand/README.md
+├── design-tokens/ # Colours, fonts, radius — synced from the app, never edited here
 ├── mage/          # Link marker to the org knowledge hub (see AGENTS.md)
 └── package.json   # Root workspace configuration
 ```
@@ -107,9 +108,23 @@ pnpm build:site
 pnpm build:docs
 ```
 
+### Design tokens
+
+`site/` and `docs/` share the app's tokens (`packages/frontend/src/styles/` in the
+main repo), copied into `design-tokens/` and pinned to a commit named in each file's
+header. To pick up token changes from the app:
+
+```bash
+pnpm tokens:sync          # latest main
+pnpm tokens:sync v0.6.0   # or any tag, branch or SHA
+```
+
+Commit the result. Never edit `design-tokens/` by hand; change the tokens in the
+app and sync.
+
 ## Related Repositories
 
-- **[PrismaLens](https://github.com/prismalens/prismalens)** - The main monorepo: the `prismalens` CLI, investigation engine, and the in-development server app
+- **[PrismaLens](https://github.com/prismalens/prismalens)** - The main monorepo: the `prismalens` app (API, dashboard and `pl` command)
 
 ## Contributing
 
@@ -133,7 +148,9 @@ Watch the repo if you want to catch the moment PRs open up.
 
 ## License
 
-Apache-2.0 — see the [LICENSE](https://github.com/prismalens/prismalens/blob/main/LICENSE) file in the main [PrismaLens](https://github.com/prismalens/prismalens) repository.
+- Site code: Apache-2.0, see [LICENSE](LICENSE).
+- Documentation text (`docs/src/content/`): CC-BY-4.0, see [LICENSE-docs](LICENSE-docs).
+- The PrismaLens name, logo and the files in `brand/` are trademarks. Neither license grants rights to use them.
 
 ## Community & Support
 

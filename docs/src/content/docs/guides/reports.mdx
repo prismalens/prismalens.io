@@ -63,10 +63,15 @@ them done or dismiss them.
 the alert or in command output that tried to give the agent orders, such as
 "ignore previous instructions", quoted with where it was found.
 
-**Fidelity badges.** How the run was protected. A badge such as
-`process · cooperative` or `srt · enforced` names the mechanism, and a
-`sandbox` badge shows the sandbox you asked for and the one you got. Hover for
-details. See [Sandboxing](/trust/#sandboxing).
+**Fidelity.** What the run actually had: the coding agent and its version, the
+model and where it came from (your setting, the product default, or the
+agent's own), and the read-only mechanism with how far it holds, such as
+`cooperative`. See [The read-only policy](/trust/#the-read-only-policy).
+
+**Facts PrismaLens supplied.** Before a run, PrismaLens gives the agent what it
+already knows: changes in the alert's window, the service's neighbours, and
+similar past incidents. Evidence the agent took from these without checking it
+with a command is always marked **inferred**, never verified.
 
 ## Checking a hypothesis in two minutes
 
@@ -74,6 +79,14 @@ details. See [Sandboxing](/trust/#sandboxing).
 2. Open its first supporting piece of evidence and run the same command, or open the same file, yourself.
 3. Look at **Ruled out** before you chase the second hypothesis. The agent may already have been there.
 4. If the report is wrong, scroll the event ledger above it to see where the reasoning went off. Every tool call is recorded.
+
+## After you close it
+
+**Close** asks what actually caused the incident, and a category. Both are
+optional. When a later incident looks similar, its report lists this one under
+similar incidents with the cause you wrote, and the next investigation is told
+about it as an inferred fact. What you write at close outranks what the report
+guessed.
 
 ## When there is no report
 

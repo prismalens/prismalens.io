@@ -11,36 +11,39 @@ editor does.
 
 ## Supported agents
 
-| Agent | Command PrismaLens looks for | Install | Picked automatically |
+| Agent | Command PrismaLens looks for | Install | Tested with |
 | --- | --- | --- | --- |
-| OpenCode | `opencode` | `curl -fsSL https://opencode.ai/install \| bash` or `npm i -g opencode-ai` | Yes |
-| Claude Code | `claude-agent-acp` | `npm i -g @agentclientprotocol/claude-agent-acp` | No, pin it |
-| Codex | `codex-acp` | `npm i -g @agentclientprotocol/codex-acp` | No, pin it |
-| Gemini CLI | `gemini` | `npm i -g @google/gemini-cli` | No, pin it |
-| deepagents | `deepagents-acp` | `pip install deepagents-acp` | No, pin it |
+| OpenCode | `opencode` | `curl -fsSL https://opencode.ai/install \| bash` or `npm i -g opencode-ai` | 1.18.30 |
+| Claude Code | `claude-agent-acp` | `npm i -g @agentclientprotocol/claude-agent-acp` | 0.81.1 |
+| Codex | `codex-acp` | `npm i -g @agentclientprotocol/codex-acp` | 1.13.1 |
+| Gemini CLI | `gemini` | `npm i -g @google/gemini-cli` | — |
+| deepagents | `dcode` | `uv tool install -U deepagents-code --with deepagents-acp` | 0.1.75 |
 
-An agent is picked automatically only after it has passed an unattended test
-run in PrismaLens's CI: it started in the right folder, had a write refused,
-finished on its own and returned a valid report. OpenCode has passed. The
-others are expected to work, but nobody has proven it in CI yet, so you choose
-them on purpose.
+**Tested with** is the version that completed an unattended investigation in
+PrismaLens's CI: it started in the right folder, finished on its own and
+returned a valid report. A dash means no such run yet; the agent is still
+supported and selectable.
+
+Each agent runs with its own behaviour and permissions, as it would in your
+terminal. PrismaLens drives it; it does not make it safe. See
+[Trust](/trust/) for what PrismaLens does and does not limit.
 
 ## How PrismaLens chooses
 
 1. `PRISMALENS_HARNESS`, if you set it when starting `pl up`. For example `PRISMALENS_HARNESS=claude-code pl up`.
 2. Otherwise the agent chosen under **Harness** in **Settings → Harness**.
-3. Otherwise the first automatically pickable agent that is on your `PATH`.
+3. Otherwise the first agent in the table above that is on your `PATH`.
 
 If none of these finds an agent, Settings says **No investigation agent is
 available on this machine**, and `pl doctor` lists the install commands above.
 
 ## Signing the agent in
 
-PrismaLens never reads, copies or stores an agent's login. Each run gives the
-agent its own empty configuration folder, so a login stored in the agent's
-usual config folder is not visible to Claude Code or Codex. For those two, put
-the provider key (`ANTHROPIC_API_KEY`, `OPENAI_API_KEY`) in the environment you
-start `pl up` from. OpenCode's `opencode auth login` does carry over. Then check:
+The agent uses its own configuration and sign-in, as it would in your terminal:
+`claude /login`, `codex login`, `gemini` and `opencode auth login` carry over.
+Or put the provider key (`ANTHROPIC_API_KEY`, `OPENAI_API_KEY`,
+`GEMINI_API_KEY`) in the environment you start `pl up` from. PrismaLens does not
+read, copy or store the login. Then check:
 
 ```text
 $ pl doctor
@@ -58,6 +61,47 @@ The agent does not inherit your whole environment. See
 
 ## Choosing a model
 
-Each agent has its own default model. To use a different one, fill in
-**Model** in **Settings → Harness**. The value is passed to the agent as is, in that agent's
-own format.
+Each agent has its own default model. To use a different one, click the model
+next to the agent picker, under the composer or in **Settings → Harness**, and
+type an id in that agent's own format. It is sent exactly as typed, and it is
+kept per agent: a model you set for Claude Code never reaches OpenCode.
+
+The list under the field is a suggestion. Once you click **Check readiness** on
+an agent that offers its own list, that list is shown; otherwise PrismaLens
+shows its bundled model catalogue. An id missing from the list is noted ("sent
+as typed"), never refused.
+
+Codex, Gemini CLI and deepagents take no model setting. A model stored for one
+of them stops the next run before it starts, with the reason in **Settings →
+Harness** and on the Investigate button. For those agents the model pill offers
+only **Clear model**.
+
+Upgrading from 0.5.0 drops the single shared model setting. Enter the model
+again for each agent that needs one.
+
+### Correcting the catalogue between releases
+
+PrismaLens never downloads a catalogue. To correct one before the next release,
+put a `model-catalogue.json` in the workspace folder. It replaces the bundled
+one only if its `updatedAt` is newer; a file that fails to parse is ignored with
+a warning in the log.
+
+```json
+{
+  "version": 1,
+  "updatedAt": "2026-10-01T00:00:00Z",
+  "harnesses": {
+    "claude-code": {
+      "models": [
+        { "id": "claude-sonnet-5", "name": "Claude Sonnet 5", "status": "current" },
+        { "id": "claude-haiku-4-5-20251001", "name": "Claude Haiku 4.5", "status": "legacy" }
+      ]
+    }
+  }
+}
+```
+
+With that file in `~/.prismalens`, the Claude Code suggestions show those two
+models, and Haiku is marked legacy. Delete the file to go back to the bundled
+catalogue. A release whose bundled catalogue is newer than your file wins
+without your deleting it.

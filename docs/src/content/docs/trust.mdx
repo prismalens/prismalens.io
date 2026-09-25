@@ -1,6 +1,6 @@
 ---
 title: What PrismaLens reads and never does
-description: The read-only policy and its limits, sandboxing, what leaves your machine, credentials, and where your data lives.
+description: The read-only policy and its limits, what leaves your machine, credentials, and where your data lives.
 ---
 
 import { Aside } from '@astrojs/starlight/components';
@@ -13,7 +13,7 @@ agent can reach, what PrismaLens does to limit it, and where those limits stop.
 - The agent works in a **copy** of your repository, never in your checkout.
 - PrismaLens **refuses** the agent's edits, deletes and known mutating commands. That is a guardrail, not a wall.
 - The agent **cannot fetch URLs**. OpenCode also cannot web-search or read outside the snapshot.
-- Runs are **unsandboxed** by default. The report says which you got.
+- Runs are **not sandboxed**. Nothing at the operating-system level blocks a write or a network call; the report names the mechanism a run had.
 - PrismaLens sends **no usage data** unless you opt in. An update check queries GitHub Releases without an identifier. Your agent sends your code and the alert to **its** model provider.
 - PrismaLens **never** reads or stores your agent's login.
 - Everything PrismaLens keeps is in **one folder**, `~/.prismalens`.
@@ -32,13 +32,16 @@ allowed.
 The shell rules match command text, so a command written to dodge them, such as
 a short Python script that writes a file, gets through. The policy catches an
 agent making a mistake. It does not stop an agent that was talked into
-misbehaving by text it read. For a real boundary, turn on the sandbox below and
-give the agent read-only credentials for anything outside the copy.
+misbehaving by text it read. For a real boundary, run PrismaLens under a user
+or in a VM that can read only what it should, and give the agent read-only
+credentials for anything outside the copy.
 </Aside>
 
-The agent can read any file your user can read, not only the snapshot. Keep
-that in mind before you run PrismaLens under an account that can read
-production credentials.
+PrismaLens refuses paths outside the snapshot, judged where they really land:
+through `..`, symlinks, `~` and globs such as `cat *`. Like the rest of the
+policy, it matches command text, so the agent can still read any file your user
+can read if it writes a command that dodges the rules. Keep that in mind before
+you run PrismaLens under an account that can read production credentials.
 
 Agent configuration committed in the repository never reaches the agent:
 before a run starts, PrismaLens removes `.claude`, `.opencode`, `opencode.json`,
@@ -48,31 +51,6 @@ repository cannot bring its own tools, hooks or instructions into the run.
 Alert fields reach the agent inside a block marked as untrusted data. If the
 agent spots text trying to give it orders, it quotes it in the report under
 **Content tried to instruct the agent**.
-
-## Sandboxing
-
-A sandbox makes the operating system enforce the boundary. Every run is one of:
-
-- **Sandboxed:** the agent can write only inside its run folder, and reach only allowlisted hosts.
-- **Unsandboxed:** the agent is a normal process under your user, with the read-only policy, a trimmed environment and a 15-minute limit. Nothing at the OS level blocks a write or a network call.
-
-**The default is unsandboxed.** The default mode only uses the sandbox after a
-network self-check passes, and this version has nothing configured for it to
-check. The run records that reason.
-
-To require the sandbox, install Anthropic's
-[sandbox-runtime](https://github.com/anthropic-experimental/sandbox-runtime)
-(Linux and macOS) and allowlist your agent's model provider:
-
-```bash
-npm install -g @anthropic-ai/sandbox-runtime
-PRISMALENS_SANDBOX=srt PRISMALENS_SANDBOX_ALLOWED_HOSTS=api.anthropic.com pl up
-```
-
-With `PRISMALENS_SANDBOX=srt` a run fails if the sandbox is missing, rather than
-running without it. On WSL2, `auto` never uses the sandbox. To force it there,
-switch WSL to NAT networking first (`networkingMode=nat` in `.wslconfig`),
-because mirrored networking silently cuts the sandbox's network.
 
 ## What leaves your machine
 
@@ -190,8 +168,10 @@ Apart from those provider keys, the agent gets only `PATH`, `HOME`, `USER`,
 `LOGNAME`, `SHELL`, `PWD`, `LANG`, `LC_ALL`, `LC_CTYPE`, `TERM`, `TMPDIR` and
 `TZ` from your environment.
 
-The first person to open a fresh install becomes the instance's only account.
-Sign-up closes after it, and there are no roles.
+There are no accounts. A browser gets in only by opening a one-time pairing
+link that `pl up` or `pl pair` prints on the host; no address, `localhost`
+included, grants access by itself. Only the host's own session can pair or
+revoke other devices. See [Opening it from other devices](/guides/devices/).
 
 ## Where your data lives
 

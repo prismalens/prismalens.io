@@ -1,0 +1,183 @@
+---
+// The brand mark as a diagram: one alert enters the prism, the agent's evidence
+// leaves it in order. Every line is from a real 0.5.0 run on a demo service.
+const evidence = [
+  { text: 'config.rateCacheTtl is 60_000, and the comment says ms', source: 'src/config.js:5' },
+  { text: 'The freshness check divides it by 1000, so 60 ms', source: 'src/rates.js:7' },
+  { text: '1.5.0 changed rateCacheTtlSeconds * 1000 to rateCacheTtl / 1000', source: 'git show 6907f00' },
+  { text: '/checkout awaits getRate() on every request', source: 'src/server.js:8' },
+]
+const rowY = [32, 96, 160, 224]
+// One accent, fading down the list: the evidence reads in the order the report gives it.
+const shade = [100, 70, 50, 35].map((pct) => `color-mix(in oklch, var(--ray) ${pct}%, transparent)`)
+
+// Equilateral prism, side 60, centroid at (80, 128). Rays leave the right face.
+const side = 60
+const height = (side * Math.sqrt(3)) / 2
+const apex = { x: 80, y: 128 - (height * 2) / 3 }
+const baseY = apex.y + height
+const rightFaceX = (y: number) => apex.x + ((y - apex.y) / height) * (side / 2) + 1
+const prism = `M${apex.x} ${apex.y.toFixed(1)} ${apex.x + side / 2} ${baseY.toFixed(1)}H${apex.x - side / 2}Z`
+const exitY = (i: number) => 121 + i * 3
+---
+
+<figure class="refraction" aria-label="An alert goes into PrismaLens and four pieces of evidence come out, each with the file or commit it came from">
+  <div class="alert">
+    <p class="alert-name">CheckoutLatencyHigh <span class="alert-sev">critical</span></p>
+    <p>service=checkout</p>
+    <p>p99 on /checkout went from 120ms to 2.4s after the 1.5.0 deploy</p>
+  </div>
+
+  <svg class="beam" width="220" height="256" viewBox="0 0 220 256" fill="none" aria-hidden="true">
+    <path class="draw in" d="M0 128H60" stroke="currentColor" stroke-opacity=".5" stroke-width="2.5" stroke-linecap="round" />
+    <path d={`M60.5 128 ${rightFaceX(124).toFixed(1)} 124`} stroke="currentColor" stroke-opacity=".2" stroke-width="2" stroke-linecap="round" />
+    {rowY.map((y, i) => (
+      <path class="draw" d={`M${rightFaceX(exitY(i)).toFixed(1)} ${exitY(i)} 220 ${y}`} style={`--i:${i};stroke:${shade[i]}`} stroke-width="2.5" stroke-linecap="round" />
+    ))}
+    <path d={prism} stroke="currentColor" stroke-width="3" stroke-linejoin="round" />
+  </svg>
+
+  <ol class="rows">
+    {evidence.map((e, i) => (
+      <li style={`--c:${shade[i]};--i:${i}`}>
+        <span>{e.text}</span>
+        <code>{e.source}</code>
+      </li>
+    ))}
+  </ol>
+
+  <p class="verdict">
+    <strong>Root cause.</strong> The 1.5.0 unit change turned a 60 second rate cache into a 60 millisecond one, so every checkout calls the rates API.
+  </p>
+</figure>
+
+<style>
+  .refraction {
+    --ray: #4f46e5;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 220px minmax(0, 1.6fr);
+    align-items: center;
+    column-gap: 0;
+    row-gap: 1.25rem;
+  }
+
+  :global(.dark) .refraction {
+    --ray: #818cf8;
+  }
+
+  .alert {
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--card);
+    padding: 1rem 1.125rem;
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+    line-height: 1.6;
+    color: var(--muted-foreground);
+  }
+
+  .alert-name {
+    color: var(--foreground);
+    font-weight: 600;
+  }
+
+  .alert-sev {
+    margin-left: 0.5rem;
+    color: var(--sev-critical);
+    font-weight: 500;
+  }
+
+  .beam {
+    color: var(--foreground);
+  }
+
+  .rows {
+    display: grid;
+    grid-template-rows: repeat(4, 64px);
+  }
+
+  .rows li {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 0.125rem;
+    position: relative;
+    padding-left: 0.875rem;
+    font-size: 0.9375rem;
+    line-height: 1.35;
+    animation: show 400ms ease-out both;
+    animation-delay: calc(700ms + var(--i) * 120ms);
+  }
+
+  .rows li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 1.125rem;
+    bottom: 1.125rem;
+    width: 3px;
+    border-radius: 2px;
+    background: var(--c);
+  }
+
+  .rows code {
+    font-size: 0.8125rem;
+    color: var(--muted-foreground);
+  }
+
+  .verdict {
+    grid-column: 3;
+    max-width: 36rem;
+    font-size: 0.9375rem;
+    line-height: 1.5;
+    color: var(--muted-foreground);
+    animation: show 400ms ease-out both;
+    animation-delay: 1300ms;
+  }
+
+  .verdict strong {
+    color: var(--foreground);
+  }
+
+  .draw {
+    stroke-dasharray: 240;
+    stroke-dashoffset: 240;
+    animation: draw 500ms ease-out forwards;
+    animation-delay: calc(300ms + var(--i, 0) * 120ms);
+  }
+
+  .draw.in {
+    animation-delay: 0ms;
+  }
+
+  @keyframes draw {
+    to { stroke-dashoffset: 0; }
+  }
+
+  @keyframes show {
+    from { opacity: 0; transform: translateX(-6px); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .draw { stroke-dashoffset: 0; }
+  }
+
+  @media (max-width: 767px) {
+    .refraction {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .beam {
+      display: none;
+    }
+
+    .rows {
+      grid-template-rows: none;
+      gap: 0.875rem;
+    }
+
+    .verdict {
+      grid-column: 1;
+    }
+  }
+</style>

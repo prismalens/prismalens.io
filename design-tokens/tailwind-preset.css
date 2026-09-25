@@ -1,8 +1,4 @@
-/*
- * Vendored from the prismalens monorepo: packages/@prismalens/design-tokens/css/tailwind-preset.css (v0.1.0).
- * This repo builds standalone in CI and on Cloudflare Pages, where a link: dependency
- * into a sibling checkout cannot resolve. If the tokens change upstream, re-copy this file.
- */
+/* Synced from prismalens/prismalens@4685bcac073438474b7b9679c58233491b2827c1:packages/frontend/src/styles/tailwind-preset.css by `pnpm tokens:sync`. Do not edit. */
 
 /*
  * PrismaLens Tailwind v4 Preset
@@ -12,11 +8,11 @@
 
 @theme {
   /* ── Typography ── */
-  --font-sans: 'Inter Variable', 'Inter', system-ui, sans-serif;
-  --font-mono: 'JetBrains Mono Variable', 'JetBrains Mono', monospace;
+  --font-sans: 'IBM Plex Sans Variable', 'IBM Plex Sans', system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
 
   /* ── Border Radius ── */
-  --radius: 0.5rem;
+  --radius: 0.375rem;
 
   /* ── Animation Durations ── */
   --duration-instant: 100ms;
@@ -78,6 +74,26 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+
+  /* ── State tones ── */
+  --color-live: var(--live);
+  --color-stale: var(--stale);
+  --color-sev-critical: var(--sev-critical);
+  --color-sev-high: var(--sev-high);
+  --color-sev-medium: var(--sev-medium);
+  --color-sev-low: var(--sev-low);
+  --color-sev-info: var(--sev-info);
+  --color-run-active: var(--run-active);
+  --color-run-done: var(--run-done);
+  --color-run-failed: var(--run-failed);
+
+  /* ── Type scale ── */
+  --text-record: var(--text-record);
+  --text-record--line-height: var(--text-record--line-height);
+  --text-meta: var(--text-meta);
+  --text-meta--line-height: var(--text-meta--line-height);
+  --text-slot: var(--text-slot);
+  --text-slot--line-height: var(--text-slot--line-height);
 
   /* ── Brand supplementary ── */
   --color-investigation-purple: var(--pl-investigation-purple);
