@@ -14,7 +14,7 @@ agent can reach, what PrismaLens does to limit it, and where those limits stop.
 - PrismaLens **refuses** the agent's edits, deletes and known mutating commands. That is a guardrail, not a wall.
 - The agent **cannot fetch URLs**. OpenCode also cannot web-search or read outside the snapshot.
 - Runs are **not sandboxed**. Nothing at the operating-system level blocks a write or a network call; the report names the mechanism a run had.
-- PrismaLens sends **nothing** to us. Your agent sends your code and the alert to **its** model provider.
+- PrismaLens sends **no usage data** unless you opt in. An update check queries GitHub Releases without an identifier. Your agent sends your code and the alert to **its** model provider.
 - PrismaLens **never** reads or stores your agent's login.
 - Everything PrismaLens keeps is in **one folder**, `~/.prismalens`.
 
@@ -54,10 +54,104 @@ agent spots text trying to give it orders, it quotes it in the report under
 
 ## What leaves your machine
 
-- **From PrismaLens:** nothing. No analytics, no crash reports, no update check. The app listens on `127.0.0.1` unless you pass `--host`.
+- **From PrismaLens:** no analytics unless you opt in (see [Usage telemetry](#usage-telemetry)), and no crash reports. An update check queries GitHub Releases without an identifier. The app listens on `127.0.0.1` unless you pass `--host`.
+- **Update check:** once a day `pl up` checks GitHub Releases for a newer version by sending a `HEAD` request to `https://github.com/prismalens/prismalens/releases/latest`. The check sends no identifier, query, or body — only the standard IP address and User-Agent header of any HTTP request. Results are cached for 24 hours in `update-check.json` in the workspace folder. The check runs in the background and never delays startup. It is suppressed when standard output is not a TTY, in CI, when running under an Electron launcher, or when `PRISMALENS_UPDATE_CHECK=off` or `DO_NOT_TRACK` is set.
 - **At install:** a documentation dependency of the API contains an install-time analytics package (`@scarf/scarf`). Set `SCARF_ANALYTICS=false` before `npm install -g prismalens` to turn it off.
 - **From your agent:** what it reads, including source code, command output and the alert, goes to its model provider, as it would if you used the agent directly.
 - **From git:** fetching a repository URL contacts that host with your git credentials.
+
+## Usage telemetry
+
+Usage telemetry is **off by default**. Nothing is sent until the instance owner opts in.
+
+### Where you answer
+
+The question is asked once:
+
+- **On `/incidents`:** Until you answer, a consent banner sits above the incidents list. It offers **No thanks** and **Share usage data**. Choosing either hides the banner.
+- **In Settings:** Under **Settings → Usage data**, the **Share usage data** toggle lets you change your decision at any time.
+- **`pl up --telemetry=off`:** The CLI flag disables usage telemetry for that run (`--telemetry` accepts only `off`; turning telemetry on must be done in Settings). While undecided, `pl up` prints a one-line notice pointing at Settings, but never prompts in the terminal.
+
+### What forces it off
+
+Three environment variables force telemetry off regardless of what is stored in Settings:
+
+- `PRISMALENS_TELEMETRY=off` (also accepts `0` or `false`): Disables telemetry for the process.
+- `DO_NOT_TRACK`: When set to any value other than empty, `0`, `false`, or `off`, disables telemetry (and the update check).
+- `CI`: Any non-empty value disables telemetry. Automated runs cannot give consent and are never counted as installs.
+
+When forced off, the Settings checkbox is disabled with a note explaining the environment override, and no events are collected or sent.
+
+### The install id, and your consent
+
+- **What it is:** A random UUID generated once for the workspace. It is sent as the `distinct_id` on every event so PrismaLens can count installs rather than disconnected events.
+- **Pseudonymous data:** Because the identifier is stable per install, it is pseudonymous rather than anonymous, and is treated as personal data under GDPR Recital 26. Consent is the sole legal basis for collection. It is never joined to an account, email, or user profile.
+- **Where it lives:** In the workspace SQLite database (`prismalens.db`) in the `settings` table under the `TELEMETRY` key. A factory reset deletes this row; a reset instance generates a fresh install ID and asks for consent again.
+- **Retention:** Events are kept for as long as PostHog's plan retains them — at least one year on the plan we use — and are not joined to anything else.
+- **Withdrawal:** To withdraw consent, uncheck **Share usage data** in **Settings → Usage data**. Collection stops immediately from that moment. You can also pass `pl up --telemetry=off` or set `PRISMALENS_TELEMETRY=off` or `DO_NOT_TRACK=1`.
+
+### What is sent
+
+- An install id: a random identifier created once for this workspace.
+- The PrismaLens version, whether it is a release or a development build, how it was launched (npm or the desktop app), the operating system, CPU architecture and Node major version.
+- One event per milestone, carrying fixed categories only: setup finished; a service gained a repository (local folder or git); an integration was configured (which vendor); the first alert this install ever received (which source); an investigation started (which coding agent, and whether it was asked for by hand or by an alert); an investigation ended (its outcome, how long it took as one of four ranges, and a category for the failure); a report was viewed; a report was exported (Markdown, Slack or a GitHub comment); an incident was closed.
+- Once a day while PrismaLens is running and sharing is on: a sign that this install is active, with nothing else attached.
+
+To check this against what actually leaves your machine, open **Settings → Usage data → Recently sent**: the last 20 events exactly as sent, less the PostHog project key, kept in memory until PrismaLens restarts.
+
+Events go to PostHog Cloud EU (Frankfurt).
+
+### What is never sent
+
+Every event property is an enum, a duration bucket, a bounded integer, or a boolean. The API runs all outbound properties through `sanitize()`, which drops any undeclared property or value outside the declared set before building a request.
+
+PrismaLens never sends:
+
+- **IP addresses or geolocation:** Every event carries `$geoip_disable: true` and `$process_person_profile: false`, and the PostHog project discards the client IP rather than storing it or resolving it to a location.
+- **User identities:** No email addresses, names, or user account IDs (`posthog.identify` is never called).
+- **Repository contents:** No source code, repository names, git remote URLs, branch names, commit hashes, or workspace file paths.
+- **Alert content:** No alert text, payloads, labels, or annotations.
+- **Time of day:** Each event is recorded with its date only, never the time of day: its `timestamp` is midnight UTC of the day it was sent.
+- **Agent data:** No prompts, model outputs, agent thoughts, or credentials.
+- **Error messages:** Investigation errors are classified into a fixed enum class (`error_class`) inside the service; the error message text is discarded and never sent.
+- **Hostnames or machine identifiers:** No hostnames or machine names.
+
+### Event taxonomy
+
+Every event sent when telemetry is enabled carries a common platform block, plus event-specific properties drawn from closed sets:
+
+#### Common properties on every event
+
+| Property | Type / Values | Description |
+| --- | --- | --- |
+| `distinct_id` | UUID string | The workspace install ID. |
+| `app_version` | string | Current PrismaLens version (e.g. `0.5.1`). |
+| `run_mode` | `npm` \| `electron` | How it was launched: npm, or the desktop app. |
+| `build` | `release` \| `dev` | A release build, or a development build. |
+| `placement` | `laptop` \| `server` | Machine kind (resolved from `PRISMALENS_PLACEMENT` or `CI`). |
+| `os` | `aix` \| `darwin` \| `freebsd` \| `linux` \| `openbsd` \| `sunos` \| `win32` | Operating system platform (`process.platform`). |
+| `arch` | `arm` \| `arm64` \| `ia32` \| `loong64` \| `mips` \| `mipsel` \| `ppc` \| `ppc64` \| `riscv64` \| `s390` \| `s390x` \| `x64` | CPU architecture (`process.arch`). |
+| `node_major` | integer | Node.js major version (e.g. `22`). |
+| `$geoip_disable` | `true` | Tells PostHog not to resolve IP to location. |
+| `$process_person_profile` | `false` | Prevents creating person profiles in PostHog. |
+| `$lib` | `prismalens-api` | Client identifier for ingest. |
+| `$lib_version` | string | Matches `app_version`. |
+
+#### Event table
+
+| Event | What it counts | Property | Allowed values |
+| --- | --- | --- | --- |
+| `setup_completed` | Initial setup finished (reported once at opt-in). | _none_ | `{}` |
+| `service_added` | A service gained repository code. | `source` | `local`, `git` |
+| `integration_configured` | An integration was configured. | `kind` | `github`, `slack`, `render`, `other` |
+| `first_webhook_received` | First inbound alert this install ever received (persisted to disk; reported once per install, never per alert). | `provider` | `prometheus`, `generic`, `render` |
+| `investigation_started` | An investigation began. | `harness`<br />`trigger` | `opencode`, `claude-code`, `codex`, `gemini`, `deepagents`, `null`<br />`manual`, `webhook`, `other` |
+| `investigation_finished` | An investigation reached a terminal state (reported once per run). | `state`<br />`duration_bucket`<br />`error_class` | `completed`, `failed`, `cancelled`<br />`<1m`, `1-5m`, `5-15m`, `>15m`<br />`none`, `cancelled`, `harness_unavailable`, `harness_exited`, `timeout`, `repo_unavailable`, `auth`, `network`, `other` |
+| `report_viewed` | An investigation report was viewed in the dashboard (deduplicated per run). | _none_ | `{}` |
+| `report_exported` | A report was exported or delivered. | `target` | `markdown`, `slack`, `github` |
+| `incident_closed` | A resolved incident was marked closed. | _none_ | `{}` |
+| `install_active` | This install is running with sharing on (at most once per UTC day). | _none_ | `{}` |
+
 
 ## Credentials
 
