@@ -91,7 +91,7 @@ Usage telemetry is **off by default**. Nothing is sent until the instance owner 
 The question is asked once:
 
 - **On `/incidents`:** Until you answer, a consent banner sits above the incidents list. It offers **No thanks** and **Share usage data**. Choosing either hides the banner.
-- **In Settings:** Under **Settings → Usage data**, the **Share anonymous usage data** toggle lets you change your decision at any time.
+- **In Settings:** Under **Settings → Usage data**, the **Share usage data** toggle lets you change your decision at any time.
 - **`pl up --telemetry=off`:** The CLI flag disables usage telemetry for that run (`--telemetry` accepts only `off`; turning telemetry on must be done in Settings). While undecided, `pl up` prints a one-line notice pointing at Settings, but never prompts in the terminal.
 
 ### What forces it off
@@ -109,8 +109,19 @@ When forced off, the Settings checkbox is disabled with a note explaining the en
 - **What it is:** A random UUID generated once for the workspace. It is sent as the `distinct_id` on every event so PrismaLens can count installs rather than disconnected events.
 - **Pseudonymous data:** Because the identifier is stable per install, it is pseudonymous rather than anonymous, and is treated as personal data under GDPR Recital 26. Consent is the sole legal basis for collection. It is never joined to an account, email, or user profile.
 - **Where it lives:** In the workspace SQLite database (`prismalens.db`) in the `settings` table under the `TELEMETRY` key. A factory reset deletes this row; a reset instance generates a fresh install ID and asks for consent again.
-- **Retention:** Events are retained for 12 months and then deleted.
-- **Withdrawal:** To withdraw consent, uncheck **Share anonymous usage data** in **Settings → Usage data**. Collection stops immediately from that moment. You can also pass `pl up --telemetry=off` or set `PRISMALENS_TELEMETRY=off` or `DO_NOT_TRACK=1`.
+- **Retention:** Events are kept for as long as PostHog's plan retains them — at least one year on the plan we use — and are not joined to anything else.
+- **Withdrawal:** To withdraw consent, uncheck **Share usage data** in **Settings → Usage data**. Collection stops immediately from that moment. You can also pass `pl up --telemetry=off` or set `PRISMALENS_TELEMETRY=off` or `DO_NOT_TRACK=1`.
+
+### What is sent
+
+- An install id: a random identifier created once for this workspace.
+- The PrismaLens version, whether it is a release or a development build, how it was launched (npm or the desktop app), the operating system, CPU architecture and Node major version.
+- One event per milestone, carrying fixed categories only: setup finished; a service gained a repository (local folder or git); an integration was configured (which vendor); the first alert this install ever received (which source); an investigation started (which coding agent, and whether it was asked for by hand or by an alert); an investigation ended (its outcome, how long it took as one of four ranges, and a category for the failure); a report was viewed; a report was exported (Markdown, Slack or GitHub); an incident was closed.
+- Once a day while PrismaLens is running and sharing is on: a sign that this install is active, with nothing else attached.
+
+To check this against what actually leaves your machine, open **Settings → Usage data → Recently sent**: the last 20 events exactly as sent, less the PostHog project key, kept in memory until PrismaLens restarts.
+
+Events go to PostHog Cloud EU (Frankfurt).
 
 ### What is never sent
 
@@ -118,10 +129,11 @@ Every event property is an enum, a duration bucket, a bounded integer, or a bool
 
 PrismaLens never sends:
 
-- **IP addresses or geolocation:** Every event carries `$geoip_disable: true` and `$process_person_profile: false`. PostHog client IP data is discarded rather than stored or resolved to a location.
+- **IP addresses or geolocation:** Every event carries `$geoip_disable: true` and `$process_person_profile: false`, and the PostHog project discards the client IP rather than storing it or resolving it to a location.
 - **User identities:** No email addresses, names, or user account IDs (`posthog.identify` is never called).
 - **Repository contents:** No source code, repository names, git remote URLs, branch names, commit hashes, or workspace file paths.
-- **Alert content:** No alert text, payloads, labels, annotations, or individual alert arrival timestamps (to avoid leaking alert cadence).
+- **Alert content:** No alert text, payloads, labels, or annotations.
+- **Time of day:** Each event is recorded with its date only, never the time of day: its `timestamp` is midnight UTC of the day it was sent.
 - **Agent data:** No prompts, model outputs, agent thoughts, or credentials.
 - **Error messages:** Investigation errors are classified into a fixed enum class (`error_class`) inside the service; the error message text is discarded and never sent.
 - **Hostnames or machine identifiers:** No hostnames or machine names.
@@ -136,7 +148,8 @@ Every event sent when telemetry is enabled carries a common platform block, plus
 | --- | --- | --- |
 | `distinct_id` | UUID string | The workspace install ID. |
 | `app_version` | string | Current PrismaLens version (e.g. `0.5.1`). |
-| `run_mode` | `npm` | How the instance was launched. |
+| `run_mode` | `npm` \| `electron` | How it was launched: npm, or the desktop app. |
+| `build` | `release` \| `dev` | A release build, or a development build. |
 | `placement` | `laptop` \| `server` | Machine kind (resolved from `PRISMALENS_PLACEMENT` or `CI`). |
 | `os` | `aix` \| `darwin` \| `freebsd` \| `linux` \| `openbsd` \| `sunos` \| `win32` | Operating system platform (`process.platform`). |
 | `arch` | `arm` \| `arm64` \| `ia32` \| `loong64` \| `mips` \| `mipsel` \| `ppc` \| `ppc64` \| `riscv64` \| `s390` \| `s390x` \| `x64` | CPU architecture (`process.arch`). |
@@ -159,6 +172,7 @@ Every event sent when telemetry is enabled carries a common platform block, plus
 | `report_viewed` | An investigation report was viewed in the dashboard (deduplicated per run). | _none_ | `{}` |
 | `report_exported` | A report was exported or delivered. | `target` | `markdown`, `slack`, `github` |
 | `incident_closed` | A resolved incident was marked closed. | _none_ | `{}` |
+| `install_active` | This install is running with sharing on (at most once per UTC day). | _none_ | `{}` |
 
 
 ## Credentials
