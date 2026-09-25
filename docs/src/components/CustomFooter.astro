@@ -9,6 +9,11 @@ import Default from '@astrojs/starlight/components/Footer.astro'
   <a href="https://github.com/prismalens/prismalens/blob/main/LICENSE">Apache-2.0</a>.
 </p>
 
+<script>
+  import { initAnalytics } from '../scripts/analytics'
+  initAnalytics()
+</script>
+
 <style>
   .docs-license {
     margin-top: 1.5rem;
