@@ -47,7 +47,11 @@ Pass options after `sh -s --`, for example
 `curl -fsSL https://prismalens.io/install.sh | sh -s -- --version 0.5.1`.
 
 </TabItem>
-<TabItem label="Windows">
+<TabItem label="Windows (preview)">
+
+Native Windows is a preview: it installs and runs, and CI checks it on every
+change, but expect rough edges. WSL2 with the macOS and Linux installer is the
+supported path on Windows.
 
 No Node needed. The installer brings its own. In PowerShell:
 
@@ -72,7 +76,7 @@ brew install prismalens/tap/prismalens
 ```
 
 </TabItem>
-<TabItem label="Scoop">
+<TabItem label="Scoop (preview)">
 
 ```powershell
 scoop bucket add prismalens https://github.com/prismalens/scoop-bucket
