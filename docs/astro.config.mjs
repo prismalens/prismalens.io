@@ -38,6 +38,7 @@ export default defineConfig({
 			components: {
 				Header: './src/components/CustomHeader.astro',
 				Footer: './src/components/CustomFooter.astro',
+				Banner: './src/components/AlphaBanner.astro',
 			},
 			social: [{ icon: 'github', label: 'GitHub', href: 'https://github.com/prismalens/prismalens' }],
 			editLink: {

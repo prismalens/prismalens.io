@@ -1,0 +1,53 @@
+name: publish-docs
+
+# docs.prismalens.io deploys from `live`, not `main` (prismalens/prismalens#713).
+# When npm `latest` moves to a version without a `docs-v<version>` tag, `live`
+# fast-forwards to `main` and is tagged, so docs merged ahead of a release go live with it.
+on:
+  schedule:
+    - cron: '7,22,37,52 * * * *'
+  workflow_dispatch:
+    inputs:
+      force:
+        description: 'Publish main to live now, without a new release'
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: publish-docs
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: Publish docs for npm latest
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Fast-forward live to main
+        env:
+          FORCE: ${{ inputs.force }}
+        run: |
+          version="$(npm view prismalens version)"
+          tag="docs-v${version}"
+          if git rev-parse -q --verify "refs/tags/${tag}" >/dev/null && [ "${FORCE}" != "true" ]; then
+            echo "live already carries the docs for ${version}"
+            exit 0
+          fi
+          if ! git merge-base --is-ancestor origin/live HEAD; then
+            echo "::error::live has commits main lacks; it only ever fast-forwards to main"
+            exit 1
+          fi
+          git push origin HEAD:refs/heads/live
+          if ! git rev-parse -q --verify "refs/tags/${tag}" >/dev/null; then
+            git tag "${tag}" HEAD
+            git push origin "${tag}"
+          fi
+          echo "live -> $(git rev-parse --short HEAD) for prismalens ${version}" >> "$GITHUB_STEP_SUMMARY"
