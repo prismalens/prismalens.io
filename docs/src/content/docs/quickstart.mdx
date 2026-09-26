@@ -99,18 +99,19 @@ have run one investigation against real code and read its report.
 
 7. **Run the investigation**
 
-   On the incident, click **Investigate**, then open the **Investigation** tab.
-   You watch the agent read files and run commands as it goes. Most runs take a
-   few minutes, and none can run longer than 15.
+   On the incident, click **Investigate**. The run streams on the incident
+   itself: you watch the agent read files and run commands as it goes. Most
+   runs take a few minutes, and none can run longer than 15.
 
-   When it finishes, the report appears on the same tab: **Root Cause
-   Analysis**, **Hypotheses**, **Ruled Out**, **Coverage** and **Next steps**.
-   See [Reading the report](/guides/reports/).
+   When it finishes, the incident shows the **Report** and its **Evidence**:
+   the root cause, the ranked hypotheses, what was ruled out, what the agent
+   did and did not query, and next steps. See
+   [Reading the report](/guides/reports/).
 
 </Steps>
 
 <Aside type="note" title="If the run fails">
-The Investigation tab shows **Investigation failed**, the error, the agent's
+The incident shows **Investigation failed**, the error, the agent's
 last events, and the path of the raw transcript, such as
 `~/.prismalens/runs/<id>/transcript.jsonl`. The most common causes are an agent
 that is not signed in and a repository git could not clone. `pl doctor` and the

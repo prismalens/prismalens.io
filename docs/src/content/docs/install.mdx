@@ -128,6 +128,11 @@ shows a notification. Neither sends anything about you: both ask GitHub which
 release is newest, the same request a browser makes.
 `PRISMALENS_UPDATE_CHECK=off` or `DO_NOT_TRACK=1` turns that off.
 
+**Settings → About** shows the same from the app: the version, how it was
+installed, the workspace, the last database backup, whether a newer version
+is out, and this install's upgrade command with a copy button. **Settings**
+in the sidebar shows a dot while an update is available.
+
 Your database upgrades itself the first time the new version runs `pl up`.
 Before migrating, it copies the database to `prismalens.db.bak-<time>` in your
 workspace.
@@ -172,7 +177,8 @@ switching back doesn't need a download.
 
 Uninstalling removes the program and leaves your workspace
 (`~/.prismalens`: database, secrets, logs). To delete the workspace as well,
-run `pl reset` first.
+run `pl reset` first. **Settings → Danger zone** shows the uninstall command
+for the way this copy was installed.
 
 | Installed with | Uninstall |
 | --- | --- |

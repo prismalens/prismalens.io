@@ -128,7 +128,6 @@ Every event sent when telemetry is enabled carries a common platform block, plus
 | `app_version` | string | Current PrismaLens version (e.g. `0.5.1`). |
 | `run_mode` | `npm` \| `installer` \| `homebrew` \| `scoop` \| `electron` | How it was installed: npm, the installer, Homebrew, Scoop or the desktop app. |
 | `build` | `release` \| `dev` | A release build, or a development build. |
-| `placement` | `laptop` \| `server` | Machine kind (resolved from `PRISMALENS_PLACEMENT` or `CI`). |
 | `os` | `aix` \| `darwin` \| `freebsd` \| `linux` \| `openbsd` \| `sunos` \| `win32` | Operating system platform (`process.platform`). |
 | `arch` | `arm` \| `arm64` \| `ia32` \| `loong64` \| `mips` \| `mipsel` \| `ppc` \| `ppc64` \| `riscv64` \| `s390` \| `s390x` \| `x64` | CPU architecture (`process.arch`). |
 | `node_major` | integer | Node.js major version (e.g. `22`). |

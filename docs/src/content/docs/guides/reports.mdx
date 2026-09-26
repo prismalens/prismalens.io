@@ -3,8 +3,8 @@ title: Reading the report
 description: What each part of an investigation report means, why hypotheses are ranked instead of scored, and how to check one quickly.
 ---
 
-When an investigation finishes, its report appears on the incident's
-**Investigation** tab. This page explains each part and how to use it.
+When an investigation finishes, its report appears on the incident, under
+**Report** and **Evidence**. This page explains each part and how to use it.
 
 ## Treat it as a lead
 
@@ -56,7 +56,7 @@ and the evidence. This tells you which paths are already walked.
 on the second list is not an all-clear, it was never looked at.
 
 **Next steps.** Concrete checks to confirm the top hypothesis or dig further.
-They also appear on the incident's **Recommendations** tab, where you can mark
+They also appear under the incident's **Recommendations**, where you can mark
 them done or dismiss them.
 
 **Content tried to instruct the agent.** Shown only when it happened: text in
@@ -82,6 +82,14 @@ with a command is always marked **inferred**, never verified.
 2. Open its first supporting piece of evidence and run the same command, or open the same file, yourself.
 3. Look at **Ruled out** before you chase the second hypothesis. The agent may already have been there.
 4. If the report is wrong, scroll the event ledger above it to see where the reasoning went off. Every tool call is recorded.
+
+## Sharing it
+
+**Export** in the report header downloads the report as Markdown,
+`INC-<n>-report.md`, ending with the `Run:` line. **Post to GitHub** posts the
+same Markdown as a comment on an issue or pull request: paste its
+`https://github.com/<owner>/<repo>/issues/<n>` or `/pull/<n>` URL. It needs a
+GitHub connection under **Settings → Connections**.
 
 ## After you close it
 
