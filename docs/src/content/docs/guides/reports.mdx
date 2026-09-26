@@ -63,10 +63,13 @@ them done or dismiss them.
 the alert or in command output that tried to give the agent orders, such as
 "ignore previous instructions", quoted with where it was found.
 
-**Fidelity.** What the run actually had: the coding agent and its version, the
-model and where it came from (your setting, the product default, or the
-agent's own), and the read-only mechanism with how far it holds, such as
-`cooperative`. See [The read-only policy](/trust/#the-read-only-policy).
+**Run.** The chip in the report's header names the coding agent and its
+version. Hover it for the model and where it came from (your setting, the
+product default, or the agent's own). When the agent reports running a
+different model from the one asked for, the chip says **model substituted**
+and the tooltip names the model that ran. The export's `Run:` line says the
+same. The chip makes no claim about what the agent could write: it runs with
+its own permissions (see [The read-only policy](/trust/#the-read-only-policy)).
 
 **Facts PrismaLens supplied.** Before a run, PrismaLens gives the agent what it
 already knows: changes in the alert's window, the service's neighbours, and

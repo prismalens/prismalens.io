@@ -13,7 +13,7 @@ agent can reach, what PrismaLens does to limit it, and where those limits stop.
 - The agent works in a **copy** of your repository, never in your checkout.
 - PrismaLens **refuses** the agent's edits, deletes and known mutating commands. That is a guardrail, not a wall.
 - The agent **cannot fetch URLs**. OpenCode also cannot web-search or read outside the snapshot.
-- Runs are **not sandboxed**. Nothing at the operating-system level blocks a write or a network call; the report names the mechanism a run had.
+- Runs are **not sandboxed**. Nothing at the operating-system level blocks a write or a network call.
 - PrismaLens sends **no usage data** unless you opt in. An update check queries GitHub Releases without an identifier. Your agent sends your code and the alert to **its** model provider.
 - PrismaLens **never** reads or stores your agent's login.
 - Everything PrismaLens keeps is in **one folder**, `~/.prismalens`.
