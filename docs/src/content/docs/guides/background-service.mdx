@@ -1,0 +1,82 @@
+---
+title: Run in the background
+description: Keep PrismaLens running as a service for your user on Linux or macOS, so alerts arrive and investigations run with no terminal open.
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+`pl up` runs until you stop it. To keep PrismaLens running without a terminal,
+install it as a service for your user. It runs on systemd on Linux and launchd
+on macOS, starts when you log in, and restarts if it crashes.
+
+## Install
+
+```text
+$ pl service install --port 3001
+◐ Starting PrismaLens on port 3001…
+✔ PrismaLens runs in the background on http://localhost:3001, and starts again when you log in.
+ℹ Open this in this machine's browser within 15 minutes (it works once):
+
+  http://localhost:3001/pair#YEzh…
+
+Later, `pl pair --operator` prints another.
+```
+
+The service runs `pl up --no-open` with the flags you give it: `--port`,
+`--host` and `--workspace`. It uses the `PATH` of the shell you installed it
+from, so it finds the same coding agents `pl doctor` finds. Settings you have
+exported (`PRISMALENS_ALLOWED_HOSTS`, `PRISMALENS_PUBLIC_URL`,
+`PRISMALENS_TELEMETRY`, `PRISMALENS_UPDATE_CHECK`) go into the service too.
+Secrets never do.
+
+Running `pl service install` again replaces the service. If you have installed
+a new coding agent, or want other flags, run it again.
+
+<Aside type="note">
+On Linux the service stops when you log out and doesn't start at boot unless
+lingering is on. `pl service install` tells you when it's off. Turn it on with
+`sudo loginctl enable-linger "$(id -un)"`.
+</Aside>
+
+## Check it
+
+```text
+$ pl service status
+Unit:      /home/you/.config/systemd/user/prismalens.service
+Workspace: /home/you/.prismalens
+Port:      3001
+Running:   yes (pid 20400)
+Log:       /home/you/.prismalens/logs/service.log
+```
+
+`pl doctor` shows the service on its **Background service** line. While the
+service holds the workspace, a `pl up` on the same workspace is refused and
+points you to `pl service status`. The desktop app attaches to the running
+service instead of starting a second one.
+
+## Restart, upgrade, remove
+
+| To | Run |
+| --- | --- |
+| Restart it | `pl service restart` |
+| Upgrade | `pl upgrade`. It stops the service, upgrades, and starts it again on the new version. |
+| Remove it | `pl service uninstall`. Your workspace and its data stay. |
+
+Uninstalling PrismaLens with the installer (`install.sh --uninstall`) removes
+the service first. With npm, Homebrew or Scoop, run `pl service uninstall`
+before you uninstall. Settings → Danger zone shows the combined command.
+
+## Where it doesn't run
+
+- **Windows:** use the desktop app and turn on **Start at login** in its tray menu.
+- **WSL:** it needs systemd. Add this to `/etc/wsl.conf`, then run
+  `wsl --shutdown` from Windows:
+
+  ```ini
+  [boot]
+  systemd=true
+  ```
+
+A machine that sleeps still misses webhooks while it's asleep. When it wakes,
+PrismaLens catches up from Alertmanager and Prometheus. See
+[Sending alerts](/guides/alerts/).
