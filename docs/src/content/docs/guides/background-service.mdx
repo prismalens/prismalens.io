@@ -77,6 +77,6 @@ before you uninstall. Settings → Danger zone shows the combined command.
   systemd=true
   ```
 
-A machine that sleeps still misses webhooks while it's asleep. When it wakes,
-PrismaLens catches up from Alertmanager and Prometheus. See
-[Sending alerts](/guides/alerts/).
+A machine that sleeps still misses webhooks while it's asleep. After it wakes,
+use **Pull and catch up** to fetch what Alertmanager and Prometheus saw in the
+meantime. See [Sending alerts](/guides/alerts/).
