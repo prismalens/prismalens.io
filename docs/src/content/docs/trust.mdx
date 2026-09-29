@@ -13,7 +13,7 @@ agent can reach, what PrismaLens does to limit it, and where those limits stop.
 - The agent works in a **copy** of your repository, never in your checkout.
 - PrismaLens **refuses** the agent's edits, deletes and known mutating commands. That is a guardrail, not a wall.
 - The agent **cannot fetch URLs**. OpenCode also cannot web-search or read outside the snapshot.
-- Runs are **not sandboxed**. Nothing at the operating-system level blocks a write or a network call; the report names the mechanism a run had.
+- Runs are **not sandboxed**. Nothing at the operating-system level blocks a write or a network call.
 - PrismaLens sends **no usage data** unless you opt in. An update check queries GitHub Releases without an identifier. Your agent sends your code and the alert to **its** model provider.
 - PrismaLens **never** reads or stores your agent's login.
 - Everything PrismaLens keeps is in **one folder**, `~/.prismalens`.
@@ -128,7 +128,6 @@ Every event sent when telemetry is enabled carries a common platform block, plus
 | `app_version` | string | Current PrismaLens version (e.g. `0.5.1`). |
 | `run_mode` | `npm` \| `installer` \| `homebrew` \| `scoop` \| `electron` | How it was installed: npm, the installer, Homebrew, Scoop or the desktop app. |
 | `build` | `release` \| `dev` | A release build, or a development build. |
-| `placement` | `laptop` \| `server` | Machine kind (resolved from `PRISMALENS_PLACEMENT` or `CI`). |
 | `os` | `aix` \| `darwin` \| `freebsd` \| `linux` \| `openbsd` \| `sunos` \| `win32` | Operating system platform (`process.platform`). |
 | `arch` | `arm` \| `arm64` \| `ia32` \| `loong64` \| `mips` \| `mipsel` \| `ppc` \| `ppc64` \| `riscv64` \| `s390` \| `s390x` \| `x64` | CPU architecture (`process.arch`). |
 | `node_major` | integer | Node.js major version (e.g. `22`). |
