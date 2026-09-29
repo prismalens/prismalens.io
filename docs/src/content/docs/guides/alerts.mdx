@@ -25,6 +25,10 @@ What happens then:
   why and where to change it.
 - A **resolved** alert resolves its alert, and resolves the incident once none
   of its alerts are still firing.
+- An alert that fires again within 15 minutes of resolving
+  (`PRISMALENS_ALERT_FLAP_WINDOW_MINUTES`) is the same alert, not a new one. It
+  reopens its incident, the **Timeline** says it refired, and its next
+  resolution resolves the incident again. A reopen starts no new investigation.
 
 ### When a resolved notification never arrives
 
