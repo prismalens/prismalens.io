@@ -31,7 +31,7 @@ terminal. PrismaLens drives it; it does not make it safe. See
 ## How PrismaLens chooses
 
 1. `PRISMALENS_HARNESS`, if you set it when starting `pl up`. For example `PRISMALENS_HARNESS=claude-code pl up`.
-2. Otherwise the agent chosen under **Harness** in **Settings → Harness**.
+2. Otherwise the agent chosen in **Settings → Agent**.
 3. Otherwise the first agent in the table above that is on your `PATH`.
 
 If none of these finds an agent, Settings says **No investigation agent is
@@ -54,7 +54,7 @@ $ pl doctor
 is signed in: some agents only check that when the first investigation starts.
 The other results are `sign in needed`, `no answer in 10s` and
 `failed to start`, each with the agent's own message.
-**Settings → Harness → Check readiness** runs the same check from the app.
+**Settings → Agent → Check readiness** runs the same check from the app.
 
 The agent does not inherit your whole environment. See
 [Credentials](/trust/#credentials).
@@ -62,7 +62,7 @@ The agent does not inherit your whole environment. See
 ## Choosing a model
 
 Each agent has its own default model. To use a different one, click the model
-next to the agent picker, under the composer or in **Settings → Harness**, and
+next to the agent picker, under the composer or in **Settings → Agent**, and
 type an id in that agent's own format. It is sent exactly as typed, and it is
 kept per agent: a model you set for Claude Code never reaches OpenCode.
 
@@ -73,7 +73,7 @@ as typed"), never refused.
 
 Codex, Gemini CLI and deepagents take no model setting. A model stored for one
 of them stops the next run before it starts, with the reason in **Settings →
-Harness** and on the Investigate button. For those agents the model pill offers
+Agent** and on the Investigate button. For those agents the model pill offers
 only **Clear model**.
 
 Upgrading from 0.5.0 drops the single shared model setting. Enter the model
