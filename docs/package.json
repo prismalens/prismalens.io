@@ -10,14 +10,14 @@
     "astro": "astro"
   },
   "dependencies": {
-    "@astrojs/starlight": "^0.37.6",
+    "@astrojs/starlight": "^0.42.4",
     "@astrojs/starlight-tailwind": "^4.0.2",
     "@fontsource-variable/ibm-plex-sans": "^5.3.0",
     "@fontsource/ibm-plex-mono": "^5.3.0",
-    "@tailwindcss/vite": "^4.1.18",
+    "@tailwindcss/vite": "^4.3.3",
     "astro": "^5.6.1",
-    "posthog-js": "^1.434.13",
-    "sharp": "^0.34.2",
-    "tailwindcss": "^4.1.18"
+    "posthog-js": "^1.434.14",
+    "sharp": "^0.35.4",
+    "tailwindcss": "^4.3.3"
   }
 }
