@@ -25,6 +25,35 @@ What happens then:
   why and where to change it.
 - A **resolved** alert resolves its alert, and resolves the incident once none
   of its alerts are still firing.
+- An alert that fires again within 15 minutes of resolving
+  (`PRISMALENS_ALERT_FLAP_WINDOW_MINUTES`) is the same alert, not a new one. It
+  reopens its incident, the **Timeline** says it refired, and its next
+  resolution resolves the incident again. A reopen starts no new investigation.
+
+### When a resolved notification never arrives
+
+Alertmanager sends **resolved** once. If PrismaLens was off or asleep at that
+moment, it never gets it. With an Alertmanager connection (**Settings →
+Integrations**), PrismaLens asks Alertmanager which alerts it still holds each
+time it starts and after each webhook. An alert that a connected Alertmanager
+listed before and no connected Alertmanager lists now is resolved, and so is
+its incident once nothing on it is still firing. It happens only when:
+
+- every connected Alertmanager answered, and each has been running for at
+  least 10 minutes (a restarted Alertmanager holds nothing until Prometheus
+  sends its alerts again);
+- Prometheus catch-up, if connected, does not show the alert still firing.
+
+An alert only a different Alertmanager ever sent is never resolved this way.
+The incident's timeline says why it resolved, and the log shows the count:
+
+```
+Boot pull: 2 source(s), 3 received, 0 new, 1 caught up, 1 resolved by absence, 0 error(s)
+```
+
+```
+Status changed from open to resolved: no connected Alertmanager still lists HighLatency (4f1c2a9e0d3b7c61); no resolved notification was received
+```
 
 ## The webhook token
 
