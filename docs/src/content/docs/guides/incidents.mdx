@@ -1,0 +1,160 @@
+---
+title: Working an incident
+description: The board, the incident page and the conversation with the agent. What starts an investigation, where a message goes, how to stop one, and how to reopen an incident.
+---
+
+This page follows one incident from the board to a finished investigation. It covers
+what each screen shows, what starts an investigation, where your text goes,
+and how to stop or reopen.
+
+## The three screens
+
+**The board** is what **Incidents** opens on. It has four columns:
+
+| Column | What sits there |
+| --- | --- |
+| Needs you | Something waits on a person: an alert nobody acknowledged, an investigation that failed, or a resolved incident waiting to be closed. |
+| Working | An agent is investigating right now. |
+| Concluded | Open, with nothing running and nothing waiting on you. |
+| Resolved | Closed. |
+
+The sidebar lists every incident, grouped by service. An incident appears
+under its own service, or under its first alert's service when it has none.
+Closed incidents wait in **Settled** at the bottom, folded until you open it.
+Alerts and Settings are the icons at the foot of the sidebar. The button at
+the top left, or **[**, hides the sidebar and brings it back.
+
+**The incident page** opens when you pick one. Under the title bar is a row
+of tabs: **Overview**, **Conversation**, **Report**, **Alerts** and
+**Timeline**. The right end of that row says what the latest investigation is
+doing.
+
+**Overview** opens with a few sentences: how many alerts are firing and since
+when, what the last investigation concluded or why it failed, and whether it
+could read the service's code. A **Next** line names the one thing to do now.
+Below are cards: Needs you (only when something does), Investigation,
+Conclusion (once one exists), Alerts, Timeline and Details. On a wide window
+they sit in two columns. A card shows its first few rows; its link opens the
+matching tab. **Esc** walks back a level: from a tab to Overview, from Overview
+to the board.
+
+**Alerts** groups alerts by the rule that raised them, with how many are still
+firing and when the first and last fired. **Timeline** shows one line per
+entry, and one line per investigation; open that line to see what it wrote.
+**Report** is dimmed until an investigation writes one.
+
+**The conversation** shows the agent's messages, its tool calls grouped into
+one line each, and the box to write to it. **Ledger** in its header switches to
+the row-per-event view. Each press of **Investigate** starts a new
+investigation; the Investigation card lists the incident's others, and each
+opens in the Conversation tab.
+
+An investigation that fails says why in plain words, and whether anything is
+wrong with your setup. One that ran without a repository says so: the agent
+read no code, so treat its findings as a guess about logs and alerts only.
+
+## The incident's status and the investigation's state are different things
+
+The title bar shows the incident's status: Triggered, Investigating,
+Identified, Monitoring, Resolved, Closed. That is where the incident is in its
+life, and a person sets it.
+
+The right end of the tab row shows what the agent is doing:
+
+| State | Meaning |
+| --- | --- |
+| Starting | The agent is being started in a fresh copy of the service's code. |
+| Working | Events are arriving. The strip names the current step and the time since it started. |
+| Stopping | You asked it to stop and it has not stopped yet. |
+| Stopped by you | You stopped it. It is not a failure. |
+| Failed | The investigation ended with an error, shown on the Investigation card with the path to its transcript. |
+| Done | The investigation finished and wrote a report. |
+
+An incident can read **Investigating** while no agent runs. The strip is what
+tells you whether one is working. When no step has arrived for 90 seconds, the
+strip says how long it has been, for example `no step for 2m 10s`.
+
+## Who reads what you type
+
+There are three places to type, and each has one reader:
+
+| You write | Where | Who reads it |
+| --- | --- | --- |
+| Context for an investigation | The box, before an investigation starts | The agent, at the end of its first instructions |
+| A message | The box, while an investigation is live | The running agent, in the same session |
+| A note | The Timeline card | People only. No agent ever reads the timeline. |
+
+Nothing you type starts an investigation on its own. Only **Investigate** does: the
+button in the title bar, the one in the box, or dropping a card on **Working**.
+
+While an investigation is live, the box offers two ways to send:
+
+- **Enter**, or the send arrow, queues the message. The agent reads it when its
+  current turn ends. Today one turn is the whole investigation, so a queued
+  message is answered just before the report.
+- **Ctrl+Enter** (**Cmd+Enter** on macOS), or **Send now**, sends it now. The
+  agent stops the step it is on and reads your message straight away. Anything
+  that step had started is lost.
+- **Shift+Enter** starts a new line.
+
+Before an investigation starts, and after it ends, Enter and Ctrl+Enter both start one.
+
+Your message shows **Queued**, then **Delivered**, then **Answered**. If the
+investigation ends before the message reaches it, it shows **Not delivered** and offers
+**Save as note**. A message sent while the investigation is still waiting for its
+agent to start is refused too, with "The run has not started yet; try again shortly."
+The API answers both refusals with `409 Conflict`.
+
+Here is a live incident with one queued message, as the conversation shows it:
+
+```
+INC-12  p99 latency on checkout-api above 1.2s for 10m       Investigating   41m ago
+Working  Claude Code  Opus 5.5  read src/cache/stampede.ts   4m 12s          Stop
+
+You  14:27                                                           Delivered
+Focus on the cache layer; the TTL changed this morning.
+Ran 3 tools  read 2 files, searched 1 pattern
+The p99 rise starts at 14:02, two minutes after deploy 9f3c1a.
+You  14:31                                                           Queued
+Check the deploy at 13:58 first; the TTL change shipped in that one.
+Thinking 12s
+```
+
+## Stopping an investigation
+
+**Stop** sits at the right end of the tab row whenever an investigation is live. It asks first. The agent
+stops at its current step, and everything it found so far stays in the
+conversation. The strip then reads **Stopped by you**, and the timeline gets
+**Investigation stopped**. A stopped investigation does not put the incident in
+**Needs you**.
+
+## After an investigation ends
+
+A finished investigation cannot be asked anything more: its session is closed. The box
+switches to starting a new investigation, and what you type there is context for that
+investigation. **Investigate** works on any incident, resolved and closed ones
+included. Investigating a resolved or closed incident does not change its
+status.
+
+## Reopening
+
+A resolved incident can be reopened from the title bar's **…** menu, or by
+dropping its card on **Concluded**. It goes back to Investigating and its
+resolve time is cleared. The next resolve sets a new one. Reopening does not
+start an investigation. A closed incident stays closed; you can still
+investigate it again.
+
+## Dragging cards on the board
+
+A drop does the one thing its column means, and asks first when that thing
+costs something:
+
+| Drop on | Does |
+| --- | --- |
+| Working | Opens a small form to pick the agent and add context, then Investigate. |
+| Concluded | From Working: stops the investigation. From a resolved incident: reopens it. |
+| Resolved | Resolves the incident, after asking, and offers to stop a live investigation first. The card then waits in Needs you until someone closes it. |
+| Needs you | Nothing. That column fills itself. |
+
+The same actions have buttons on the incident page. The board does not drag
+on a phone.
