@@ -27,15 +27,31 @@ the top left, or **[**, hides the sidebar and brings it back.
 **The incident page** opens when you pick one. Under the title bar is a row
 of tabs: **Overview**, **Conversation**, **Report**, **Alerts** and
 **Timeline**. The right end of that row says what the latest investigation is
-doing. Overview is a stack of cards: Investigation, Conclusion, Needs you (only
-when something does), Alerts, Timeline and Details. A card shows its first few
-rows; its link opens the matching tab. **Esc** goes back to Overview.
+doing.
+
+**Overview** opens with a few sentences: how many alerts are firing and since
+when, what the last investigation concluded or why it failed, and whether it
+could read the service's code. A **Next** line names the one thing to do now.
+Below are cards: Needs you (only when something does), Investigation,
+Conclusion (once one exists), Alerts, Timeline and Details. On a wide window
+they sit in two columns. A card shows its first few rows; its link opens the
+matching tab. **Esc** walks back a level: from a tab to Overview, from Overview
+to the board.
+
+**Alerts** groups alerts by the rule that raised them, with how many are still
+firing and when the first and last fired. **Timeline** shows one line per
+entry, and one line per investigation; open that line to see what it wrote.
+**Report** is dimmed until an investigation writes one.
 
 **The conversation** shows the agent's messages, its tool calls grouped into
 one line each, and the box to write to it. **Ledger** in its header switches to
 the row-per-event view. Each press of **Investigate** starts a new
 investigation; the Investigation card lists the incident's others, and each
 opens in the Conversation tab.
+
+An investigation that fails says why in plain words, and whether anything is
+wrong with your setup. One that ran without a repository says so: the agent
+read no code, so treat its findings as a guess about logs and alerts only.
 
 ## The incident's status and the investigation's state are different things
 
