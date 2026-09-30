@@ -11,18 +11,25 @@ editor does.
 
 ## Supported agents
 
-| Agent | Command PrismaLens looks for | Install | Tested with |
-| --- | --- | --- | --- |
-| OpenCode | `opencode` | `curl -fsSL https://opencode.ai/install \| bash` or `npm i -g opencode-ai` | 1.18.30 |
-| Claude Code | `claude-agent-acp` | `npm i -g @agentclientprotocol/claude-agent-acp` | 0.81.1 |
-| Codex | `codex-acp` | `npm i -g @agentclientprotocol/codex-acp` | 1.13.1 |
-| Gemini CLI | `gemini` | `npm i -g @google/gemini-cli` | — |
-| deepagents | `dcode` | `uv tool install -U deepagents-code --with deepagents-acp` | 0.1.75 |
+| Agent | Command PrismaLens looks for | Install | Tested with | Continue a finished run |
+| --- | --- | --- | --- | --- |
+| OpenCode | `opencode` | `curl -fsSL https://opencode.ai/install \| bash` or `npm i -g opencode-ai` | 1.18.30 | Yes |
+| Claude Code | `claude-agent-acp` | `npm i -g @agentclientprotocol/claude-agent-acp` | 0.81.1 | Yes |
+| Codex | `codex-acp` | `npm i -g @agentclientprotocol/codex-acp` | 1.13.1 | Yes |
+| Gemini CLI | `gemini` | `npm i -g @google/gemini-cli` | — | Yes |
+| deepagents | `dcode` | `uv tool install -U deepagents-code --with deepagents-acp` | 0.1.75 | Not yet |
 
 **Tested with** is the version that completed an unattended investigation in
 PrismaLens's CI: it started in the right folder, finished on its own and
 returned a valid report. A dash means no such run yet; the agent is still
 supported and selectable.
+
+**Continue a finished run** means a message typed under a finished
+investigation reopens the same agent session: the agent keeps its whole
+conversation, and its code is rebuilt at the commits the run read. The answer
+appears in the conversation; the report, the incident and any Slack or GitHub
+delivery stay as they were. With an agent marked **Not yet**, the box starts a
+new investigation instead and says why.
 
 Each agent runs with its own behaviour and permissions, as it would in your
 terminal. PrismaLens drives it; it does not make it safe. See
