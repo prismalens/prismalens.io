@@ -81,7 +81,7 @@ There are three places to type, and each has one reader:
 | You write | Where | Who reads it |
 | --- | --- | --- |
 | Context for an investigation | The box, before an investigation starts | The agent, at the end of its first instructions |
-| A message | The box, while an investigation is live | The investigationning agent, in the same session |
+| A message | The box, while an investigation is live | The running agent, in the same session |
 | A note | The Timeline card | People only. No agent ever reads the timeline. |
 
 Nothing you type starts an investigation on its own. Only **Investigate** does: the
@@ -89,15 +89,21 @@ button in the title bar, the one in the box, or dropping a card on **Working**.
 
 While an investigation is live, the box offers two ways to send:
 
-- **Enter** queues the message. The agent reads it when its current turn ends.
-  Today one turn is the whole investigation, so a queued message is answered
-  just before the report.
-- **Ctrl+Enter** sends it now. The agent stops the step it is on and reads
-  your message straight away. Anything that step had started is lost.
+- **Enter**, or the send arrow, queues the message. The agent reads it when its
+  current turn ends. Today one turn is the whole investigation, so a queued
+  message is answered just before the report.
+- **Ctrl+Enter** (**Cmd+Enter** on macOS), or **Send now**, sends it now. The
+  agent stops the step it is on and reads your message straight away. Anything
+  that step had started is lost.
+- **Shift+Enter** starts a new line.
+
+Before an investigation starts, and after it ends, Enter and Ctrl+Enter both start one.
 
 Your message shows **Queued**, then **Delivered**, then **Answered**. If the
 investigation ends before the message reaches it, it shows **Not delivered** and offers
-**Save as note**.
+**Save as note**. A message sent while the investigation is still waiting for its
+agent to start is refused too, with "The run has not started yet; try again shortly."
+The API answers both refusals with `409 Conflict`.
 
 Here is a live incident with one queued message, as the conversation shows it:
 
