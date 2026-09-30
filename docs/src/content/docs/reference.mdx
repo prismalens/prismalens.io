@@ -90,7 +90,9 @@ Flags on `pl up` set `PRISMALENS_PORT`, `PRISMALENS_HOST`, `PRISMALENS_WORKSPACE
 
 - Runs on macOS, Linux and WSL2. Native Windows is a preview: it installs and runs, and CI checks it on every change, but expect rough edges.
 - One `pl up` per workspace folder. A second one on the same folder refuses to start and names the process holding it.
-- Every run keeps its transcript under `runs/<id>/`. The repository clone is deleted when the run ends; delete old transcripts by hand when you need the space.
+- Every run keeps its transcript under `runs/<id>/`. The repository clone is deleted when the run ends, or at the next start if PrismaLens stopped mid-run; delete old transcripts by hand when you need the space.
+- A message to a running agent waits for the end of its turn unless you send it now, and today a turn is the whole run. A finished run cannot be asked anything more; start a new one with context instead.
+- Sub-agents that a coding agent starts on its own cannot be messaged. The agent and model of a run cannot change once it has started.
 - Installing needs a prebuilt `better-sqlite3` for your platform, or Python 3 and a C++ toolchain to build it.
 
 ## Troubleshooting
