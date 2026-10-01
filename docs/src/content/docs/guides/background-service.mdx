@@ -5,29 +5,32 @@ description: Keep PrismaLens running as a service for your user on Linux or macO
 
 import { Aside } from '@astrojs/starlight/components';
 
-`pl up` runs until you stop it. To keep PrismaLens running without a terminal,
-install it as a service for your user. It runs on systemd on Linux and launchd
-on macOS, starts when you log in, and restarts if it crashes.
+`pl up` runs until you stop it. On Linux and macOS, a foreground `pl up`
+suggests `pl service install` for a machine that should always be on. To keep
+PrismaLens running without a terminal, install it as a service for your user.
+It runs on systemd on Linux and launchd on macOS, starts when you log in, and
+restarts if it crashes.
 
 ## Install
 
 ```text
-$ pl service install --port 3001
-◐ Starting PrismaLens on port 3001…
-✔ PrismaLens runs in the background on http://localhost:3001, and starts again when you log in.
+$ pl service install --port 6473
+◐ Starting PrismaLens on port 6473…
+✔ PrismaLens runs in the background on http://localhost:6473, and starts again when you log in.
 ℹ Open this in this machine's browser within 15 minutes (it works once):
 
-  http://localhost:3001/pair#YEzh…
+  http://localhost:6473/pair#YEzh…
 
 Later, `pl pair --operator` prints another.
 ```
 
 The service runs `pl up --no-open` with the flags you give it: `--port`,
-`--host` and `--workspace`. It uses the `PATH` of the shell you installed it
-from, so it finds the same coding agents `pl doctor` finds. Settings you have
-exported (`PRISMALENS_ALLOWED_HOSTS`, `PRISMALENS_PUBLIC_URL`,
-`PRISMALENS_TELEMETRY`, `PRISMALENS_UPDATE_CHECK`) go into the service too.
-Secrets never do.
+`--host` and `--workspace`. A new workspace serves on port 6473. The port lives in `<workspace>/instance.json`;
+`--port` or `PRISMALENS_PORT` overrides it for one run. It uses the `PATH` of
+the shell you installed it from, so it finds the same coding agents `pl doctor`
+finds. Settings you have exported (`PRISMALENS_ALLOWED_HOSTS`,
+`PRISMALENS_PUBLIC_URL`, `PRISMALENS_TELEMETRY`, `PRISMALENS_UPDATE_CHECK`) go
+into the service too. Secrets never do.
 
 Running `pl service install` again replaces the service. If you have installed
 a new coding agent, or want other flags, run it again.
@@ -44,15 +47,17 @@ lingering is on. `pl service install` tells you when it's off. Turn it on with
 $ pl service status
 Unit:      /home/you/.config/systemd/user/prismalens.service
 Workspace: /home/you/.prismalens
-Port:      3001
+Port:      6473
 Running:   yes (pid 20400)
 Log:       /home/you/.prismalens/logs/service.log
 ```
 
 `pl doctor` shows the service on its **Background service** line. While the
 service holds the workspace, a `pl up` on the same workspace is refused and
-points you to `pl service status`. The desktop app attaches to the running
-service instead of starting a second one.
+points you to `pl service status`. The desktop app attaches to a running
+PrismaLens on the workspace, else starts the installed service, else runs its
+own on the workspace's port. It shows a dialog instead of quitting when its
+PrismaLens stops.
 
 ## Restart, upgrade, remove
 
