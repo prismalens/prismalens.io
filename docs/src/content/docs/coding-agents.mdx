@@ -28,6 +28,23 @@ Each agent runs with its own behaviour and permissions, as it would in your
 terminal. PrismaLens drives it; it does not make it safe. See
 [Trust](/trust/) for what PrismaLens does and does not limit.
 
+## What an agent reads from the incident's repo
+
+An investigation runs the agent in a copy of the incident's repo. A repo can
+carry configuration for coding agents: settings, hooks, MCP servers, context
+files. That repo is input to the investigation, not something you chose to
+trust, so PrismaLens turns off what each agent lets it:
+
+| Agent | Repo configuration |
+| --- | --- |
+| Claude Code | Not loaded. Project settings and hooks stay inert (`settingSources: []`). |
+| OpenCode | Not loaded. The repo's `opencode.json` is ignored. |
+| Gemini CLI | Not loaded. The repo is an untrusted folder (`GEMINI_CLI_TRUST_WORKSPACE=false`), so `.gemini/settings.json`, `.env` files and `GEMINI.md` are ignored. |
+| deepagents | MCP servers are not started (`--no-mcp`). |
+| Codex | Loaded as in your terminal. PrismaLens turns nothing off. |
+
+Your own configuration for the agent is untouched either way.
+
 ## How PrismaLens chooses
 
 1. `PRISMALENS_HARNESS`, if you set it when starting `pl up`. For example `PRISMALENS_HARNESS=claude-code pl up`.
