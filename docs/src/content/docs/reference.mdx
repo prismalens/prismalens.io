@@ -86,6 +86,28 @@ Flags on `pl up` set `PRISMALENS_PORT`, `PRISMALENS_HOST`, `PRISMALENS_WORKSPACE
 | Webhook deliveries | 20 per second and 600 per minute. Over the limit a delivery gets `503` with `Retry-After`, which Alertmanager retries. |
 | Investigations per incident | One at a time. Investigate on an incident whose investigation is pending or running returns that investigation and starts nothing new. |
 
+## Messages to an investigation
+
+`POST /api/investigations/{id}/messages` with `{"text": "...", "mode": "queue" | "now"}`
+answers `202` with one of these states:
+
+| State | When |
+| --- | --- |
+| `queued` | The run is live; the agent reads it at its next pause. |
+| `sent` | The run is live and `mode` was `now`; the agent's current step was stopped to read it. |
+| `resumed` | The run had finished; the same agent session was reopened to answer it. |
+
+It answers `409` with one of these messages:
+
+| Message | Why |
+| --- | --- |
+| `The run ended before your message reached it.` | A live run finished while the message was on its way. |
+| `A follow-up is already running.` | Two follow-ups were sent to a finished run at once; one of them runs. |
+| `<Agent> can't reopen a finished session, so a new run starts from the report.` | The run's agent cannot continue a finished run (see [Coding agents](/coding-agents/)). |
+| `This run's agent kept no session to reopen.` | The run finished before PrismaLens kept session ids, or its agent never opened one. |
+| `<Agent> is no longer installed.` | The run's agent is not on `PATH` any more. |
+| `This run recorded no workspace.` | The run failed before its code was cloned. |
+
 ## Known limits
 
 - Runs on macOS, Linux and WSL2. Native Windows is a preview: it installs and runs, and CI checks it on every change, but expect rough edges.

@@ -180,13 +180,18 @@ Everything is under `~/.prismalens`, or the folder you pass to
 | Path | Contents |
 | --- | --- |
 | `prismalens.db` | Incidents, alerts, services, investigations, reports and their event streams |
-| `runs/<id>/repo` | The snapshot a run read, deleted when the run ends, whatever its outcome |
+| `runs/<id>/repo`, `runs/<id>/repos/` | The snapshots a run read, deleted when the run ends, whatever its outcome. A follow-up rebuilds them at the same commits and deletes them again when it ends |
 | `runs/<id>/transcript.jsonl` | Raw messages between PrismaLens and the agent, kept as a best effort |
 | `repos/` | Mirrors of repositories added by URL |
 | `logs/` | App logs |
 | `PRISMALENS_*_FILE` | Generated secrets |
 
 To remove everything, stop `pl up` and delete the folder.
+
+A follow-up question on a finished investigation reopens the coding agent's
+own session. That conversation is kept by the agent in its own session store,
+such as `~/.claude/projects/` for Claude Code, outside `~/.prismalens`, and
+deleting the workspace folder does not remove it.
 
 ## These websites
 
