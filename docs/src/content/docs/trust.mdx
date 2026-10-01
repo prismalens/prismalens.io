@@ -54,7 +54,7 @@ agent spots text trying to give it orders, it quotes it in the report under
 
 ## What leaves your machine
 
-- **From PrismaLens:** no analytics unless you opt in (see [Usage telemetry](#usage-telemetry)), and no crash reports. An update check queries GitHub Releases without an identifier. The app listens on `127.0.0.1` unless you pass `--host`.
+- **From PrismaLens:** no analytics unless you opt in (see [Usage telemetry](#usage-telemetry)), and no crash reports. An update check queries GitHub Releases without an identifier. `GET /api/instance` is public and returns `{instanceId, version, apiVersion}` so clients can confirm which instance answers before sending credentials. The app listens on `127.0.0.1` unless you pass `--host`.
 - **Update check:** once a day `pl up` checks GitHub Releases for a newer version by sending a `HEAD` request to `https://github.com/prismalens/prismalens/releases/latest`. The check sends no identifier, query, or body — only the standard IP address and User-Agent header of any HTTP request. Results are cached for 24 hours in `update-check.json` in the workspace folder. The check runs in the background and never delays startup. It is suppressed when standard output is not a TTY, in CI, when running under an Electron launcher, or when `PRISMALENS_UPDATE_CHECK=off` or `DO_NOT_TRACK` is set.
 - **At install:** a documentation dependency of the API contains an install-time analytics package (`@scarf/scarf`). Set `SCARF_ANALYTICS=false` before `npm install -g prismalens` to turn it off.
 - **From your agent:** what it reads, including source code, command output and the alert, goes to its model provider, as it would if you used the agent directly.
@@ -170,7 +170,9 @@ Apart from those provider keys, the agent gets only `PATH`, `HOME`, `USER`,
 There are no accounts. A browser gets in only by opening a one-time pairing
 link that `pl up` or `pl pair` prints on the host; no address, `localhost`
 included, grants access by itself. Only the host's own session can pair or
-revoke other devices. See [Opening it from other devices](/guides/devices/).
+revoke other devices. Devices are named `<link label> · <browser> on <OS>`,
+e.g. "This machine · Firefox on Linux". A paired device stays valid until revoked
+(the cookie renews on use). See [Opening it from other devices](/guides/devices/).
 
 ## Where your data lives
 
@@ -180,6 +182,7 @@ Everything is under `~/.prismalens`, or the folder you pass to
 | Path | Contents |
 | --- | --- |
 | `prismalens.db` | Incidents, alerts, services, investigations, reports and their event streams |
+| `instance.json` | Instance ID and port. A new workspace serves on port 6473; a workspace created by 0.5.0 keeps 3001. `--port` or `PRISMALENS_PORT` overrides the port for one run |
 | `runs/<id>/repo`, `runs/<id>/repos/` | The snapshots a run read, deleted when the run ends, whatever its outcome. A follow-up rebuilds them at the same commits and deletes them again when it ends |
 | `runs/<id>/transcript.jsonl` | Raw messages between PrismaLens and the agent, kept as a best effort |
 | `repos/` | Mirrors of repositories added by URL |
