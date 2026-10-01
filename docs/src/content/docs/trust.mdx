@@ -182,7 +182,7 @@ Everything is under `~/.prismalens`, or the folder you pass to
 | Path | Contents |
 | --- | --- |
 | `prismalens.db` | Incidents, alerts, services, investigations, reports and their event streams |
-| `instance.json` | Instance ID and port. A new workspace serves on port 6473; a workspace created by 0.5.0 keeps 3001. `--port` or `PRISMALENS_PORT` overrides the port for one run |
+| `instance.json` | Instance ID and port. A new workspace serves on port 6473. `--port` or `PRISMALENS_PORT` overrides the port for one run |
 | `runs/<id>/repo`, `runs/<id>/repos/` | The snapshots a run read, deleted when the run ends, whatever its outcome. A follow-up rebuilds them at the same commits and deletes them again when it ends |
 | `runs/<id>/transcript.jsonl` | Raw messages between PrismaLens and the agent, kept as a best effort |
 | `repos/` | Mirrors of repositories added by URL |

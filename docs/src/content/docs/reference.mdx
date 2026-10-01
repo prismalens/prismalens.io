@@ -11,14 +11,14 @@ PrismaLens has five commands: `up`, `pair`, `reset`, `doctor` and `upgrade`.
 ### `pl up`
 
 Starts the app: the API and the web UI on one port, backed by SQLite. A new
-workspace serves on port 6473. A workspace created by 0.5.0 keeps 3001. The
+workspace serves on port 6473. The
 port lives in `<workspace>/instance.json`; `--port` or `PRISMALENS_PORT`
 overrides it for one run. On Linux and macOS, a foreground `pl up` suggests
 `pl service install` for a machine that should always be on.
 
 | Flag | Default | What it does |
 | --- | --- | --- |
-| `--port <port>` | `6473` | Port to listen on (`3001` for a workspace created by 0.5.0). |
+| `--port <port>` | `6473` | Port to listen on. |
 | `--host <host>` | `127.0.0.1` | Address to bind. Anything other than loopback makes the app reachable from your network and prints a warning. |
 | `--workspace <dir>` | `~/.prismalens` | Folder for the database, secrets, logs, mirrors and runs. |
 | `--verbose` | off | Stream every log line to the terminal. By default only warnings and errors appear. |
