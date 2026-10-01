@@ -4,3 +4,6 @@ dist
 .env
 .env.*
 !.env.example
+
+# Agent worktrees and local settings
+.claude/
