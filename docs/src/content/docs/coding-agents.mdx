@@ -66,8 +66,9 @@ available on this machine**, and `pl doctor` lists the install commands above.
 The agent uses its own configuration and sign-in, as it would in your terminal:
 `claude /login`, `codex login`, `gemini` and `opencode auth login` carry over.
 Or put the provider key (`ANTHROPIC_API_KEY`, `OPENAI_API_KEY`,
-`GEMINI_API_KEY`) in the environment you start `pl up` from. PrismaLens does not
-read, copy or store the login. Then check:
+`GEMINI_API_KEY`) in the environment you start `pl up` from. PrismaLens passes
+only the variables that agent reads and does not read, copy or store the login.
+Your use of an agent is governed by your agreement with its provider. Then check:
 
 ```text
 $ pl doctor
