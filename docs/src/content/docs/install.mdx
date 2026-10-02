@@ -94,6 +94,30 @@ Linux the window's menu bar is hidden; press <kbd>Alt</kbd> to show it.
 </TabItem>
 </Tabs>
 
+### Run the desktop app's PrismaLens inside WSL
+
+On Windows, the desktop app can run the `pl` you installed inside a WSL distro
+instead of its own copy. Install PrismaLens in the distro first (the Linux tab
+above), so `pl` is on its login shell's `PATH`. Then, from the tray icon's
+menu:
+
+1. Pick the distro under **WSL distro**. **Default distro** is the one `wsl.exe`
+   uses with no `-d`.
+2. Tick **Run in WSL**. The app restarts.
+
+The app then uses that distro's workspace (`~/.prismalens` inside it) and the
+agent sign-in you did there. It works through the same order as on Windows:
+
+| In the distro | The app |
+| --- | --- |
+| `pl up` or the service is already running | opens a window on it |
+| `pl service install` was run, but it is stopped | starts the service |
+| nothing is running | starts `pl up --no-open` and stops it when you quit |
+
+The window opens on `http://localhost:<port>`, the workspace's own port,
+through WSL's localhost forwarding. Untick **Run in WSL** to go back to the
+app's own copy. Only one runs at a time.
+
 ### Check a download yourself
 
 Every archive is built in GitHub Actions and attested. With the
