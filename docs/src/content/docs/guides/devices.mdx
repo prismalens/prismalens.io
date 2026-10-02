@@ -120,20 +120,9 @@ unreachable, when the host isn't allowed (it prints the
 `PRISMALENS_ALLOWED_HOSTS=<host>` line to add), or when another PrismaLens
 answers.
 
-Pairing over a plain LAN address works too, after `pl up --host 0.0.0.0`, but
-we don't recommend it:
-
-- Over plain HTTP, the pairing link and the session cookie cross the network in
-  clear.
-- Browsers allow clipboard access only over HTTPS, so the app's copy buttons
-  do nothing.
-- The host's firewall decides whether the device gets through. Under WSL2, LAN
-  traffic doesn't reach WSL until Windows is set up for it; see
-  [WSL networking](https://learn.microsoft.com/en-us/windows/wsl/networking).
-
 <Aside type="caution" title="What this does not do">
 PrismaLens is built for one person's machine. It has no users or roles, and
 anyone holding a paired device can read every incident and run
-investigations. Pair only devices you control, and revoke a device you lose
-under **Settings → Devices**.
+investigations. A device stays paired until you revoke it under
+**Settings → Devices**.
 </Aside>
