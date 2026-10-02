@@ -125,8 +125,7 @@ pl up --host 0.0.0.0
 ```
 
 PrismaLens warns when it binds beyond loopback: over plain HTTP the traffic and
-the session cookie cross the network in clear, so do this only on a network you
-trust. Put a TLS proxy in front and set `PRISMALENS_PUBLIC_URL` to its `https://`
+the session cookie cross the network in clear. Put a TLS proxy in front and set `PRISMALENS_PUBLIC_URL` to its `https://`
 address, and the cookie is marked `Secure`; or set `PRISMALENS_PROTOCOL=https`
 and `pl up` serves TLS itself. Either way, if you reach the app by a hostname
 rather than an IP address, add that name to `PRISMALENS_ALLOWED_HOSTS`.
