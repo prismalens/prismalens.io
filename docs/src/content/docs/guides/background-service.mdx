@@ -64,7 +64,7 @@ PrismaLens stops.
 | To | Run |
 | --- | --- |
 | Restart it | `pl service restart` |
-| Upgrade | `pl upgrade`. It stops the service, snapshots the database, and starts the new version on trial; if that doesn't come up, it goes back to the old version and database. See [Upgrade](/install/#with-a-background-service-a-trial-and-rollback). |
+| Upgrade | `pl upgrade`. It stops the service, snapshots the database, and starts the new version on trial; if that doesn't come up, it restores the database and, where the install method allows, the old version. See [Upgrade](/install/#with-a-background-service-a-trial-and-rollback). |
 | Remove it | `pl service uninstall`. Your workspace and its data stay. |
 
 Uninstalling PrismaLens with the installer (`install.sh --uninstall`) removes

@@ -197,6 +197,9 @@ How far rollback goes depends on how PrismaLens was installed:
 | npm | yes | yes, by `npm install -g prismalens@<previous>`; needs the registry |
 | Homebrew | yes | no. Homebrew installs only its newest version, so the service is left stopped and `pl service status` says why |
 
+Scoop is not in the table: it installs on Windows, where `pl service` is not
+supported, so a Scoop upgrade has no trial and no rollback.
+
 Only the database is rolled back; other files in the workspace are not. If a
 rollback is cut short (a crash, a reboot), the next `pl upgrade`, or `pl up` on
 a version that has this feature, finishes putting the database back before
