@@ -35,7 +35,9 @@ pl pair --operator
 
 Reach the box over [Tailscale](https://tailscale.com): a phone or laptop
 signed in to the same tailnet reaches it from anywhere, over HTTPS, with
-nothing exposed to the internet. On the host:
+nothing exposed to the internet. First, in the Tailscale admin console, turn
+on [MagicDNS and HTTPS certificates](https://tailscale.com/kb/1153/enabling-https)
+for your tailnet. Then, on the host:
 
 ```bash
 pl up --tailscale-serve
