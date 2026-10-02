@@ -161,6 +161,47 @@ Your database upgrades itself the first time the new version runs `pl up`.
 Before migrating, it copies the database to `prismalens.db.bak-<time>` in your
 workspace.
 
+### With a background service: a trial, and rollback
+
+On a [background service](/guides/background-service/), `pl upgrade` keeps the
+new version only once it has proved itself:
+
+1. It stops the service and copies `prismalens.db`, `prismalens.db-wal` and
+   `prismalens.db-shm` to `upgrade-snapshot/` in your workspace.
+2. It runs the upgrade and starts the service on the new version, which
+   migrates the database.
+3. It waits up to two minutes (`--trial-seconds`) for `/api/instance` to answer
+   with this workspace's id and the new version.
+4. If it does, the snapshot is deleted. If not, `pl upgrade` stops the service,
+   puts the snapshot back, reinstates the previous version and starts it.
+
+```text
+$ pl upgrade
+◐ Stopping the background service for the upgrade…
+◐ Upgrading 0.5.1 → 0.5.2 with installer: sh -c curl -fsSL https://prismalens.io/install.sh | sh -s -- --version 0.5.2
+◐ Starting 0.5.2 as a trial…
+✖ 0.5.2 didn't come up (no healthy 0.5.2 in time: http://127.0.0.1:6473 fetch failed). The database is restored and 0.5.1 runs again.
+
+$ pl service status
+…
+Running:   yes (pid 48211)
+Version:   0.5.1
+Upgrade:   0.5.1 → 0.5.2 rolled back to 0.5.1 on 2026-10-02 09:14: no healthy 0.5.2 in time: http://127.0.0.1:6473 fetch failed
+```
+
+How far rollback goes depends on how PrismaLens was installed:
+
+| Installed with | Database restored | Previous version back |
+| --- | --- | --- |
+| The installer | yes | yes, from the copy the installer keeps; no download |
+| npm | yes | yes, by `npm install -g prismalens@<previous>`; needs the registry |
+| Homebrew | yes | no. Homebrew installs only its newest version, so the service is left stopped and `pl service status` says why |
+
+Only the database is rolled back; other files in the workspace are not. If a
+rollback is cut short (a crash, a reboot), the next `pl upgrade`, or `pl up` on
+a version that has this feature, finishes putting the database back before
+anything opens it.
+
 ## Two copies, and going back a version
 
 All copies of PrismaLens on a machine read the same workspace. A newer copy
