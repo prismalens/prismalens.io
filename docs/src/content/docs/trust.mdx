@@ -12,7 +12,7 @@ agent can reach, what PrismaLens does to limit it, and where those limits stop.
 
 - The agent works in a **copy** of your repository, never in your checkout.
 - PrismaLens **refuses** the agent's edits, deletes and known mutating commands. That is a guardrail, not a wall.
-- The agent **cannot fetch URLs**. OpenCode also cannot web-search or read outside the snapshot.
+- At the default level PrismaLens **refuses network requests** other than a `GET` to the telemetry addresses in the brief, and the agent's own fetch and web-search tools. A command written to dodge that rule gets through.
 - Runs are **not sandboxed**. Nothing at the operating-system level blocks a write or a network call.
 - PrismaLens sends **no usage data** unless you opt in. An update check queries GitHub Releases without an identifier. Your agent sends your code and the alert to **its** model provider.
 - PrismaLens **never** reads or stores your agent's login.
@@ -21,12 +21,12 @@ agent can reach, what PrismaLens does to limit it, and where those limits stop.
 ## The read-only policy
 
 Coding agents ask their client before they act, and PrismaLens is that client.
-It refuses edit, delete and move tools, and shell commands that look like
-writes: redirects, `rm`, `mv`, `cp`, `chmod`, `sed -i`, state-changing git
-commands, package installs, `docker`, mutating `kubectl`, `helm` and
-`terraform` commands, `kill`, `wget`, and `curl` with `POST`, `PUT`, `PATCH` or
-`DELETE`. Reading, searching and commands like `ls`, `grep` and `git log` are
-allowed.
+At the default level, Read-only, it refuses edit, delete and move tools, shell
+commands that write, install or start other programs, and any network request
+other than a `GET` to the telemetry addresses in the brief. Reading, searching
+and commands like `ls`, `grep` and `git log` are allowed. The full list, and
+the wider levels you can allow, are under
+[Access levels](/coding-agents/#access-levels).
 
 <Aside type="caution" title="This is a guardrail">
 The shell rules match command text, so a command written to dodge them, such as

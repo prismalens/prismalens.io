@@ -35,6 +35,65 @@ Each agent runs with its own behaviour and permissions, as it would in your
 terminal. PrismaLens drives it; it does not make it safe. See
 [Trust](/trust/) for what PrismaLens does and does not limit.
 
+## Access levels
+
+Every run has an access level. It names what the agent may touch, and
+PrismaLens answers each of the agent's permission requests by it. A run
+starts at **Read-only**; the two write levels are offered only after you turn
+on **Allow write levels** in **Settings → Agent**.
+
+| Level | Files | Commands | Network |
+| --- | --- | --- | --- |
+| **Read-only** (default) | Reads the copy | Read-only commands | `GET` requests to the telemetry addresses in the brief and no other address, with no request body |
+| **Read-only with your tools** | Reads the copy | Plus the read commands of the CLIs you are signed in to: `kubectl get/describe/logs/top/explain`, `aws … describe-*/get-*/list-*`, `gcloud … describe/list`, `az … show/list`, `gh … view/list/status`, `docker ps/logs/inspect` | `GET` to any address, with no request body |
+| **Edit the copy** | Writes inside the run's throwaway copy | Plus local `git` (commit, stash, checkout) and test runners | As above |
+| **Full access** | Anything | Anything | Anything; PrismaLens allows every request and logs it |
+
+The box describes Read-only in one line:
+
+> Reads the copied code and queries the telemetry addresses in the brief.
+> PrismaLens refuses writes, installs, other addresses and other ways out that
+> it can see. A guardrail for an honest agent, not a sandbox.
+
+Below Full access PrismaLens refuses, at every level: the agent's own fetch
+tool; `sh -c`, `eval`, `python -c`, `node -e` and other inline programs; an
+interpreter run on a file or on its input (`bash script.sh`, `python x.py`,
+`source`); commands that start other commands (`find -exec`, `xargs`, `make`,
+`env cmd`, `sudo`, pagers and editors); `npx`, `go run`, `git clone` and git's
+remote commands; package installs; `curl` and `wget` with a request body, a
+method other than `GET` or `HEAD`, a proxy, a `--resolve`, a config file or a
+protocol other than HTTP; DNS and other network tools (`dig`, `nslookup`,
+`ssh`, `nc`, `psql`); paths outside the copy; and credential paths such as
+`.ssh`, `.aws`, `.kube`, `.netrc`, `.npmrc` and `.env`, inside the copy too.
+
+The gate is a text rule, not a boundary. It reads each command before it runs,
+so what it cannot see gets through:
+
+- a program already in the copy run by its own name, such as `./scripts/check`;
+- a file a previous allowed step wrote that a later command reads as its configuration;
+- a wrapper or interpreter PrismaLens does not list.
+
+An operating-system boundary needs Codex's sandbox or a container.
+
+### What each agent adds
+
+Where an agent has its own permission mode, PrismaLens sets it to match the
+level, so the agent asks less. The run's report names the layer that was set.
+
+| Agent | Read-only and Read-only with your tools | Edit the copy | Full access |
+| --- | --- | --- | --- |
+| OpenCode | Edits denied in its config; shell commands asked | Edits and shell commands asked | Edits, shell and web fetch allowed |
+| Claude Code | `default` mode | `default` mode | `bypassPermissions` mode |
+| Codex | Its `read-only` mode: an operating-system sandbox with no network | Its `agent` mode: writes in the copy, no network | Its full-access mode |
+| Gemini CLI | `plan` mode, when it offers one | `default` mode | `yolo` mode |
+| deepagents | Nothing: PrismaLens's gate is the only layer | Same | Same |
+
+Codex's own sandbox is the one operating-system boundary in this table. It
+blocks all network, so at the read levels a Codex run cannot query Prometheus;
+its report says **Codex's sandbox allows no network** under what it could not
+check. Codex decides for itself which commands to ask about, so inside its
+sandbox PrismaLens sees few of its requests.
+
 ## What an agent reads from the incident's repo
 
 An investigation runs the agent in a copy of the incident's repo. A repo can
