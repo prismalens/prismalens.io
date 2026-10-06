@@ -27,7 +27,9 @@ In another terminal, find the webhook token file:
 pl doctor
 ```
 
-The **Webhook token** line prints its path.
+The **Webhook token** line prints the path followed by `(exists)` or
+`(does not exist yet)`. Copy only the path, without the parenthesis. If it
+says it does not exist yet, start `pl up` first.
 
 ## 2. Start sreforge pointed at PrismaLens
 
@@ -36,9 +38,11 @@ git clone https://github.com/prismalens/sreforge
 cd sreforge
 pnpm install
 export AGENT_WEBHOOK_URL=http://host.docker.internal:6473/api/webhooks/prometheus
-export AGENT_WEBHOOK_TOKEN_FILE=<the path pl doctor printed>
+export AGENT_WEBHOOK_TOKEN_FILE="/path/from/pl/doctor"
 pnpm exec task up
 ```
+
+Replace `/path/from/pl/doctor` with the path you copied; keep the quotes.
 
 The first `task up` clones booklogr and takes a few minutes. `pnpm exec task status`
 prints the two code folders you need next.
