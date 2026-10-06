@@ -82,7 +82,7 @@ level, so the agent asks less. The run's report names the layer that was set.
 
 | Agent | Read-only and Read-only with your tools | Edit the copy | Full access |
 | --- | --- | --- | --- |
-| OpenCode | Edits denied in its config; shell commands asked | Edits and shell commands asked | Edits, shell and web fetch allowed |
+| OpenCode | Edits denied in its config, shell commands asked, web fetch and web search denied | Edits and shell commands asked, web fetch and web search denied | Edits, shell, web fetch and web search allowed |
 | Claude Code | `default` mode | `default` mode | `bypassPermissions` mode |
 | Codex | Its `read-only` mode: an operating-system sandbox with no network | Its `agent` mode: writes in the copy, no network | Its full-access mode |
 | Gemini CLI | `plan` mode, when it offers one | `default` mode | `yolo` mode |
@@ -91,8 +91,7 @@ level, so the agent asks less. The run's report names the layer that was set.
 Codex's own sandbox is the one operating-system boundary in this table. It
 blocks all network, so at the read levels a Codex run cannot query Prometheus;
 its report says **Codex's sandbox allows no network** under what it could not
-check. Codex decides for itself which commands to ask about, so inside its
-sandbox PrismaLens sees few of its requests.
+check.
 
 ## What an agent reads from the incident's repo
 
