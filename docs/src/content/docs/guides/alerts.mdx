@@ -83,6 +83,11 @@ its incident once nothing on it is still firing. It happens only when:
   sends its alerts again);
 - Prometheus catch-up, if connected, does not show the alert still firing.
 
+Adding an Alertmanager source lists it at once, without waiting for the next
+delivery. An alert that fired by webhook before you connected that
+Alertmanager is listed by that first check, so it can still resolve by absence
+later.
+
 An alert only a different Alertmanager ever sent is never resolved this way.
 The incident's timeline says why it resolved, and the log shows the count:
 
