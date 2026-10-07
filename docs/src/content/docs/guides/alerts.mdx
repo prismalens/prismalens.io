@@ -70,13 +70,16 @@ PrismaLens reads the file when it starts, so if you replace the token, restart
 
 ## Configure Alertmanager
 
+`pl doctor` prints the webhook URL Alertmanager should use and whether other
+machines can reach it (loopback bind = only this machine).
+
 Add a receiver that sends to PrismaLens and reads the token from the file:
 
 ```yaml
 receivers:
   - name: prismalens
     webhook_configs:
-      - url: http://127.0.0.1:3001/api/webhooks/prometheus
+      - url: http://127.0.0.1:6473/api/webhooks/prometheus
         send_resolved: true
         http_config:
           authorization:
@@ -93,7 +96,7 @@ grouping on so a burst arrives as a few grouped deliveries.
 
 ```bash
 TOKEN=$(cat ~/.prismalens/PRISMALENS_WEBHOOK_SECRET_FILE)
-curl -s -X POST http://127.0.0.1:3001/api/webhooks/prometheus \
+curl -s -X POST http://127.0.0.1:6473/api/webhooks/prometheus \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"version":"4","status":"firing","alerts":[{"status":"firing","labels":{"alertname":"HighErrorRate","severity":"critical","service":"payments"},"annotations":{"summary":"5xx above 5% for 10 minutes"},"startsAt":"2026-09-13T10:00:00Z","fingerprint":"abc123"}]}'

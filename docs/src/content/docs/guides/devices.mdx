@@ -14,8 +14,9 @@ access by itself, not even `localhost`.
 `pl up` prints a link and opens your browser on it:
 
 ```text
-✔ PrismaLens is ready at http://localhost:3001
-ℹ Open: http://localhost:3001/pair#9f1c…
+✔ PrismaLens is ready at http://localhost:6473
+ℹ For a machine that should always be on: pl service install
+ℹ Open: http://localhost:6473/pair#9f1c…
 ℹ It works once, for 15 minutes; treat it as a password. `pl pair --operator` prints another.
 ```
 
@@ -35,13 +36,20 @@ pl pair --operator
 On the host, print a link carrying an address the other device can reach:
 
 ```bash
-pl pair --address http://192.168.1.5:3001 --label "phone"
+pl pair --address http://192.168.1.5:6473 --label "phone"
 ```
 
-Open the link on that device within 15 minutes. It works once. The device then
-appears under **Settings → Devices**, where you can revoke it. A paired device
-can read and run investigations. Only this machine's own session can pair or
-revoke devices.
+`pl pair --address <url>` checks the address first and refuses when it's
+unreachable, when the host isn't allowed (it prints the
+`PRISMALENS_ALLOWED_HOSTS=<host>` line to add), or when another PrismaLens
+answers.
+
+Open the link on that device within 15 minutes. It works once. Devices are
+named `<link label> · <browser> on <OS>`, e.g. "This machine · Firefox on Linux".
+The device then appears under **Settings → Devices**, where you can revoke it. A
+paired device stays valid until revoked (the cookie renews on use). It can read
+and run investigations. Only this machine's own session can pair or revoke
+devices.
 
 Without `--address`, the link points at `localhost`, which reaches only the
 host itself, and `pl pair` says so.
@@ -61,27 +69,59 @@ clear, so do this only on a network you trust.
 ## Reaching it over a tailnet
 
 [Tailscale Serve](https://tailscale.com/docs/features/tailscale-serve) puts
-HTTPS in front of the app and keeps it on your tailnet. PrismaLens can stay
-bound to `127.0.0.1`.
+HTTPS in front of the app and keeps it on your tailnet, so a phone or laptop
+signed in to the same tailnet reaches the box from anywhere. PrismaLens stays
+bound to `127.0.0.1`. You need the `tailscale` command logged in on the box,
+with MagicDNS and HTTPS certificates turned on for the tailnet.
 
 ```bash
-tailscale serve --bg 3001
+pl up --tailscale-serve
 ```
 
-Tailscale Serve forwards the browser's original `Host` header, such as
-`prismalens.tail1234.ts.net`, so tell PrismaLens that name, and tell it the public
-address so the session cookie is marked `Secure`:
+```text
+✔ PrismaLens is ready at http://localhost:6473
+✔ On your tailnet: https://box.tail1234.ts.net
+ℹ Pair a device there with `pl pair --tailscale`.
+```
+
+For that run, PrismaLens:
+
+1. reads this machine's name from `tailscale status --json`,
+2. adds it to `PRISMALENS_ALLOWED_HOSTS`, so requests for it aren't refused,
+3. runs `tailscale serve --bg --https=443 http://127.0.0.1:6473`, unless that
+   mapping already exists. If port 443 already serves something else, it stops
+   and tells you instead of replacing it.
+
+Then pair each device on that address:
 
 ```bash
-PRISMALENS_ALLOWED_HOSTS=prismalens.tail1234.ts.net \
-PRISMALENS_PUBLIC_URL=https://prismalens.tail1234.ts.net \
+pl pair --tailscale --label "phone"
+```
+
+`pl pair --tailscale` sets up the same mapping if it is missing, but the server
+must already allow the tailnet name: start it with `--tailscale-serve`, or with
+`PRISMALENS_ALLOWED_HOSTS` set to the name. To keep it across restarts, install
+the background service with the flag:
+
+```bash
+pl service install --tailscale-serve
+```
+
+| Error | What to do |
+| --- | --- |
+| `tailscale` isn't on PATH | Install Tailscale and log in. |
+| Tailscale is logged out | Run `tailscale up`. |
+| Refused to change serve settings | Run `sudo tailscale set --operator="$(id -un)"` once. |
+| Serve is not enabled on your tailnet | Open the link Tailscale prints and enable it. |
+
+To set it up by hand instead, run `tailscale serve --bg 6473` and start
+PrismaLens with the name allowed and the public address set, which also marks
+the session cookie `Secure`:
+
+```bash
+PRISMALENS_ALLOWED_HOSTS=box.tail1234.ts.net \
+PRISMALENS_PUBLIC_URL=https://box.tail1234.ts.net \
 pl up
-```
-
-Then pair each device with that address:
-
-```bash
-pl pair --address https://prismalens.tail1234.ts.net --label "phone"
 ```
 
 <Aside type="caution" title="What this does not do">

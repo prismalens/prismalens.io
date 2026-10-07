@@ -69,6 +69,38 @@ file contents are not included. If you are debugging a change you have not
 committed yet, commit it (a local branch is fine) before you run.
 </Aside>
 
+## Several services, several repositories
+
+An incident can involve more than one service: its own, plus every service its
+alerts name. Each run reads every repository those services link, not only the
+first one.
+
+- **One repository** keeps the layout above: `runs/<id>/repo`, with the agent
+  starting in it (or in its monorepo folder).
+- **Several repositories** each get a folder under `runs/<id>/repos/`, named
+  after the repository, and the agent starts in `runs/<id>/repos` so it sees
+  all of them. Two repositories with the same name get `api` and `api-2`.
+- **One repository linked by two services** is cloned once.
+
+A monorepo folder does not change where the agent starts in this layout; the
+agent is told which folder belongs to which service. For an incident on
+`checkout` whose alerts also name `jobs`, the incident timeline shows:
+
+```text
+Investigating the service's repositories
+Investigating snapshots of 2 repositories: api (URL git@github.com:acme/api.git)
+at main 1a2b3c4, worker (URL git@github.com:acme/worker.git/svc/jobs) at main
+5d6e7f8. Uncommitted changes are not included.
+```
+
+and the agent is given:
+
+```text
+- Application SOURCE CODE: 2 repositories under your current working directory:
+    api/  services: checkout  (at 1a2b3c4d5e6f)
+    worker/  services: jobs  (at 5d6e7f8a9b0c)  sub-path: svc/jobs
+```
+
 Under WSL2, keep the repository on the Linux filesystem rather than under
 `/mnt/c`. Cloning across the two filesystems copies every object on every run
 and is slow.
