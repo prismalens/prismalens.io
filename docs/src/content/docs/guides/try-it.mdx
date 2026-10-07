@@ -1,0 +1,102 @@
+---
+title: Try it on a broken app
+description: Run PrismaLens against sreforge, a small app with Prometheus and Alertmanager where you switch a real fault on and watch an investigation start from the alert.
+---
+
+[sreforge](https://github.com/prismalens/sreforge) runs booklogr, a small Flask
+and React app, with Prometheus, Alertmanager and Grafana in docker compose. You
+switch a fault on, a real alert fires, Alertmanager posts it to PrismaLens, and
+your coding agent investigates booklogr's code. It is the quickest way to see a
+whole run without wiring up your own monitoring.
+
+You need docker, Node 24, pnpm, git and a coding agent from
+[Coding agents](/coding-agents/), plus PrismaLens from the [Quick start](/quickstart/).
+
+## 1. Start PrismaLens so the containers can reach it
+
+Alertmanager runs in a container and reaches the host as `host.docker.internal`.
+Start PrismaLens on all addresses with that name allowed:
+
+```bash
+PRISMALENS_ALLOWED_HOSTS=host.docker.internal pl up --host 0.0.0.0
+```
+
+In another terminal, find the webhook token file:
+
+```bash
+pl doctor
+```
+
+The **Webhook token** line prints the path followed by `(exists)` or
+`(does not exist yet)`. Copy only the path, without the parenthesis. If it
+says it does not exist yet, start `pl up` first.
+
+## 2. Start sreforge pointed at PrismaLens
+
+```bash
+git clone https://github.com/prismalens/sreforge
+cd sreforge
+pnpm install
+export AGENT_WEBHOOK_URL=http://host.docker.internal:6473/api/webhooks/prometheus
+export AGENT_WEBHOOK_TOKEN_FILE="/path/from/pl/doctor"
+pnpm exec task up
+```
+
+Replace `/path/from/pl/doctor` with the path you copied; keep the quotes.
+
+The first `task up` clones booklogr and takes a few minutes. `pnpm exec task status`
+prints the two code folders you need next.
+
+## 3. Add booklogr's services
+
+In PrismaLens, open **Services** and add one service per row, named exactly as
+shown, with the folder from `task status` as its repository:
+
+| Service name | Repository |
+| --- | --- |
+| `booklogr-api` | `…/use-cases/booklogr/stacks/flask-compose/substrate/booklogr` |
+| `book-metadata` | `…/use-cases/booklogr/stacks/flask-compose/substrate/book-metadata` |
+
+Use those folders, not the top of the sreforge checkout: the top level holds
+each scenario's answer.
+
+## 4. Break something
+
+```bash
+pnpm exec task fault -- worker-cpu-starvation on
+```
+
+This commits a bad change to booklogr, redeploys it and starts load. When
+latency crosses the threshold, `BooklogrApiLatencyP99High` fires, Alertmanager
+posts it, and PrismaLens opens an incident for `booklogr-api`. A critical or
+high alert on a known service starts an investigation; otherwise click
+**Investigate** on the incident.
+
+Watch the agent work on the incident page, then read the report. Each scenario's
+`README.md` under `use-cases/booklogr/scenarios/` says what was broken, so you can
+check the report against it afterwards.
+
+## 5. Put it back
+
+```bash
+pnpm exec task fault -- worker-cpu-starvation off
+pnpm exec task down
+```
+
+`pnpm exec task dashboard` offers the same controls on http://127.0.0.1:7420.
+
+## Other faults
+
+| Scenario | What breaks |
+| --- | --- |
+| `latency-cache-stampede` | The response cache is off; search piles up on a slow upstream. |
+| `red-herring-coalert` | The same, plus an unrelated upstream error rate. |
+| `decoy-deploy-control` | The cache backend drifted at runtime; the newest commit is innocent. |
+| `db-pool-exhaustion-deploy` | A deploy shrinks the database pool to one connection. |
+| `worker-cpu-starvation` | A deploy sorts the whole library in Python on every request. |
+| `cascading-upstream-failure` | A migration drops the index behind the library listing. |
+| `compound-latency-pool-and-sort` | Two regressions from two authors, days apart. |
+
+Every scenario fires the same alert. PrismaLens treats an alert that refires
+within 15 minutes as the same incident, so leave more than that between one
+scenario's alert clearing and the next one starting.

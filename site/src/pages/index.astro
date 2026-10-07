@@ -83,10 +83,10 @@ const steps = [
       </div>
       <div class="grid gap-x-10 gap-y-8 leading-relaxed sm:grid-cols-2">
         <p><strong>Nobody pastes the alert.</strong> Alertmanager posts to PrismaLens, and a critical or high alert on a known service starts a run. You can change that per service.</p>
-        <p><strong>It uses the agent you already have.</strong> OpenCode by default, or Claude Code, Codex or Gemini CLI. PrismaLens never calls a model and has no account to sign up for.</p>
+        <p><strong>It uses the agent you already have.</strong> OpenCode, Codex, Claude Code, Gemini CLI or deepagents. PrismaLens never calls a model and has no account to sign up for.</p>
         <p><strong>Your checkout stays yours.</strong> Every run gets its own copy of the last commit, with any agent config committed in the repository removed.</p>
         <p><strong>It reads code, not dashboards.</strong> 0.5.0 gives the agent the alert and the repository. It does not connect to your metrics, logs or traces.</p>
-        <p><strong>It tells you where the limits are.</strong> The read-only policy is a guardrail, not a wall, and runs are unsandboxed until you add a sandbox. The report says which you got. <a href={`${docsBase}/trust/`} class="underline underline-offset-4">What it reads and never does</a></p>
+        <p><strong>It tells you where the limits are.</strong> The read-only policy is a guardrail matched on command text, and runs are not sandboxed. <a href={`${docsBase}/trust/`} class="underline underline-offset-4">What it reads and never does</a></p>
         <p><strong>It keeps the record.</strong> A week later the report, the evidence and every command the agent ran are still on the incident.</p>
       </div>
     </div>
