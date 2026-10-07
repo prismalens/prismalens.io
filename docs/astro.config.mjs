@@ -71,6 +71,7 @@ export default defineConfig({
 						{ label: 'Quick start', slug: 'quickstart' },
 						{ label: 'Install, upgrade, uninstall', slug: 'install' },
 						{ label: 'Coding agents', slug: 'coding-agents' },
+						{ label: 'Try it on a broken app', slug: 'guides/try-it' },
 					],
 				},
 				{
