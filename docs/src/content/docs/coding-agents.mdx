@@ -44,13 +44,13 @@ trust, so PrismaLens turns off what each agent lets it:
 
 | Agent | Repo configuration |
 | --- | --- |
-| Claude Code | Not loaded. Project settings and hooks stay inert (`settingSources: []`). |
+| Claude Code | Your own `~/.claude/settings.json` applies (`settingSources: ["user"]`). The repo's project settings, hooks and `CLAUDE.md` stay off. |
 | OpenCode | Not loaded. The repo's `opencode.json` is ignored. |
 | Gemini CLI | Not loaded. The repo is an untrusted folder (`GEMINI_CLI_TRUST_WORKSPACE=false`), so `.gemini/settings.json`, `.env` files and `GEMINI.md` are ignored. |
 | deepagents | MCP servers are not started (`--no-mcp`). |
 | Codex | Loaded as in your terminal. PrismaLens turns nothing off. |
 
-Your own configuration for the agent is untouched either way.
+Your own configuration for the agent is untouched either way. For Claude Code that means your allow and deny rules, sandbox setting, hooks and `env` in `~/.claude/settings.json` apply, as they do in your terminal.
 
 ## How PrismaLens chooses
 
@@ -84,6 +84,61 @@ The other results are `sign in needed`, `no answer in 10s` and
 The agent does not inherit your whole environment. See
 [Credentials](/trust/#credentials).
 
+## Permission modes and asks
+
+Each agent has its own permission modes, and the one a run starts in decides
+what the agent asks about. PrismaLens never answers an ask for you. Pick the
+mode in **Settings → Agent → Permission mode** (saved per agent) or from the
+mode chip under the composer. The chip lists the agent's own mode names.
+
+| Mode | Claude Code | Codex | Gemini CLI | OpenCode |
+| --- | --- | --- | --- | --- |
+| Asks before acting (the default) | `default` (Manual) | `read-only` ("Ask for approval") | `default` | `build` |
+| Auto-accepts edits | `acceptEdits` | `workspace-write` (2.x only) | `autoEdit` | Not offered |
+| Auto | `auto` | `agent` | Not offered | Not offered |
+| Full access | `bypassPermissions` | `agent-full-access` | `yolo` | Not offered |
+
+Codex 1.13.1, the tested version, offers "Ask for approval" (`read-only`),
+`agent` and `agent-full-access`. The auto-accepts-edits mode exists on Codex 2.x
+only.
+
+There is no plan mode. Plan modes are never offered and no run starts in one. A
+plan mode stored from an earlier version reads as the default mode.
+
+When the agent asks, the run waits:
+
+- The Conversation shows a card naming the call, with **Approve** and **Deny**. Deny refuses the call and the run goes on to its report.
+- The board, the sidebar run row and the incident band say **Waiting for your approval**.
+- The desktop app raises a notification, "INC-12 is waiting for your approval", and a click opens that run.
+- The ask survives a reload.
+
+An ask nobody answers is denied after 10 minutes, and the card reads "No one
+answered in 10 minutes, so it was denied". The window never outlives the run: it
+ends a minute before the run's 15-minute limit. When it is shortened, the card
+says "The run's time limit is near, so this ask expires at 14:12:11", and then
+"Denied: the run's time limit was reached". Stopping the run denies a waiting ask
+too, and so does a restart of PrismaLens.
+
+OpenCode asks only where your `opencode.json` says `ask`. By default that is
+files outside the workspace only.
+
+Here is one ask, from Claude Code in Manual mode:
+
+```text
+Settings → Agent: Claude Code, Permission mode: Manual
+14:02:11  the agent asks to run "Write /tmp/pl-walk-write.txt"
+          the card shows Approve and Deny, expiring at 14:12:11
+          the board, sidebar and band say "Waiting for your approval"
+          the desktop app notifies "INC-12 is waiting for your approval"
+14:03:40  you click Deny
+          the agent is told the call was refused
+          the card reads "You denied it", and the agent goes on to its report
+```
+
+If nobody had answered by 14:12:11, the card would read "No one answered in 10
+minutes, so it was denied". A second answer to the same ask gets
+`409`; see [Reference](/reference/#answering-an-ask).
+
 ## Choosing a model
 
 Each agent has its own default model. To use a different one, click the model
@@ -100,6 +155,19 @@ Codex, Gemini CLI and deepagents take no model setting. A model stored for one
 of them stops the next run before it starts, with the reason in **Settings →
 Agent** and on the Investigate button. For those agents the model pill offers
 only **Clear model**.
+
+### Custom models
+
+PrismaLens never probes your agent's endpoint, so the list shows only what the
+agent reports. To use a model your endpoint serves that the agent does not list,
+add its id in **Settings → Agent → Custom models** with **Add custom model**.
+Removing one asks for confirmation. Added ids show in the picker as "Added by
+you". A run on one that the endpoint does not serve fails.
+
+On Claude Code an added model reaches the agent through
+`ANTHROPIC_CUSTOM_MODEL_OPTION`, set when the agent starts. When your
+environment names the model with `ANTHROPIC_MODEL`, the Agent default row reads
+"`<model>`, from your environment".
 
 Upgrading from 0.5.0 drops the single shared model setting. Enter the model
 again for each agent that needs one.
@@ -130,3 +198,11 @@ With that file in `~/.prismalens`, the Claude Code suggestions show those two
 models, and Haiku is marked legacy. Delete the file to go back to the bundled
 catalogue. A release whose bundled catalogue is newer than your file wins
 without your deleting it.
+
+## Follow-ups on an older run
+
+A run keeps reasoning at the commit it was pinned to. When a newer run of the
+same incident exists, an older run shows "A newer run (Run #2) looks at
+`a1b2c3d`" above the box, with a link to the newer run. A follow-up on the older
+run tells the agent, so it knows newer commits exist. PrismaLens does not count
+them.

@@ -119,6 +119,23 @@ It answers `409` with one of these messages:
 | `<Agent> is no longer installed.` | The run's agent is not on `PATH` any more. |
 | `This run recorded no workspace.` | The run failed before its code was cloned. |
 
+## Answering an ask
+
+`POST /api/investigations/{id}/asks/{askId}` with `{"decision": "approve" | "deny"}`
+answers an agent's permission request and returns the outcome, for example
+`{"outcome":"denied"}`. It answers `409` with this message when the ask is not
+waiting, which includes a second answer to the same ask:
+
+| Message | Why |
+| --- | --- |
+| `This ask is no longer waiting: it was answered, timed out, or the run ended.` | The ask was already answered, the 10-minute window passed, or the run ended. |
+
+## Permission mode defaults
+
+Each agent starts in its own asking mode. For OpenCode that is `build`; it was
+`plan` before. See [Permission modes and asks](/coding-agents/#permission-modes-and-asks)
+for every agent.
+
 ## Instance identity
 
 `GET /api/instance` is public and returns `{instanceId, version, apiVersion}`. Launchers and `pl pair` check it to confirm a port belongs to this workspace before sending credentials or minting links.
