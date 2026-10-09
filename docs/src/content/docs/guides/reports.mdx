@@ -72,7 +72,8 @@ same. The chip makes no claim about what the agent could write: it runs with
 its own permissions (see [The read-only policy](/trust/#the-read-only-policy)).
 
 **Facts PrismaLens supplied.** Before a run, PrismaLens gives the agent what it
-already knows: changes in the alert's window, the service's neighbours, and
+already knows: changes in the alert's window, the services one hop away (both the
+services that call the affected service and the services it calls), and
 similar past incidents. Evidence the agent took from these without checking it
 with a command is always marked **inferred**, never verified.
 
