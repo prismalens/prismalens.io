@@ -75,8 +75,9 @@ Alertmanager sends **resolved** once. If PrismaLens was off or asleep at that
 moment, it never gets it. With an Alertmanager source (**Settings → Alert
 sources**), PrismaLens asks Alertmanager which alerts it still holds each
 time it starts and after each webhook. An alert that a connected Alertmanager
-listed before and no connected Alertmanager lists now is resolved, and so is
-its incident once nothing on it is still firing. It happens only when:
+listed before and no connected Alertmanager lists now is cleared. Its incident
+reads **Alerts cleared** once nothing on it is still firing, and you then
+**Resolve** it, as with a resolved notification. It happens only when:
 
 - every connected Alertmanager answered, and each has been running for at
   least 10 minutes (a restarted Alertmanager holds nothing until Prometheus
@@ -88,8 +89,8 @@ delivery. An alert that fired by webhook before you connected that
 Alertmanager is listed by that first check, so it can still resolve by absence
 later.
 
-An alert only a different Alertmanager ever sent is never resolved this way.
-The incident's timeline says why it resolved, and the log shows the count:
+An alert only a different Alertmanager ever sent is never cleared this way.
+The incident's timeline says why the alert cleared, and the log shows the count:
 
 ```
 Boot pull: 2 source(s), 3 received, 0 new, 1 caught up, 1 resolved by absence, 0 error(s)
