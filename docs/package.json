@@ -10,14 +10,14 @@
     "astro": "astro"
   },
   "dependencies": {
-    "@astrojs/starlight": "^0.37.6",
-    "@astrojs/starlight-tailwind": "^4.0.2",
+    "@astrojs/starlight": "^0.42.5",
+    "@astrojs/starlight-tailwind": "^5.0.0",
     "@fontsource-variable/ibm-plex-sans": "^5.3.0",
     "@fontsource/ibm-plex-mono": "^5.3.0",
-    "@tailwindcss/vite": "^4.1.18",
-    "astro": "^5.6.1",
-    "posthog-js": "^1.434.13",
-    "sharp": "^0.34.2",
-    "tailwindcss": "^4.1.18"
+    "@tailwindcss/vite": "^4.3.3",
+    "astro": "^7.3.6",
+    "posthog-js": "^1.438.2",
+    "sharp": "^0.35.5",
+    "tailwindcss": "^4.3.3"
   }
 }

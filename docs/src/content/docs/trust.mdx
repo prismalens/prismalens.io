@@ -40,8 +40,7 @@ credentials for anything outside the copy.
 PrismaLens refuses paths outside the snapshot, judged where they really land:
 through `..`, symlinks, `~` and globs such as `cat *`. Like the rest of the
 policy, it matches command text, so the agent can still read any file your user
-can read if it writes a command that dodges the rules. Keep that in mind before
-you run PrismaLens under an account that can read production credentials.
+can read if it writes a command that dodges the rules.
 
 Agent configuration committed in the repository never reaches the agent:
 before a run starts, PrismaLens removes `.claude`, `.opencode`, `opencode.json`,
@@ -56,7 +55,6 @@ agent spots text trying to give it orders, it quotes it in the report under
 
 - **From PrismaLens:** no analytics unless you opt in (see [Usage telemetry](#usage-telemetry)), and no crash reports. An update check queries GitHub Releases without an identifier. `GET /api/instance` is public and returns `{instanceId, version, apiVersion}` so clients can confirm which instance answers before sending credentials. The app listens on `127.0.0.1` unless you pass `--host`.
 - **Update check:** once a day `pl up` checks GitHub Releases for a newer version by sending a `HEAD` request to `https://github.com/prismalens/prismalens/releases/latest`. The check sends no identifier, query, or body — only the standard IP address and User-Agent header of any HTTP request. Results are cached for 24 hours in `update-check.json` in the workspace folder. The check runs in the background and never delays startup. It is suppressed when standard output is not a TTY, in CI, when running under an Electron launcher, or when `PRISMALENS_UPDATE_CHECK=off` or `DO_NOT_TRACK` is set.
-- **At install:** a documentation dependency of the API contains an install-time analytics package (`@scarf/scarf`). Set `SCARF_ANALYTICS=false` before `npm install -g prismalens` to turn it off.
 - **From your agent:** what it reads, including source code, command output and the alert, goes to its model provider, as it would if you used the agent directly.
 - **From git:** fetching a repository URL contacts that host with your git credentials.
 
@@ -68,7 +66,7 @@ Usage telemetry is **off by default**. Nothing is sent until the instance owner 
 
 The question is asked once:
 
-- **On `/incidents`:** Until you answer, a consent banner sits above the incidents list. It offers **No thanks** and **Share usage data**. Choosing either hides the banner.
+- **In the sidebar:** Until you answer, a short strip at the bottom of the sidebar asks to share usage counts. It offers **No thanks** and **Share**. Choosing either hides the strip.
 - **In Settings:** Under **Settings → Usage data**, the **Share usage data** toggle lets you change your decision at any time.
 - **`pl up --telemetry=off`:** The CLI flag disables usage telemetry for that run (`--telemetry` accepts only `off`; turning telemetry on must be done in Settings). While undecided, `pl up` prints a one-line notice pointing at Settings, but never prompts in the terminal.
 
