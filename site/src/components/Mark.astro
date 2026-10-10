@@ -4,26 +4,25 @@ interface Props {
 }
 
 const { size = 24 } = Astro.props
+// Below 24 px the glint turns to mush, so the brand draws the plain, heavier p (#745).
+const small = size < 24
+const stroke = small ? 46 : 36
 ---
 
-<svg class="mark" width={size} height={size} viewBox="0 0 64 64" fill="none" aria-hidden="true">
+<svg class="mark" width={size} height={size} viewBox="0 0 256 256" fill="none" aria-hidden="true">
   <g stroke-linecap="round">
-    <path d="M2 34H20" stroke="currentColor" opacity=".55" stroke-width="3" />
-    <path d="M20.6 34 40.4 29.6" stroke="currentColor" opacity=".22" stroke-width="2.5" />
-    <path class="r" d="M42.8 28.3 62 17" stroke-width="3" />
-    <path class="r" d="M43.2 29 62 26" stroke-width="3" opacity=".7" />
-    <path class="r" d="M43.9 30.2 62 35" stroke-width="3" opacity=".5" />
-    <path class="r" d="M44.4 31 62 44" stroke-width="3" opacity=".35" />
-    <path d="M32 14.1 51 47H13Z" stroke="currentColor" stroke-width="3.5" stroke-linejoin="round" />
+    <circle cx="142" cy="104" r="54" stroke-width={stroke} />
+    <path d="M88 64V224" stroke-width={stroke} />
+    {!small && <path d="M120 108A24 24 0 0 1 144 82" stroke-width="11" />}
   </g>
 </svg>
 
 <style>
-  .r {
+  .mark g {
     stroke: #4f46e5;
   }
 
-  :global(.dark) .r {
+  :global(.dark) .mark g {
     stroke: #818cf8;
   }
 </style>

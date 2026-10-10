@@ -15,44 +15,89 @@ What happens then:
   alerts, and the same label set firing again counts as a repeat.
 - The alert reaches a **service** through a `service` label whose value equals
   the service's name exactly. Nothing else maps an alert to a service.
-- The alert joins an open incident that already carries an alert with the same
-  title and text, whatever its labels; otherwise it opens a new incident.
+- The alert joins an open incident on the same service that already carries an
+  alert with the same title and text, whatever its other labels; otherwise it
+  opens a new incident.
 - Only the alert that **opens** an incident decides whether an investigation
   starts. A critical or high alert on a service starts one on arrival; change
   that per service under **Services → the service → Investigation** (always,
   critical and high, critical only, never). A new incident with no service
   runs nothing. Whenever the answer is no, the incident's **Timeline** says
   why and where to change it.
-- A **resolved** alert resolves its alert, and resolves the incident once none
-  of its alerts are still firing.
-- An alert that fires again within 15 minutes of resolving
+- A **resolved** alert resolves its alert, and the incident reads **Alerts
+  cleared** once none of its alerts are still firing. You then **Resolve** it.
+- An alert that fires again within 15 minutes of clearing
   (`PRISMALENS_ALERT_FLAP_WINDOW_MINUTES`) is the same alert, not a new one. It
-  reopens its incident, the **Timeline** says it refired, and its next
-  resolution resolves the incident again. A reopen starts no new investigation.
+  puts an **Alerts cleared** incident back to **Triggered**, the **Timeline**
+  says it refired, and no new investigation starts. After that window, or after
+  you resolved the incident, it is a new alert on a new incident that names the
+  old one. [Resolving and reopening incidents](/guides/incident-lifecycle/#what-a-refire-does)
+  has the full table.
+
+## Alert sources
+
+**Settings → Alert sources** is where alerts come from. It has two groups.
+
+**Webhook** shows the URL Alertmanager posts to, the token with **Show** and
+**Copy**, and the **Last delivery**: when it arrived, how many alerts it
+carried and how many were accepted. The token shows only in a browser on the
+machine PrismaLens runs on.
+
+**Pulled from** lists the Alertmanager and Prometheus servers PrismaLens reads
+by URL. **Add a source** takes a kind, a URL and a name, then checks that the
+server answers. The server must be reachable from this machine without
+credentials. Each row shows **reachable** or **unreachable** with the last
+error, and has **Test** and **Pull now**.
+
+PrismaLens pulls on start, and **Pull now** pulls again:
+
+- From **Alertmanager** it lists the alerts Alertmanager holds. Each active
+  one becomes an alert, and an alert Alertmanager lists as silenced or
+  inhibited does not.
+- From **Prometheus** it reads which alerts fired since the last pull that
+  finished without an error, at most 24 hours back, and 24 hours on the first
+  pull. This is the catch-up: alerts that fired while PrismaLens was off still
+  open incidents. A firing that has ended is resolved, and one still firing is left alone.
+
+After each webhook delivery PrismaLens also lists every Alertmanager again,
+for the resolve-by-absence rule below. It does not open incidents from that.
+
+An alert has one identity, its label set, whichever way it arrives. The same
+alert from a webhook, a pull and a catch-up is one alert, so a restart does
+not open a second incident for it.
+
+A pulled or caught-up alert opens or joins an incident like any other, but it
+starts no investigation. Only an alert that arrives by webhook starts one on its own.
 
 ### When a resolved notification never arrives
 
 Alertmanager sends **resolved** once. If PrismaLens was off or asleep at that
-moment, it never gets it. With an Alertmanager connection (**Settings →
-Integrations**), PrismaLens asks Alertmanager which alerts it still holds each
+moment, it never gets it. With an Alertmanager source (**Settings → Alert
+sources**), PrismaLens asks Alertmanager which alerts it still holds each
 time it starts and after each webhook. An alert that a connected Alertmanager
-listed before and no connected Alertmanager lists now is resolved, and so is
-its incident once nothing on it is still firing. It happens only when:
+listed before and no connected Alertmanager lists now is cleared. Its incident
+reads **Alerts cleared** once nothing on it is still firing, and you then
+**Resolve** it, as with a resolved notification. It happens only when:
 
 - every connected Alertmanager answered, and each has been running for at
   least 10 minutes (a restarted Alertmanager holds nothing until Prometheus
   sends its alerts again);
 - Prometheus catch-up, if connected, does not show the alert still firing.
 
-An alert only a different Alertmanager ever sent is never resolved this way.
-The incident's timeline says why it resolved, and the log shows the count:
+Adding an Alertmanager source lists it at once, without waiting for the next
+delivery. An alert that fired by webhook before you connected that
+Alertmanager is listed by that first check, so it can still resolve by absence
+later.
+
+An alert only a different Alertmanager ever sent is never cleared this way.
+The incident's timeline says why the alert cleared, and the log shows the count:
 
 ```
 Boot pull: 2 source(s), 3 received, 0 new, 1 caught up, 1 resolved by absence, 0 error(s)
 ```
 
 ```
-Status changed from open to resolved: no connected Alertmanager still lists HighLatency (4f1c2a9e0d3b7c61); no resolved notification was received
+Status changed from triggered to resolved: no connected Alertmanager still lists HighLatency (4f1c2a9e0d3b7c61); no resolved notification was received
 ```
 
 ## The webhook token
@@ -63,12 +108,16 @@ The first `pl up` generates a token and saves it in your workspace:
 ~/.prismalens/PRISMALENS_WEBHOOK_SECRET_FILE
 ```
 
-Every delivery must carry it. A delivery without it gets `401`, and a wrong one
-gets `403`. `pl doctor` shows the file's path and never prints the token.
+Every delivery must carry it, as `Authorization: Bearer`, as the password of
+basic auth, or as the key of an `X-Hub-Signature-256` HMAC. A delivery without
+it gets `401`, and a wrong one gets `403`. `pl doctor` shows the file's path and never prints the token.
 PrismaLens reads the file when it starts, so if you replace the token, restart
 `pl up` and update every sender.
 
 ## Configure Alertmanager
+
+`pl doctor` prints the webhook URL Alertmanager should use and whether other
+machines can reach it (loopback bind = only this machine).
 
 Add a receiver that sends to PrismaLens and reads the token from the file:
 
@@ -76,7 +125,7 @@ Add a receiver that sends to PrismaLens and reads the token from the file:
 receivers:
   - name: prismalens
     webhook_configs:
-      - url: http://127.0.0.1:3001/api/webhooks/prometheus
+      - url: http://127.0.0.1:6473/api/webhooks/prometheus
         send_resolved: true
         http_config:
           authorization:
@@ -93,7 +142,7 @@ grouping on so a burst arrives as a few grouped deliveries.
 
 ```bash
 TOKEN=$(cat ~/.prismalens/PRISMALENS_WEBHOOK_SECRET_FILE)
-curl -s -X POST http://127.0.0.1:3001/api/webhooks/prometheus \
+curl -s -X POST http://127.0.0.1:6473/api/webhooks/prometheus \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"version":"4","status":"firing","alerts":[{"status":"firing","labels":{"alertname":"HighErrorRate","severity":"critical","service":"payments"},"annotations":{"summary":"5xx above 5% for 10 minutes"},"startsAt":"2026-09-13T10:00:00Z","fingerprint":"abc123"}]}'
@@ -121,12 +170,17 @@ accept alerts from elsewhere on your network, start it on all addresses:
 pl up --host 0.0.0.0
 ```
 
-PrismaLens warns when it binds beyond loopback: over plain HTTP the traffic and
-the session cookie cross the network in clear, so do this only on a network you
-trust. Put a TLS proxy in front and set `PRISMALENS_PUBLIC_URL` to its `https://`
-address, and the cookie is marked `Secure`; or set `PRISMALENS_PROTOCOL=https`
-and `pl up` serves TLS itself. Either way, if you reach the app by a hostname
-rather than an IP address, add that name to `PRISMALENS_ALLOWED_HOSTS`.
+Use `--host 0.0.0.0` only on a trusted network. PrismaLens warns when it binds
+beyond loopback: over plain HTTP the traffic and the session cookie cross the
+network in clear, and anyone who can reach the port reaches PrismaLens directly.
+
+To put a TLS proxy in front, keep PrismaLens on loopback (the default) or
+firewall its port so only the proxy can reach it. A proxy does not protect a
+listener that is also open to the network. Set `PRISMALENS_PUBLIC_URL` to the
+proxy's `https://` address and the cookie is marked `Secure`. Or set
+`PRISMALENS_PROTOCOL=https` and `pl up` serves TLS itself. Either way, if you
+reach the app by a hostname rather than an IP address, add that name to
+`PRISMALENS_ALLOWED_HOSTS`.
 
 **Alertmanager in Docker on Linux** cannot reach `127.0.0.1` on the host. Start
 PrismaLens with `--host 0.0.0.0` and use the host's IP address in the receiver

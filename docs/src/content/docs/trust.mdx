@@ -40,8 +40,7 @@ credentials for anything outside the copy.
 PrismaLens refuses paths outside the snapshot, judged where they really land:
 through `..`, symlinks, `~` and globs such as `cat *`. Like the rest of the
 policy, it matches command text, so the agent can still read any file your user
-can read if it writes a command that dodges the rules. Keep that in mind before
-you run PrismaLens under an account that can read production credentials.
+can read if it writes a command that dodges the rules.
 
 Agent configuration committed in the repository never reaches the agent:
 before a run starts, PrismaLens removes `.claude`, `.opencode`, `opencode.json`,
@@ -54,9 +53,8 @@ agent spots text trying to give it orders, it quotes it in the report under
 
 ## What leaves your machine
 
-- **From PrismaLens:** no analytics unless you opt in (see [Usage telemetry](#usage-telemetry)), and no crash reports. An update check queries GitHub Releases without an identifier. The app listens on `127.0.0.1` unless you pass `--host`.
+- **From PrismaLens:** no analytics unless you opt in (see [Usage telemetry](#usage-telemetry)), and no crash reports. An update check queries GitHub Releases without an identifier. `GET /api/instance` is public and returns `{instanceId, version, apiVersion}` so clients can confirm which instance answers before sending credentials. The app listens on `127.0.0.1` unless you pass `--host`.
 - **Update check:** once a day `pl up` checks GitHub Releases for a newer version by sending a `HEAD` request to `https://github.com/prismalens/prismalens/releases/latest`. The check sends no identifier, query, or body — only the standard IP address and User-Agent header of any HTTP request. Results are cached for 24 hours in `update-check.json` in the workspace folder. The check runs in the background and never delays startup. It is suppressed when standard output is not a TTY, in CI, when running under an Electron launcher, or when `PRISMALENS_UPDATE_CHECK=off` or `DO_NOT_TRACK` is set.
-- **At install:** a documentation dependency of the API contains an install-time analytics package (`@scarf/scarf`). Set `SCARF_ANALYTICS=false` before `npm install -g prismalens` to turn it off.
 - **From your agent:** what it reads, including source code, command output and the alert, goes to its model provider, as it would if you used the agent directly.
 - **From git:** fetching a repository URL contacts that host with your git credentials.
 
@@ -68,7 +66,7 @@ Usage telemetry is **off by default**. Nothing is sent until the instance owner 
 
 The question is asked once:
 
-- **On `/incidents`:** Until you answer, a consent banner sits above the incidents list. It offers **No thanks** and **Share usage data**. Choosing either hides the banner.
+- **In the sidebar:** Until you answer, a short strip at the bottom of the sidebar asks to share usage counts. It offers **No thanks** and **Share**. Choosing either hides the strip.
 - **In Settings:** Under **Settings → Usage data**, the **Share usage data** toggle lets you change your decision at any time.
 - **`pl up --telemetry=off`:** The CLI flag disables usage telemetry for that run (`--telemetry` accepts only `off`; turning telemetry on must be done in Settings). While undecided, `pl up` prints a one-line notice pointing at Settings, but never prompts in the terminal.
 
@@ -94,7 +92,7 @@ When forced off, the Settings checkbox is disabled with a note explaining the en
 
 - An install id: a random identifier created once for this workspace.
 - The PrismaLens version, whether it is a release or a development build, how it was installed (npm, the installer, Homebrew, Scoop or the desktop app), the operating system, CPU architecture and Node major version.
-- One event per milestone, carrying fixed categories only: setup finished; a service gained a repository (local folder or git); an integration was configured (which vendor); the first alert this install ever received (which source); an investigation started (which coding agent, and whether it was asked for by hand or by an alert); an investigation ended (its outcome, how long it took as one of four ranges, and a category for the failure); a report was viewed; a report was exported (Markdown, Slack or a GitHub comment); an incident was closed.
+- One event per milestone, carrying fixed categories only: setup finished; a service gained a repository (local folder or git); an integration was configured (which vendor); the first alert this install ever received (which source); an investigation started (which coding agent, and whether it was asked for by hand or by an alert); an investigation ended (its outcome, how long it took as one of four ranges, and a category for the failure); a report was viewed; a report was exported (Markdown, Slack or a GitHub comment); an incident was resolved by you.
 - Once a day while PrismaLens is running and sharing is on: a sign that this install is active, with nothing else attached.
 
 To check this against what actually leaves your machine, open **Settings → Usage data → Recently sent**: the last 20 events exactly as sent, less the PostHog project key, kept in memory until PrismaLens restarts.
@@ -148,7 +146,7 @@ Every event sent when telemetry is enabled carries a common platform block, plus
 | `investigation_finished` | An investigation reached a terminal state (reported once per run). | `state`<br />`duration_bucket`<br />`error_class` | `completed`, `failed`, `cancelled`<br />`<1m`, `1-5m`, `5-15m`, `>15m`<br />`none`, `cancelled`, `harness_unavailable`, `harness_exited`, `timeout`, `repo_unavailable`, `auth`, `network`, `other` |
 | `report_viewed` | An investigation report was viewed in the dashboard (deduplicated per run). | _none_ | `{}` |
 | `report_exported` | A report was exported or delivered. | `target` | `markdown`, `slack`, `github` |
-| `incident_closed` | A resolved incident was marked closed. | _none_ | `{}` |
+| `incident_closed` | You pressed **Resolve** on an incident. The event keeps its old name; the app calls this action Resolve. It is not sent when an incident's alerts clear on their own (**Alerts cleared**). | _none_ | `{}` |
 | `install_active` | This install is running with sharing on (at most once per UTC day). | _none_ | `{}` |
 
 
@@ -170,7 +168,9 @@ Apart from those provider keys, the agent gets only `PATH`, `HOME`, `USER`,
 There are no accounts. A browser gets in only by opening a one-time pairing
 link that `pl up` or `pl pair` prints on the host; no address, `localhost`
 included, grants access by itself. Only the host's own session can pair or
-revoke other devices. See [Opening it from other devices](/guides/devices/).
+revoke other devices. Devices are named `<link label> · <browser> on <OS>`,
+e.g. "This machine · Firefox on Linux". A paired device stays valid until revoked
+(the cookie renews on use). See [Opening it from other devices](/guides/devices/).
 
 ## Where your data lives
 
@@ -180,13 +180,19 @@ Everything is under `~/.prismalens`, or the folder you pass to
 | Path | Contents |
 | --- | --- |
 | `prismalens.db` | Incidents, alerts, services, investigations, reports and their event streams |
-| `runs/<id>/repo` | The snapshot a run read, deleted when the run ends, whatever its outcome |
+| `instance.json` | Instance ID and port. A new workspace serves on port 6473. `--port` or `PRISMALENS_PORT` overrides the port for one run |
+| `runs/<id>/repo`, `runs/<id>/repos/` | The snapshots a run read, deleted when the run ends, whatever its outcome. A follow-up rebuilds them at the same commits and deletes them again when it ends |
 | `runs/<id>/transcript.jsonl` | Raw messages between PrismaLens and the agent, kept as a best effort |
 | `repos/` | Mirrors of repositories added by URL |
 | `logs/` | App logs |
 | `PRISMALENS_*_FILE` | Generated secrets |
 
 To remove everything, stop `pl up` and delete the folder.
+
+A follow-up question on a finished investigation reopens the coding agent's
+own session. That conversation is kept by the agent in its own session store,
+such as `~/.claude/projects/` for Claude Code, outside `~/.prismalens`, and
+deleting the workspace folder does not remove it.
 
 ## These websites
 

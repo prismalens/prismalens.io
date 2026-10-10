@@ -13,6 +13,8 @@ const siteBase = isDev ? 'http://localhost:4321' : 'https://prismalens.io';
 // https://astro.build/config
 export default defineConfig({
 	site: 'https://docs.prismalens.io',
+	// Astro 7 defaults to JSX whitespace rules, which glue inline text to links and <code>.
+	compressHTML: true,
 	// 0.5.0 retired the CLI investigator pages (prismalens.io#23); old links land on their successors.
 	redirects: {
 		'/cli': '/reference/',
@@ -71,6 +73,7 @@ export default defineConfig({
 						{ label: 'Quick start', slug: 'quickstart' },
 						{ label: 'Install, upgrade, uninstall', slug: 'install' },
 						{ label: 'Coding agents', slug: 'coding-agents' },
+						{ label: 'Try it on a broken app', slug: 'guides/try-it' },
 					],
 				},
 				{
@@ -78,7 +81,9 @@ export default defineConfig({
 					items: [
 						{ label: 'Services and their code', slug: 'guides/services' },
 						{ label: 'Sending alerts', slug: 'guides/alerts' },
-						{ label: 'Working an incident', slug: 'guides/incidents' },
+						{ label: 'The incident board', slug: 'guides/incidents' },
+						{ label: 'The conversation', slug: 'guides/conversation' },
+						{ label: 'Resolving and reopening', slug: 'guides/incident-lifecycle' },
 						{ label: 'Opening it from other devices', slug: 'guides/devices' },
 						{ label: 'Run in the background', slug: 'guides/background-service' },
 						{ label: 'Reading the report', slug: 'guides/reports' },

@@ -10,25 +10,36 @@ PrismaLens has five commands: `up`, `pair`, `reset`, `doctor` and `upgrade`.
 
 ### `pl up`
 
-Starts the app: the API and the web UI on one port, backed by SQLite.
+Starts the app: the API and the web UI on one port, backed by SQLite. A new
+workspace serves on port 6473. The
+port lives in `<workspace>/instance.json`; `--port` or `PRISMALENS_PORT`
+overrides it for one run. On Linux and macOS, a foreground `pl up` suggests
+`pl service install` for a machine that should always be on.
 
 | Flag | Default | What it does |
 | --- | --- | --- |
-| `--port <port>` | `3001` | Port to listen on. |
+| `--port <port>` | `6473` | Port to listen on. |
 | `--host <host>` | `127.0.0.1` | Address to bind. Anything other than loopback makes the app reachable from your network and prints a warning. |
 | `--workspace <dir>` | `~/.prismalens` | Folder for the database, secrets, logs, mirrors and runs. |
 | `--verbose` | off | Stream every log line to the terminal. By default only warnings and errors appear. |
 | `--no-open` | opens | Print the pairing link without opening a browser. |
+| `--tailscale-serve` | off | Publish the app on your tailnet over HTTPS with `tailscale serve` and allow its name for this run. |
 | `--telemetry=off` | unset | Turn off opt-in usage telemetry for this run regardless of Settings. See [Usage telemetry](/trust/#usage-telemetry). |
 
 ### `pl pair`
 
 Prints a one-time pairing link for a running `pl up`. It works once, for 15
-minutes. See [Opening it from other devices](/guides/devices/).
+minutes. `pl pair --address <url>` checks the address first and refuses when it's
+unreachable, when the host isn't allowed (it prints the
+`PRISMALENS_ALLOWED_HOSTS=<host>` line to add), or when another PrismaLens
+answers. Devices are named `<link label> · <browser> on <OS>`, e.g. "This
+machine · Firefox on Linux". A paired device stays valid until revoked (the
+cookie renews on use). See [Opening it from other devices](/guides/devices/).
 
 | Flag | Default | What it does |
 | --- | --- | --- |
-| `--address <url>` | `http://localhost:<port>` | The address the other device will open, such as a LAN IP or a tailnet name. |
+| `--tailscale` | off | A link on this machine's tailnet HTTPS address; sets up `tailscale serve` for the running server if missing. |
+| `--address <url>` | `http://localhost:<port>` | The address the other device will open, such as a reverse proxy. Prefer `--tailscale`. |
 | `--label <name>` | none | A name shown under **Settings → Devices** until the device sends its own. |
 | `--operator` | off | A link for the host's own browser, which may also pair and revoke devices. |
 | `--workspace <dir>` | `~/.prismalens` | The workspace `pl up` is running on. |
@@ -45,10 +56,12 @@ Checks the machine `pl up` will run on and exits non-zero if a hard check
 fails. It checks the Node version, that the workspace folder is writable,
 which coding agents are on `PATH`, which one would be picked, whether each
 installed agent answers, where the webhook token file is, and the host and
-port. For each agent it prints the path the binary was found at, or the
-`PATH` it searched. It never prints the token. It also prints the version and
-how it was installed, and lists every `pl` on `PATH`. `--workspace`, `--port`
-and `--host` check the values `pl up` would get with the same flags.
+port. `pl doctor` prints the webhook URL Alertmanager should use and whether
+other machines can reach it (loopback bind = only this machine). For each agent
+it prints the path the binary was found at, or the `PATH` it searched. It never
+prints the token. It also prints the version and how it was installed, and
+lists every `pl` on `PATH`. `--workspace`, `--port` and `--host` check the
+values `pl up` would get with the same flags.
 
 ### `pl upgrade`
 
@@ -62,7 +75,7 @@ Flags on `pl up` set `PRISMALENS_PORT`, `PRISMALENS_HOST`, `PRISMALENS_WORKSPACE
 
 | Variable | Default | What it does |
 | --- | --- | --- |
-| `PRISMALENS_PORT` | `3001` | Same as `--port`. |
+| `PRISMALENS_PORT` | `6473` | Same as `--port`. Overrides `<workspace>/instance.json` for one run. |
 | `PRISMALENS_HOST` | `127.0.0.1` | Same as `--host`. |
 | `PRISMALENS_WORKSPACE_DIR` | `~/.prismalens` | Same as `--workspace`. |
 | `PRISMALENS_TELEMETRY` | unset | `off` forces usage telemetry off for the process regardless of Settings (also accepts `0` or `false`). Set by `--telemetry=off`. Also honours `DO_NOT_TRACK` and `CI`. See [Usage telemetry](/trust/#usage-telemetry). |
@@ -86,13 +99,38 @@ Flags on `pl up` set `PRISMALENS_PORT`, `PRISMALENS_HOST`, `PRISMALENS_WORKSPACE
 | Webhook deliveries | 20 per second and 600 per minute. Over the limit a delivery gets `503` with `Retry-After`, which Alertmanager retries. |
 | Investigations per incident | One at a time. Investigate on an incident whose investigation is pending or running returns that investigation and starts nothing new. |
 
+## Messages to an investigation
+
+`POST /api/investigations/{id}/messages` with `{"text": "...", "mode": "queue" | "now"}`
+answers `202` with one of these states:
+
+| State | When |
+| --- | --- |
+| `queued` | The run is live; the agent reads it at its next pause. |
+| `sent` | The run is live and `mode` was `now`; the agent's current step was stopped to read it. |
+| `resumed` | The run had finished; the same agent session was reopened to answer it. |
+
+It answers `409` with one of these messages:
+
+| Message | Why |
+| --- | --- |
+| `The run ended before your message reached it.` | A live run finished while the message was on its way. |
+| `A follow-up is already running.` | Two follow-ups were sent to a finished run at once; one of them runs. |
+| `<Agent> can't reopen a finished session, so a new run starts from the report.` | The run's agent cannot continue a finished run (see [Coding agents](/coding-agents/)). |
+| `This run's agent kept no session to reopen.` | The run finished before PrismaLens kept session ids, or its agent never opened one. |
+| `<Agent> is no longer installed.` | The run's agent is not on `PATH` any more. |
+| `This run recorded no workspace.` | The run failed before its code was cloned. |
+
+## Instance identity
+
+`GET /api/instance` is public and returns `{instanceId, version, apiVersion}`. Launchers and `pl pair` check it to confirm a port belongs to this workspace before sending credentials or minting links.
+
 ## Known limits
 
 - Runs on macOS, Linux and WSL2. Native Windows is a preview: it installs and runs, and CI checks it on every change, but expect rough edges.
 - One `pl up` per workspace folder. A second one on the same folder refuses to start and names the process holding it.
+- The desktop app attaches to a running PrismaLens on the workspace, else starts the installed service, else runs its own on the workspace's port. It shows a dialog instead of quitting when its PrismaLens stops.
 - Every run keeps its transcript under `runs/<id>/`. The repository clone is deleted when the run ends, or at the next start if PrismaLens stopped mid-run; delete old transcripts by hand when you need the space.
-- A message to a running agent waits for the end of its turn unless you send it now, and today a turn is the whole run. A finished run cannot be asked anything more; start a new one with context instead.
-- Sub-agents that a coding agent starts on its own cannot be messaged. The agent and model of a run cannot change once it has started.
 - Installing needs a prebuilt `better-sqlite3` for your platform, or Python 3 and a C++ toolchain to build it.
 
 ## Troubleshooting
