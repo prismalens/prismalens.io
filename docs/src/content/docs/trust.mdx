@@ -40,8 +40,7 @@ credentials for anything outside the copy.
 PrismaLens refuses paths outside the snapshot, judged where they really land:
 through `..`, symlinks, `~` and globs such as `cat *`. Like the rest of the
 policy, it matches command text, so the agent can still read any file your user
-can read if it writes a command that dodges the rules. Keep that in mind before
-you run PrismaLens under an account that can read production credentials.
+can read if it writes a command that dodges the rules.
 
 Agent configuration committed in the repository never reaches the agent:
 before a run starts, PrismaLens removes `.claude`, `.opencode`, `opencode.json`,
@@ -93,7 +92,7 @@ When forced off, the Settings checkbox is disabled with a note explaining the en
 
 - An install id: a random identifier created once for this workspace.
 - The PrismaLens version, whether it is a release or a development build, how it was installed (npm, the installer, Homebrew, Scoop or the desktop app), the operating system, CPU architecture and Node major version.
-- One event per milestone, carrying fixed categories only: setup finished; a service gained a repository (local folder or git); an integration was configured (which vendor); the first alert this install ever received (which source); an investigation started (which coding agent, and whether it was asked for by hand or by an alert); an investigation ended (its outcome, how long it took as one of four ranges, and a category for the failure); a report was viewed; a report was exported (Markdown, Slack or a GitHub comment); an incident was closed.
+- One event per milestone, carrying fixed categories only: setup finished; a service gained a repository (local folder or git); an integration was configured (which vendor); the first alert this install ever received (which source); an investigation started (which coding agent, and whether it was asked for by hand or by an alert); an investigation ended (its outcome, how long it took as one of four ranges, and a category for the failure); a report was viewed; a report was exported (Markdown, Slack or a GitHub comment); an incident was resolved by you.
 - Once a day while PrismaLens is running and sharing is on: a sign that this install is active, with nothing else attached.
 
 To check this against what actually leaves your machine, open **Settings → Usage data → Recently sent**: the last 20 events exactly as sent, less the PostHog project key, kept in memory until PrismaLens restarts.
@@ -147,7 +146,7 @@ Every event sent when telemetry is enabled carries a common platform block, plus
 | `investigation_finished` | An investigation reached a terminal state (reported once per run). | `state`<br />`duration_bucket`<br />`error_class` | `completed`, `failed`, `cancelled`<br />`<1m`, `1-5m`, `5-15m`, `>15m`<br />`none`, `cancelled`, `harness_unavailable`, `harness_exited`, `timeout`, `repo_unavailable`, `auth`, `network`, `other` |
 | `report_viewed` | An investigation report was viewed in the dashboard (deduplicated per run). | _none_ | `{}` |
 | `report_exported` | A report was exported or delivered. | `target` | `markdown`, `slack`, `github` |
-| `incident_closed` | A resolved incident was marked closed. | _none_ | `{}` |
+| `incident_closed` | You pressed **Resolve** on an incident. The event keeps its old name; the app calls this action Resolve. It is not sent when an incident's alerts clear on their own (**Alerts cleared**). | _none_ | `{}` |
 | `install_active` | This install is running with sharing on (at most once per UTC day). | _none_ | `{}` |
 
 

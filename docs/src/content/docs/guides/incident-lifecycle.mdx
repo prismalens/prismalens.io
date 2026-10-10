@@ -1,0 +1,123 @@
+---
+title: Resolving and reopening incidents
+description: What Acknowledge, Resolve and Reopen do, what an alert that fires again does to a finished incident, and how to stop a run and continue it.
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+An incident has a status, and the agent's run has its own state. The status
+is where the incident is in its life. The run state, shown on the strip under
+the title, says whether an agent is working. An incident can read
+**Acknowledged** with no agent running.
+
+## The statuses
+
+| Status | You see | What put it there |
+| --- | --- | --- |
+| Triggered | **Triggered** | An alert opened it, or you wrote it by hand. |
+| Investigating, identified, monitoring | **Acknowledged** | You pressed **Acknowledge**, or you reopened it. |
+| Resolved by the source | **Alerts cleared** | Every alert on it was resolved by its source. No button writes this one. |
+| Resolved by you | **Resolved** | You pressed **Resolve**. |
+
+An alert's own end reads **Cleared**, never Resolved: Resolved is the word for
+what you did.
+
+## Resolve is one step
+
+**Resolve** is the button in the title bar. On the board, dropping a card on
+**Resolved** opens the same dialog, and stops a working run first. It is
+offered from Triggered, Acknowledged and Alerts cleared. There is no second
+step to close it afterwards.
+
+The dialog asks for a cause and a category. Both are optional:
+
+- The fields start from the latest report's root cause and category, marked
+  **from the report, edit if wrong**. Edit them or clear them.
+- Leave them empty and the incident resolves without a cause.
+- After you resolve, **More actions → Edit cause** opens the same fields. An
+  emptied field clears what was recorded.
+
+Resolve also ends the incident's alerts that are still firing, so a firing
+alert is not left behind on a finished incident. The dialog says how many are
+still firing in Alertmanager and what follows if they fire again. The
+Timeline records `Resolved 2 firing alerts with the incident`.
+
+What you write as the cause outranks what the report guessed. A later incident
+that looks similar lists this one under similar incidents with that cause.
+
+## Reopen
+
+**Reopen** appears only on a **Resolved** incident, behind a confirm. The
+incident goes back to **Acknowledged** and lands in **Needs you**, marked
+`Reopened by you, cause not confirmed`, until a run starts on it. Its cause
+stays as **Previous cause** until you resolve it again, and the next Resolve
+stamps a fresh resolve time.
+
+On the board, dropping a Resolved card on **Working** asks **Reopen and
+investigate?** and starts a run after it reopens.
+
+**Alerts cleared** has nothing to reopen. Resolve it, or wait: an alert that
+fires again soon after reopens it by itself (below).
+
+**Investigate again**, under **More actions**, starts a new run on an
+incident in any status and leaves the status as it is. It is withheld while a
+run is working.
+
+## What a refire does
+
+A refire is an alert with the same identity firing again: the same label set,
+the way Alertmanager fingerprints it. What happens depends on how the incident
+ended.
+
+| The incident is | The alert fires again | What happens |
+| --- | --- | --- |
+| Triggered or Acknowledged | any time | The firing alert counts the repeat. Nothing else changes. |
+| Alerts cleared | within 15 minutes of clearing | The same alert reopens and the incident goes back to **Triggered**. The Timeline says `Incident reopened: alert refired (flap)`. No investigation starts. |
+| Alerts cleared | after 15 minutes | A new alert and a new incident. Its Timeline names the old one: `fired again after INC-12 had its alerts cleared`. |
+| Resolved | any time | A new alert and a new incident. Its Timeline says `fired again after INC-12 was resolved`. |
+
+The window is `PRISMALENS_ALERT_FLAP_WINDOW_MINUTES`, 15 by default. A
+Resolved incident is final to the source, so it never reopens by a refire.
+The old incident's menu shows **Fired again as INC-13** with the time, and
+links to the new one.
+
+A new incident follows the usual rule for investigations: its first alert, on
+a service with an investigation setting that allows it, starts a run. See
+[Sending alerts](/guides/alerts/).
+
+## Worked example
+
+`HighLatency` fires on `checkout-api` and the incident opens as INC-12. The
+rows show what you see after each step.
+
+| Step | INC-12 | Alert `HighLatency` |
+| --- | --- | --- |
+| 14:02, Alertmanager delivers `firing` | Triggered, and a run starts if the service allows it | firing |
+| 14:05, you press **Acknowledge** | Acknowledged | firing |
+| 14:20, Alertmanager delivers `resolved` | Alerts cleared | cleared |
+| 14:26, `HighLatency` fires again | Triggered, Timeline `alert refired (flap)` | firing, 2 occurrences |
+| 14:40, you press **Resolve**, no cause | Resolved | cleared with the incident |
+| 15:10, `HighLatency` fires again | stays Resolved, menu shows **Fired again as INC-13** | INC-13 opens with a new alert |
+| 15:30, you open INC-12 and press **Reopen** | Acknowledged, in Needs you, cause shown as Previous | cleared |
+
+## Stop, then continue
+
+Stopping is not a failure and does not change the incident's status. **Stop**
+in the box ends the run. **Esc** in the box does the same while the agent is
+working; **Esc** with the box not focused goes back a level. The run state reads **Stopping**, then **Stopped by you**. A stopped
+run does not put the incident in Needs you on its own; a **failed** run does.
+
+There is no paused state. A stopped run is over, and the box then offers
+**Continue the investigation**: the agent reopens its own session on the code
+it saw and goes on from there. A continued run ends the way any run does,
+with a report, stopped again, or failed. The line above the box names the
+code it picks up, or `the workspace it had` when none was recorded.
+
+Only a stopped run is continued. A run that finished takes a follow-up
+instead, and a failed one offers a new investigation. See
+[The conversation](/guides/conversation/#after-the-run-ends).
+
+<Aside type="note" title="deepagents cannot continue">
+deepagents cannot reopen a finished session. After a stop its box offers a new
+investigation, which starts from the report.
+</Aside>
