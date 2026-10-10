@@ -105,6 +105,27 @@ Under WSL2, keep the repository on the Linux filesystem rather than under
 `/mnt/c`. Cloning across the two filesystems copies every object on every run
 and is slow.
 
+## Dependencies
+
+Record which services call which, so the agent knows what sits next to the one
+that alerted.
+
+Open **Services**, then a service, then **Dependencies**, and choose **Add**.
+Pick a **Service** and a **Direction**:
+
+- **Upstream:** this service calls the other one.
+- **Downstream:** the other one calls this service.
+
+The link also shows on the other service, with the direction reversed. Use
+**Remove** on either side to delete it.
+
+An investigation on the service is told both sets of neighbours, one hop out:
+the services that call it and the services it calls.
+
+Deleting a service removes its dependency links too. The confirmation lists
+them, for example "Its 2 dependency links go too: book-metadata depends on it.
+It depends on postgres."
+
 ## Private repositories
 
 PrismaLens uses your own git, so whatever lets you run `git clone` in a
