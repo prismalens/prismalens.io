@@ -40,8 +40,7 @@ credentials for anything outside the copy.
 PrismaLens refuses paths outside the snapshot, judged where they really land:
 through `..`, symlinks, `~` and globs such as `cat *`. Like the rest of the
 policy, it matches command text, so the agent can still read any file your user
-can read if it writes a command that dodges the rules. Keep that in mind before
-you run PrismaLens under an account that can read production credentials.
+can read if it writes a command that dodges the rules.
 
 Agent configuration committed in the repository never reaches the agent:
 before a run starts, PrismaLens removes `.claude`, `.opencode`, `opencode.json`,

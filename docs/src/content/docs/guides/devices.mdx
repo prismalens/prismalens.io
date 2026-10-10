@@ -1,6 +1,6 @@
 ---
 title: Opening it from other devices
-description: How a browser gets into PrismaLens, how to pair a phone or a second computer, and how to reach the app over your LAN or a tailnet.
+description: How a browser gets into PrismaLens, how to pair a phone or a second computer, and how to reach the app over a tailnet.
 ---
 
 import { Aside } from '@astrojs/starlight/components';
@@ -33,16 +33,16 @@ pl pair --operator
 
 ## A phone or a second computer
 
-On the host, print a link carrying an address the other device can reach:
+Reach the box over [Tailscale](https://tailscale.com): a phone or laptop
+signed in to the same tailnet reaches it from anywhere, over HTTPS, with
+nothing exposed to the internet. First, in the Tailscale admin console, turn
+on [MagicDNS and HTTPS certificates](https://tailscale.com/kb/1153/enabling-https)
+for your tailnet. Then, on the host:
 
 ```bash
-pl pair --address http://192.168.1.5:6473 --label "phone"
+pl up --tailscale-serve
+pl pair --tailscale --label "phone"
 ```
-
-`pl pair --address <url>` checks the address first and refuses when it's
-unreachable, when the host isn't allowed (it prints the
-`PRISMALENS_ALLOWED_HOSTS=<host>` line to add), or when another PrismaLens
-answers.
 
 Open the link on that device within 15 minutes. It works once. Devices are
 named `<link label> · <browser> on <OS>`, e.g. "This machine · Firefox on Linux".
@@ -51,28 +51,16 @@ paired device stays valid until revoked (the cookie renews on use). It can read
 and run investigations. Only this machine's own session can pair or revoke
 devices.
 
-Without `--address`, the link points at `localhost`, which reaches only the
-host itself, and `pl pair` says so.
-
-## Reaching the app over your network
-
-PrismaLens listens on `127.0.0.1`. To accept connections from your LAN, bind
-all addresses:
-
-```bash
-pl up --host 0.0.0.0
-```
-
-Over plain HTTP, the pairing link and the session cookie cross the network in
-clear, so do this only on a network you trust.
+Without `--tailscale` or `--address`, the link points at `localhost`, which
+reaches only the host itself, and `pl pair` says so.
 
 ## Reaching it over a tailnet
 
 [Tailscale Serve](https://tailscale.com/docs/features/tailscale-serve) puts
-HTTPS in front of the app and keeps it on your tailnet, so a phone or laptop
-signed in to the same tailnet reaches the box from anywhere. PrismaLens stays
+HTTPS in front of the app and keeps it on your tailnet. PrismaLens stays
 bound to `127.0.0.1`. You need the `tailscale` command logged in on the box,
-with MagicDNS and HTTPS certificates turned on for the tailnet.
+with MagicDNS and HTTPS certificates turned on for the tailnet, and the
+Tailscale app on each device you pair.
 
 ```bash
 pl up --tailscale-serve
@@ -91,12 +79,6 @@ For that run, PrismaLens:
 3. runs `tailscale serve --bg --https=443 http://127.0.0.1:6473`, unless that
    mapping already exists. If port 443 already serves something else, it stops
    and tells you instead of replacing it.
-
-Then pair each device on that address:
-
-```bash
-pl pair --tailscale --label "phone"
-```
 
 `pl pair --tailscale` sets up the same mapping if it is missing, but the server
 must already allow the tailnet name: start it with `--tailscale-serve`, or with
@@ -124,9 +106,23 @@ PRISMALENS_PUBLIC_URL=https://box.tail1234.ts.net \
 pl up
 ```
 
+## Any other address
+
+If the device reaches the host some other way, such as your own reverse
+proxy, name that address:
+
+```bash
+pl pair --address https://prismalens.example.internal --label "laptop"
+```
+
+`pl pair --address <url>` checks the address first and refuses when it's
+unreachable, when the host isn't allowed (it prints the
+`PRISMALENS_ALLOWED_HOSTS=<host>` line to add), or when another PrismaLens
+answers.
+
 <Aside type="caution" title="What this does not do">
 PrismaLens is built for one person's machine. It has no users or roles, and
 anyone holding a paired device can read every incident and run
-investigations. Pair only devices you control, and revoke a device you lose
-under **Settings → Devices**.
+investigations. A device stays paired until you revoke it under
+**Settings → Devices**.
 </Aside>

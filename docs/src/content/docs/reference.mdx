@@ -23,6 +23,7 @@ overrides it for one run. On Linux and macOS, a foreground `pl up` suggests
 | `--workspace <dir>` | `~/.prismalens` | Folder for the database, secrets, logs, mirrors and runs. |
 | `--verbose` | off | Stream every log line to the terminal. By default only warnings and errors appear. |
 | `--no-open` | opens | Print the pairing link without opening a browser. |
+| `--tailscale-serve` | off | Publish the app on your tailnet over HTTPS with `tailscale serve` and allow its name for this run. |
 | `--telemetry=off` | unset | Turn off opt-in usage telemetry for this run regardless of Settings. See [Usage telemetry](/trust/#usage-telemetry). |
 
 ### `pl pair`
@@ -37,7 +38,8 @@ cookie renews on use). See [Opening it from other devices](/guides/devices/).
 
 | Flag | Default | What it does |
 | --- | --- | --- |
-| `--address <url>` | `http://localhost:<port>` | The address the other device will open, such as a LAN IP or a tailnet name. |
+| `--tailscale` | off | A link on this machine's tailnet HTTPS address; sets up `tailscale serve` for the running server if missing. |
+| `--address <url>` | `http://localhost:<port>` | The address the other device will open, such as a reverse proxy. Prefer `--tailscale`. |
 | `--label <name>` | none | A name shown under **Settings → Devices** until the device sends its own. |
 | `--operator` | off | A link for the host's own browser, which may also pair and revoke devices. |
 | `--workspace <dir>` | `~/.prismalens` | The workspace `pl up` is running on. |
