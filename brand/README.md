@@ -1,32 +1,36 @@
 # PrismaLens brand assets
 
-Canonical home of the PrismaLens identity — the **refraction mark**: one mixed beam
-enters the prism, ordered bands leave it, fading in rank. That is the product's own
-epistemics (an incident in, ordered evidence out) drawn as physics.
+Canonical home of the PrismaLens identity — the **p-lens glint mark**: a lowercase p
+whose bowl is a lens ring with one curved highlight, the way glass catches light.
+Below 24 px it is the plain p: no glint, heavier strokes (prismalens/prismalens#745).
+
+Geometry, on a 256 box: ring centre (142, 104), r 54, stroke 36 (46 below 24 px); stem
+x 88 from y 64 to 224, round caps; glint `M120 108A24 24 0 0 1 144 82`, stroke 11.
 
 ## Palette
 
 | Token | Hex | Use |
 |---|---|---|
-| Ink dark | `#0F172A` | mark/wordmark on light backgrounds |
-| Ink light | `#E2E8F0` | mark/wordmark on dark backgrounds |
+| Ink dark | `#0F172A` | wordmark on light backgrounds |
+| Ink light | `#E2E8F0` | wordmark on dark backgrounds |
 | Indigo | `#6366F1` | primary accent, "Prisma" in the wordmark |
-| Ray indigo | `#4F46E5` on light, `#818CF8` on dark, at 100 / 70 / 50 / 35% opacity | the refracted rays, in order; the favicon's three use 100 / 70 / 45% |
+| Mark indigo | `#4F46E5` on light, `#818CF8` on dark | the mark |
+| Tile | `#6366F1` → `#4F46E5` → `#4338CA`, top to bottom | app icon / favicon tile, white mark |
 | Found-it green | `#34D399` | terminal "root cause identified" moments only |
 | Deep space | `#0F172A` / `#0B1120` | icon chips, dark canvases |
 
 ## Files
 
-- `logo.svg` — master mark, theme-aware (`prefers-color-scheme` switches ink)
-- `logo-dark.svg` / `logo-light.svg` — fixed-ink variants for known backgrounds
-- `favicon.svg` — small-size variant: thicker strokes, 3 rays instead of 4, no internal ray
+- `logo.svg` — master mark, theme-aware (`prefers-color-scheme` switches the indigo)
+- `logo-dark.svg` / `logo-light.svg` — fixed-colour variants for known backgrounds
+- `favicon.svg` — the 16 px tile: indigo gradient, white plain p, no glint
 - `banner-dark.png` / `banner-light.png` — 1600×400 README banners (Space Grotesk lockup + tagline)
 
 ## Derived copies (regenerate from here, don't edit in place)
 
-- `site/public/` + `docs/public/`: `favicon.svg`, `favicon.ico` (16+32 PNG-in-ICO), `apple-touch-icon.png` (180, deep-space chip)
+- `site/public/` + `docs/public/`: `favicon.svg`, `favicon.ico` (16+32+48 PNG-in-ICO: the plain p at 16, the glint at 32 and 48), `apple-touch-icon.png` (180, the tile full-bleed; iOS rounds the corners)
 - `site/public/og-default.png` — 1200×630 social card (lockup + terminal + tagline)
-- Inline header marks in `site/src/components/Header.astro` and `docs/src/components/CustomHeader.astro`
+- Inline marks in `site/src/components/Mark.astro` (plain p below 24 px) and `docs/src/components/CustomHeader.astro`
 - Main repo: `.github/assets/{logo.svg,banner-dark.png,banner-light.png}` + README `<picture>` banner
 
 ## Wordmark
