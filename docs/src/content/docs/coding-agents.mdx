@@ -93,7 +93,7 @@ mode chip under the composer. The chip lists the agent's own mode names.
 
 | Mode | Claude Code | Codex | Gemini CLI | OpenCode |
 | --- | --- | --- | --- | --- |
-| Asks before acting (the default) | `default` (Manual) | `read-only` ("Ask for approval") | `default` | `build` |
+| Supervised (the default) | `default` (Manual) | `read-only` ("Ask for approval") | `default` | `build` |
 | Auto-accepts edits | `acceptEdits` | `workspace-write` (2.x only) | `autoEdit` | Not offered |
 | Auto | `auto` | `agent` | Not offered | Not offered |
 | Full access | `bypassPermissions` | `agent-full-access` | `yolo` | Not offered |
@@ -101,6 +101,25 @@ mode chip under the composer. The chip lists the agent's own mode names.
 Codex 1.13.1, the tested version, offers "Ask for approval" (`read-only`),
 `agent` and `agent-full-access`. The auto-accepts-edits mode exists on Codex 2.x
 only.
+
+The default mode does not mean every call asks. Which calls ask is the agent's
+own rule, the same as in your terminal:
+
+| Default mode | Asks before | Runs without asking |
+| --- | --- | --- |
+| Claude Code `default` (Manual) | Edits and shell commands | Reads, and whatever your `~/.claude/settings.json` allows |
+| Codex `read-only` ("Ask for approval") | Going past its sandbox, such as network access or a write outside the snapshot | Reads, and edits inside the snapshot |
+| Gemini CLI `default` | Edits and shell commands | Reads |
+| OpenCode `build` | Whatever your `opencode.json` sets to `ask`. By default that is files outside the workspace only. | Everything else, including edits and commands inside the snapshot |
+
+The other modes ask less:
+
+- **Auto-accepts edits.** Claude Code's `acceptEdits` takes file edits, and file commands such as `mkdir`, `mv` and `cp` inside the snapshot, without asking. Gemini CLI's `autoEdit` takes file edits without asking. Both still ask before other shell commands.
+- **Auto.** Claude Code's `auto` lets a classifier decide most calls without asking. Codex's `agent` works in Codex's sandbox with no network.
+- **Full access.** Codex's `agent-full-access` never asks and runs outside Codex's sandbox. Gemini CLI's `yolo` runs every call without asking. Claude Code's `bypassPermissions` skips almost every prompt.
+
+On Claude Code, a deny rule in your `~/.claude/settings.json` refuses the call
+without asking, in every mode.
 
 There is no plan mode. Plan modes are never offered and no run starts in one. A
 plan mode stored from an earlier version reads as the default mode.
@@ -115,12 +134,9 @@ When the agent asks, the run waits:
 An ask nobody answers is denied after 10 minutes, and the card reads "No one
 answered in 10 minutes, so it was denied". The window never outlives the run: it
 ends a minute before the run's 15-minute limit. When it is shortened, the card
-says "The run's time limit is near, so this ask expires at 14:12:11", and then
+says "The run's time limit is near, so this ask expires at 14:09:30", and then
 "Denied: the run's time limit was reached". Stopping the run denies a waiting ask
 too, and so does a restart of PrismaLens.
-
-OpenCode asks only where your `opencode.json` says `ask`. By default that is
-files outside the workspace only.
 
 Here is one ask, from Claude Code in Manual mode:
 

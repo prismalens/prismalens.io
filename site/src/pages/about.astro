@@ -15,7 +15,7 @@ import BaseLayout from '../layouts/BaseLayout.astro'
 
     <p class="mt-5 text-muted-foreground">
       PrismaLens puts that agent on the incident. It opens the incident from the alert, gives the
-      agent a copy of the service's code, refuses anything that would change it, and keeps the
+      agent a copy of the service's code, puts every ask the agent makes in front of you, and keeps the
       whole run: the report, the evidence and every command the agent ran.
     </p>
 
@@ -33,8 +33,8 @@ import BaseLayout from '../layouts/BaseLayout.astro'
     </p>
 
     <p class="mt-5 text-muted-foreground">
-      <strong class="text-foreground">Say where the limits are.</strong> In a mode that asks, nothing outside the workspace happens without your Approve. That is a
-      guardrail, not a wall, and the docs say so. Every report states whether the run was sandboxed.
+      <strong class="text-foreground">Say where the limits are.</strong> The agent's own mode and rules decide what it asks
+      you about. PrismaLens does not sandbox runs, and the docs say so.
     </p>
 
     <p class="mt-5 text-muted-foreground">

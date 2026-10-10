@@ -11,9 +11,8 @@ agent can reach, what PrismaLens does to limit it, and where those limits stop.
 ## The short version
 
 - The agent works in a **copy** of your repository, never in your checkout.
-- In a mode that asks, **no write or outside read happens without your Approve**. A mode that does not ask is the agent's own call. Neither is a wall.
-- The agent **cannot fetch URLs**. OpenCode also cannot web-search or read outside the snapshot.
-- Runs are **not sandboxed**. Nothing at the operating-system level blocks a write or a network call.
+- PrismaLens **never answers** a permission request for you. The agent's own mode and your own rules for it decide which calls ask, and each ask waits for your **Approve** or **Deny**. That is not a wall.
+- PrismaLens **does not sandbox** runs. Only the agent's own sandbox, where it has one, blocks a write or a network call at the operating-system level.
 - PrismaLens sends **no usage data** unless you opt in. An update check queries GitHub Releases without an identifier. Your agent sends your code and the alert to **its** model provider.
 - PrismaLens **never** reads or stores your agent's login.
 - Everything PrismaLens keeps is in **one folder**, `~/.prismalens`.
@@ -21,26 +20,29 @@ agent can reach, what PrismaLens does to limit it, and where those limits stop.
 ## How asks work
 
 PrismaLens never answers a permission request itself. The agent's own
-permission mode decides what it asks about (see
-[Permission modes and asks](/coding-agents/#permission-modes-and-asks)). In a
-mode that asks, such as Claude Code's Manual or Codex's "Ask for approval", a
-write, or a read outside the snapshot such as `cat ~/.bashrc`, shows in the
-conversation as an **Approve** / **Deny** card naming the call, and the board,
-sidebar and band say **Waiting for your approval**. Deny refuses it and the run
-goes on to its report. An ask nobody answers is denied after 10 minutes.
+permission mode decides which calls ask, and that differs by agent and mode
+(see [Permission modes and asks](/coding-agents/#permission-modes-and-asks)).
+For example, Claude Code's Manual asks before edits and shell commands, such as
+`cat ~/.bashrc`. Codex's "Ask for approval" edits inside the snapshot without
+asking and asks to go past its sandbox. OpenCode asks only where your
+`opencode.json` says `ask`, by default for files outside the workspace.
 
-<Aside type="caution" title="Modes that do not ask">
-Auto-accepting edits, Auto and Full access let the agent act without asking, as
-they do in your terminal. PrismaLens does not sandbox the agent, so nothing at
-the operating-system level blocks a write or a network call. For a real
-boundary, run PrismaLens under a user or in a VM that can read only what it
-should, and give the agent read-only credentials for anything outside the copy.
+When the agent asks, the conversation shows an **Approve** / **Deny** card
+naming the call, and the board, sidebar and band say **Waiting for your
+approval**. Deny refuses it and the run goes on to its report. An ask nobody
+answers is denied after 10 minutes.
+
+<Aside type="caution" title="Modes that ask less">
+Auto-accepting edits takes file edits without asking and still asks before
+other shell commands. Auto and Full access run most calls without asking, as
+they do in your terminal. PrismaLens does not sandbox the agent. The mode chip
+shows a lock only where a check saw the agent's own sandbox hold that mode,
+which today means Codex's sandboxed modes. For a real boundary, run PrismaLens
+under a user or in a VM that can read only what it should, and give the agent read-only credentials for anything outside the copy.
 </Aside>
 
-OpenCode asks only where your `opencode.json` says `ask`; by default that is
-files outside the workspace. Claude Code applies your own
-`~/.claude/settings.json`: what it allows runs without asking, and what it
-denies is refused without asking.
+Claude Code applies your own `~/.claude/settings.json`: what it allows runs
+without asking, and what it denies is refused without asking.
 
 Agent configuration committed in the repository never reaches the agent:
 before a run starts, PrismaLens removes `.claude`, `.opencode`, `opencode.json`,
@@ -92,7 +94,7 @@ When forced off, the Settings checkbox is disabled with a note explaining the en
 
 - An install id: a random identifier created once for this workspace.
 - The PrismaLens version, whether it is a release or a development build, how it was installed (npm, the installer, Homebrew, Scoop or the desktop app), the operating system, CPU architecture and Node major version.
-- One event per milestone, carrying fixed categories only: setup finished; a service gained a repository (local folder or git); an integration was configured (which vendor); the first alert this install ever received (which source); an investigation started (which coding agent, and whether it was asked for by hand or by an alert); an investigation ended (its outcome, how long it took as one of four ranges, and a category for the failure); a report was viewed; a report was exported (Markdown, Slack or a GitHub comment); an incident was closed.
+- One event per milestone, carrying fixed categories only: setup finished; a service gained a repository (local folder or git); an integration was configured (which vendor); the first alert this install ever received (which source); an investigation started (which coding agent, and whether it was asked for by hand or by an alert); an investigation ended (its outcome, how long it took as one of four ranges, and a category for the failure); a report was viewed; a report was exported (Markdown, Slack or a GitHub comment); an incident was resolved by you.
 - Once a day while PrismaLens is running and sharing is on: a sign that this install is active, with nothing else attached.
 
 To check this against what actually leaves your machine, open **Settings → Usage data → Recently sent**: the last 20 events exactly as sent, less the PostHog project key, kept in memory until PrismaLens restarts.
@@ -146,7 +148,7 @@ Every event sent when telemetry is enabled carries a common platform block, plus
 | `investigation_finished` | An investigation reached a terminal state (reported once per run). | `state`<br />`duration_bucket`<br />`error_class` | `completed`, `failed`, `cancelled`<br />`<1m`, `1-5m`, `5-15m`, `>15m`<br />`none`, `cancelled`, `harness_unavailable`, `harness_exited`, `timeout`, `repo_unavailable`, `auth`, `network`, `other` |
 | `report_viewed` | An investigation report was viewed in the dashboard (deduplicated per run). | _none_ | `{}` |
 | `report_exported` | A report was exported or delivered. | `target` | `markdown`, `slack`, `github` |
-| `incident_closed` | A resolved incident was marked closed. | _none_ | `{}` |
+| `incident_closed` | You pressed **Resolve** on an incident. The event keeps its old name; the app calls this action Resolve. It is not sent when an incident's alerts clear on their own (**Alerts cleared**). | _none_ | `{}` |
 | `install_active` | This install is running with sharing on (at most once per UTC day). | _none_ | `{}` |
 
 

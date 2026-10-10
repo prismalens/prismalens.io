@@ -89,15 +89,16 @@ with a command is always marked **inferred**, never verified.
 `INC-<n>-report.md`, ending with the `Run:` line. **Post to GitHub** posts the
 same Markdown as a comment on an issue or pull request: paste its
 `https://github.com/<owner>/<repo>/issues/<n>` or `/pull/<n>` URL. It needs a
-GitHub connection under **Settings → Connections**.
+GitHub connection under **Settings → Integrations**.
 
-## After you close it
+## After you resolve it
 
-**Close** asks what actually caused the incident, and a category. Both are
-optional. When a later incident looks similar, its report lists this one under
-similar incidents with the cause you wrote, and the next investigation is told
-about it as an inferred fact. What you write at close outranks what the report
-guessed.
+**Resolve** asks what actually caused the incident, and a category. Both are
+optional and start from the report. When a later incident looks similar, its
+report lists this one under similar incidents with the cause you wrote, and
+the next investigation is told about it as an inferred fact. What you write
+at resolve outranks what the report guessed. See
+[Resolving and reopening incidents](/guides/incident-lifecycle/).
 
 ## When there is no report
 
