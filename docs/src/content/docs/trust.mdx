@@ -1,6 +1,6 @@
 ---
 title: What PrismaLens reads and never does
-description: The read-only policy and its limits, what leaves your machine, credentials, and where your data lives.
+description: How asks work and where the limits stop, what leaves your machine, credentials, and where your data lives.
 ---
 
 import { Aside } from '@astrojs/starlight/components';
@@ -11,36 +11,36 @@ agent can reach, what PrismaLens does to limit it, and where those limits stop.
 ## The short version
 
 - The agent works in a **copy** of your repository, never in your checkout.
-- PrismaLens **refuses** the agent's edits, deletes and known mutating commands. That is a guardrail, not a wall.
+- In a mode that asks, **no write or outside read happens without your Approve**. A mode that does not ask is the agent's own call. Neither is a wall.
 - The agent **cannot fetch URLs**. OpenCode also cannot web-search or read outside the snapshot.
 - Runs are **not sandboxed**. Nothing at the operating-system level blocks a write or a network call.
 - PrismaLens sends **no usage data** unless you opt in. An update check queries GitHub Releases without an identifier. Your agent sends your code and the alert to **its** model provider.
 - PrismaLens **never** reads or stores your agent's login.
 - Everything PrismaLens keeps is in **one folder**, `~/.prismalens`.
 
-## The read-only policy
+## How asks work
 
-Coding agents ask their client before they act, and PrismaLens is that client.
-It refuses edit, delete and move tools, and shell commands that look like
-writes: redirects, `rm`, `mv`, `cp`, `chmod`, `sed -i`, state-changing git
-commands, package installs, `docker`, mutating `kubectl`, `helm` and
-`terraform` commands, `kill`, `wget`, and `curl` with `POST`, `PUT`, `PATCH` or
-`DELETE`. Reading, searching and commands like `ls`, `grep` and `git log` are
-allowed.
+PrismaLens never answers a permission request itself. The agent's own
+permission mode decides what it asks about (see
+[Permission modes and asks](/coding-agents/#permission-modes-and-asks)). In a
+mode that asks, such as Claude Code's Manual or Codex's "Ask for approval", a
+write, or a read outside the snapshot such as `cat ~/.bashrc`, shows in the
+conversation as an **Approve** / **Deny** card naming the call, and the board,
+sidebar and band say **Waiting for your approval**. Deny refuses it and the run
+goes on to its report. An ask nobody answers is denied after 10 minutes.
 
-<Aside type="caution" title="This is a guardrail">
-The shell rules match command text, so a command written to dodge them, such as
-a short Python script that writes a file, gets through. The policy catches an
-agent making a mistake. It does not stop an agent that was talked into
-misbehaving by text it read. For a real boundary, run PrismaLens under a user
-or in a VM that can read only what it should, and give the agent read-only
-credentials for anything outside the copy.
+<Aside type="caution" title="Modes that do not ask">
+Auto-accepting edits, Auto and Full access let the agent act without asking, as
+they do in your terminal. PrismaLens does not sandbox the agent, so nothing at
+the operating-system level blocks a write or a network call. For a real
+boundary, run PrismaLens under a user or in a VM that can read only what it
+should, and give the agent read-only credentials for anything outside the copy.
 </Aside>
 
-PrismaLens refuses paths outside the snapshot, judged where they really land:
-through `..`, symlinks, `~` and globs such as `cat *`. Like the rest of the
-policy, it matches command text, so the agent can still read any file your user
-can read if it writes a command that dodges the rules.
+OpenCode asks only where your `opencode.json` says `ask`; by default that is
+files outside the workspace. Claude Code applies your own
+`~/.claude/settings.json`: what it allows runs without asking, and what it
+denies is refused without asking.
 
 Agent configuration committed in the repository never reaches the agent:
 before a run starts, PrismaLens removes `.claude`, `.opencode`, `opencode.json`,
@@ -193,6 +193,8 @@ A follow-up question on a finished investigation reopens the coding agent's
 own session. That conversation is kept by the agent in its own session store,
 such as `~/.claude/projects/` for Claude Code, outside `~/.prismalens`, and
 deleting the workspace folder does not remove it.
+
+The run keeps reasoning at its pinned commit. If a newer run has looked at a later commit, the older run shows "A newer run (Run #N) looks at `<sha>`", and a follow-up on it tells the agent that newer commits exist.
 
 ## These websites
 
