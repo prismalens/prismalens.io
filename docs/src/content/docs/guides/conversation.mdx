@@ -1,0 +1,132 @@
+---
+title: The conversation
+description: Briefing an investigation, sending a message or a follow-up, stopping the agent, attaching files, and choosing the model and effort a run uses.
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+The **Conversation** tab on an incident shows what the agent says and the
+tool calls it makes, with one box at the bottom to write to it. The box
+changes with the run, so what Enter does depends on where the run is.
+
+## What the box does
+
+| The run is | The box says | Enter |
+| --- | --- | --- |
+| Not started | **Brief the agent (optional)** | Starts an investigation with your text as its brief. |
+| Working | **Message the agent** | Sends a message to the running agent. |
+| Stopped by you | **Continue the investigation** | Continues the stopped run. |
+| Finished | **Ask a follow-up** | Sends a follow-up in the same session. |
+| Failed, or the agent cannot reopen a session | **Brief a new investigation** | Starts a new investigation. |
+
+Nothing you type starts an investigation unless the box is in a starting mode:
+**Start investigation** before a run, **Investigate again** after a run that
+failed or cannot be reopened.
+
+## A message while the agent works
+
+A message goes to the agent's own session, so the agent answers it as part of
+the same investigation.
+
+- **Enter**, or the send arrow, queues the message. The agent reads it at its
+  next pause. The box shows `N waiting` while any are queued.
+- **Ctrl+Enter** (**Cmd+Enter** on macOS), or **Send now**, ends the agent's
+  current step and delivers the message at once. Anything that step had begun
+  is lost.
+- **Shift+Enter** starts a new line.
+
+A message can hold up to 4000 characters. Under **You**, each message shows
+where it is: **Waits for the next pause**, **Sent now**, **Delivered at the
+next pause** or **Not delivered**.
+
+If the run ends before the message reaches it, the box says so and **Save as note** keeps the text on the incident's
+Timeline. A message sent before the agent has started is refused with `The run
+has not started yet; try again shortly.` The API answers both with `409
+Conflict`.
+
+## Stop
+
+**Stop** in the box ends the run. **Esc** does the same while the cursor is in
+the box and the agent is working. The state reads **Stopping**, then **Stopped
+by you**, which is not a failure. To go on, see
+[Resolving and reopening incidents](/guides/incident-lifecycle/#stop-then-continue).
+
+## After the run ends
+
+What you write after a run depends on how it ended:
+
+| The run | Your text | The agent | The report |
+| --- | --- | --- | --- |
+| Stopped by you | **Continue the investigation** | Reopens its own session on the code it saw and carries on | The continued run ends with a report, or stops or fails again |
+| Finished | **Ask a follow-up** | Answers in the same session on the same code | Stays as it is |
+| Failed | **Brief a new investigation** | A new run | A new report |
+
+A follow-up on a finished run rebuilds the run's copy of the repository at
+the commits it read. If the session cannot be reopened, the message is refused
+with the reason. deepagents cannot
+reopen a finished session, so after a run it offers a new investigation,
+which starts from the report.
+
+Only one follow-up runs at a time. A second one gets `A follow-up is already
+running.`
+
+## Attachments
+
+Attach a file with the paperclip, by pasting it, or by dropping it on the box.
+A message takes up to **5 files**.
+
+| Kind | Types | Limit |
+| --- | --- | --- |
+| Image | PNG, JPEG, WebP, GIF | 4 MB each |
+| Text | `.log`, `.json`, `.csv`, `.md`, `.txt`, `.yaml`, `.yml`, or any `text/*` type | 256 KB each |
+
+PrismaLens checks the bytes, not the file name or the type your browser
+sends: an image must be one of the four image formats and a text file must be
+UTF-8.
+
+- Text goes to the agent inside the message, fenced as data and named by the
+  file. Text in it is evidence the agent reads, not instructions it follows,
+  and the agent marks anything it took from it as **inferred** unless a
+  command it runs shows the same thing.
+- An image goes only to an agent that says it reads images. The agent's check
+  records that answer. The paperclip says `Images: not checked yet` until
+  the check has run, and the box takes text files only. Run it with **Settings
+  → Agent → Check readiness**. An agent that cannot read images says so and
+  takes text only.
+- Files are stored in your PrismaLens workspace, outside the copy of the
+  code the agent reads. The agent sees only what the message carried.
+
+Attachments can ride on the brief that starts a run, on a message, on a
+continue and on a follow-up.
+
+## Model and effort
+
+Before a run starts, the box carries three controls next to the paperclip:
+the **agent and model picker**, the **access level** and, when the agent
+offers one, **effort**. The model list starts with **Agent default**, which
+names the model the agent reported using. Your choice is saved per agent, the
+same setting as **Settings → Agent**. Once a run starts, the box shows the
+agent, model and access level it is fixed on. A follow-up uses the model its
+run used.
+
+| Agent | Model and effort |
+| --- | --- |
+| OpenCode, Claude Code, Codex | Sent to the agent over ACP |
+| Gemini CLI, deepagents | The agent picks its own model |
+
+The effort control appears only when the agent's readiness check found an
+effort option, and offers the agent's own values with its default marked.
+
+After sending, PrismaLens checks the agent's answer. If the agent did not take
+the model or effort, the run stops before its first prompt with the reason:
+`<Agent> would not switch to <model>; it offered <its models>`, or `<Agent>
+would not take <effort> effort; it offered <its values>`. A run never starts
+on a different model from the one you chose, and the report's **Run** chip
+names the model that ran and the effort it accepted. A model set for Gemini
+CLI or deepagents is refused before the run: `<Agent> picks its own model.
+Clear <model> in the picker above.`
+
+<Aside type="note" title="Keys in the box">
+Enter sends or queues, Ctrl+Enter sends now, Shift+Enter is a new line, and Esc
+stops the agent while it works. The `?` key opens the full keyboard map.
+</Aside>
