@@ -1,0 +1,77 @@
+---
+title: The incident board
+description: The board's four columns, what puts a card in each, and what dragging a card to another column does, with the mouse, by touch or from the keyboard.
+---
+
+**Incidents** opens on the board. Each incident is one card, and the column it
+sits in follows from its state. The sidebar lists the same incidents, one row
+each, with the ones that want a person first.
+
+## The columns
+
+| Column | What sits there |
+| --- | --- |
+| Needs you | An incident that waits on a person, even while a run works on it. The card says why: **Needs acknowledging**, **Waiting for your approval**, **Run failed**, **Reopened by you, cause not confirmed**, or **Alerts cleared, resolve it**. The last kind sits at the bottom, under **To wrap up**. |
+| Working | An investigation is running and owes a report. A turn that only answers you, such as a follow-up question, leaves the card where it is. |
+| Concluded | Open, with nothing running and nothing waiting on you. |
+| Resolved | Incidents you resolved. Ones resolved more than a day ago fold under **Settled** below the columns. |
+
+A Triggered card carries an **Acknowledge** button. On a wide window the four
+columns sit side by side; narrower, they sit two by two, and on a phone they
+stack. The keys **1** to **4** jump to the first card in each column.
+
+Opening a card shows the incident's tabs: **Overview**, **Conversation**,
+**Report**, **Alerts** and **Timeline**. **Esc** goes back a level, to the
+board in the end. For the box under the conversation, see
+[The conversation](/guides/conversation/). For Acknowledge, Resolve and
+Reopen, see [Resolving and reopening incidents](/guides/incident-lifecycle/).
+
+## Dragging a card
+
+A drag is a shortcut. Every drop does what a button on the card or the
+incident page does, so you never need to drag.
+
+While you carry a card, a column the card can go to is tinted. A column that
+refuses it dims, and while you hold the card over it, it says why. Dropping
+it there changes nothing.
+
+| Drop on | The card | What happens | The button that does the same |
+| --- | --- | --- | --- |
+| Working | Has no live run | Starts a run at once, with no form. A Triggered incident is acknowledged first. | **Investigate** |
+| Working | Has no live run, and is Resolved | Asks **Reopen INC-12 and investigate?**, then reopens it and starts a run. | **Reopen**, then **Investigate** |
+| Working | Has a live run, and is Triggered | Acknowledges it. The run goes on. | **Acknowledge** |
+| Working | Has a live run, already acknowledged | Refused: "Its run is already working". | |
+| Concluded | Has a live run | Stops the run, with no dialog. It reads **Stopped by you**. | **Stop** |
+| Concluded | Comes from Resolved | Asks **Reopen INC-12?**, then reopens it. | **Reopen** |
+| Concluded | Anything else | Refused: "Concluded follows from a finished investigation". | |
+| Resolved | Is not resolved yet | Opens the Resolve dialog. A live run stops when you confirm. | **Resolve** |
+| Resolved | Is already resolved | Refused: "Already resolved". | |
+| Needs you | Any card | Refused: "Needs you follows from the incident's state". | |
+| Any column | Was merged into another incident | Refused: "Merged into INC-14". | |
+
+When the agent cannot start, a drop on Working starts nothing and leaves the
+card as it was, not acknowledged. A message says **No run started** and why.
+
+### From the keyboard
+
+1. Tab to a card and press **Space** to pick it up.
+2. **Left** and **Right** carry it one column at a time.
+3. **Space** or **Enter** drops it. **Esc** puts it back where it was.
+
+A screen reader hears each step. Over a column it hears what a drop there
+would do, for example "Working: drop to acknowledge it and start a run", or
+the reason the column refuses the card.
+
+On a touch screen, press and hold a card to pick it up.
+
+### A worked example
+
+INC-12 is Triggered and sits in **Needs you**, marked **Needs acknowledging**.
+No run has started.
+
+| You | A screen reader hears | Afterwards |
+| --- | --- | --- |
+| Carry INC-12 to Working and drop it | "Working: drop to acknowledge it and start a run" | Acknowledged. A run starts and the card moves to **Working**. |
+| Carry it to Concluded and drop it | "Concluded: drop to stop its run" | The run stops, with no dialog, and reads **Stopped by you**. The card moves to **Concluded**. |
+| Carry it to Resolved and drop it | "Resolved: drop to resolve it" | The Resolve dialog opens. Confirm, and the card moves to **Resolved**. |
+| Carry it back to Concluded and drop it | "Concluded: drop to reopen it" | **Reopen INC-12?** Confirm, and it goes back to Acknowledged, in **Needs you**, marked **Reopened by you, cause not confirmed**. |

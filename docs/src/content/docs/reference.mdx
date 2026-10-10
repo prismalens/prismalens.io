@@ -130,7 +130,7 @@ It answers `409` with one of these messages:
 - Runs on macOS, Linux and WSL2. Native Windows is a preview: it installs and runs, and CI checks it on every change, but expect rough edges.
 - One `pl up` per workspace folder. A second one on the same folder refuses to start and names the process holding it.
 - The desktop app attaches to a running PrismaLens on the workspace, else starts the installed service, else runs its own on the workspace's port. It shows a dialog instead of quitting when its PrismaLens stops.
-- Every run keeps its transcript under `runs/<id>/`. The repository clone is deleted when the run ends; delete old transcripts by hand when you need the space.
+- Every run keeps its transcript under `runs/<id>/`. The repository clone is deleted when the run ends, or at the next start if PrismaLens stopped mid-run; delete old transcripts by hand when you need the space.
 - Installing needs a prebuilt `better-sqlite3` for your platform, or Python 3 and a C++ toolchain to build it.
 
 ## Troubleshooting
