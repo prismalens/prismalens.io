@@ -52,6 +52,9 @@ Running:   yes (pid 20400)
 Log:       /home/you/.prismalens/logs/service.log
 ```
 
+While the service is starting, stopping or reloading, the line reads
+`Running:   restarting`.
+
 `pl doctor` shows the service on its **Background service** line. While the
 service holds the workspace, a `pl up` on the same workspace is refused and
 points you to `pl service status`. The desktop app attaches to a running
@@ -81,6 +84,10 @@ before you uninstall. Settings → Danger zone shows the combined command.
   [boot]
   systemd=true
   ```
+
+  If systemd runs but `pl service` says there's no user manager for you, run
+  `sudo loginctl enable-linger "$(id -un)"`, then open a new shell and try
+  again.
 
 A machine that sleeps still misses webhooks while it's asleep. After it wakes,
 press **Pull** on the Alerts page to fetch what Alertmanager and Prometheus saw

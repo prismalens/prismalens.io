@@ -89,6 +89,11 @@ the background service with the flag:
 pl service install --tailscale-serve
 ```
 
+Under WSL the machine can't resolve its own tailnet name. `pl pair
+--tailscale` then checks the local server with that name instead, pairs, and
+warns that whether other devices can reach the address was not checked. Open
+the link on the device to confirm.
+
 | Error | What to do |
 | --- | --- |
 | `tailscale` isn't on PATH | Install Tailscale and log in. |

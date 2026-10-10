@@ -26,10 +26,11 @@ What happens then:
   why and where to change it.
 - A **resolved** alert resolves its alert, and the incident reads **Alerts
   cleared** once none of its alerts are still firing. You then **Resolve** it.
-- An alert that fires again within 15 minutes of clearing
+- An alert that fires again within 24 hours of clearing
   (`PRISMALENS_ALERT_FLAP_WINDOW_MINUTES`) is the same alert, not a new one. It
   puts an **Alerts cleared** incident back to **Triggered**, the **Timeline**
-  says it refired, and no new investigation starts. After that window, or after
+  says it fired again, and a run starts if the service's setting allows one, at
+  most one an hour. After that window, or after
   you resolved the incident, it is a new alert on a new incident that names the
   old one. [Resolving and reopening incidents](/guides/incident-lifecycle/#what-a-refire-does)
   has the full table.

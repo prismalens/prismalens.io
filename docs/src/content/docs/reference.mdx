@@ -86,7 +86,7 @@ Flags on `pl up` set `PRISMALENS_PORT`, `PRISMALENS_HOST`, `PRISMALENS_WORKSPACE
 | `PRISMALENS_ALLOWED_HOSTS` | loopback and IP addresses | Hostnames the app answers to. Set it when you reach the app by a name, such as `prismalens.local`. |
 | `PRISMALENS_PUBLIC_URL` | derived from host and port | The URL people open. Set it to the `https://` address of a TLS proxy in front of `pl up` so the session cookie is marked `Secure`. |
 | `PRISMALENS_PROTOCOL` | `http` | `https` makes `pl up` serve TLS itself. |
-| `PRISMALENS_ALERT_FLAP_WINDOW_MINUTES` | `15` | An alert that fires again within this many minutes of resolving reopens instead of starting a new episode. |
+| `PRISMALENS_ALERT_FLAP_WINDOW_MINUTES` | `1440` | An alert that fires again within this many minutes of clearing reopens its incident and starts a run, at most one an hour. After it, or once the incident is resolved, a new incident names the old one. |
 | `PRISMALENS_LOG_LEVEL` | `info` | `debug`, `info`, `warn` or `error` for the log file. |
 
 ## Limits
@@ -164,6 +164,11 @@ service has no repository. Set the service's Repository field and run again.
 **A run failed.** The incident shows the error and the transcript
 path, `~/.prismalens/runs/<id>/transcript.jsonl`. If `pl up` was stopped
 during a run, that run is marked failed when the app starts again.
+
+**`pl up` says the port is in use.** `Port 6473 is in use by another
+PrismaLens.` means another PrismaLens holds it. Stop
+that one, or start this one with `--port`. `Port 6473 is in use.` means some
+other program holds it; start with `--port`.
 
 **Filing a bug.** Include the output of `pl doctor` and `pl --version`, and
 the relevant lines from the newest file in `~/.prismalens/logs/`. Open it at
