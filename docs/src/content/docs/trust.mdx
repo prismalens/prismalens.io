@@ -11,8 +11,9 @@ agent can reach, what PrismaLens does to limit it, and where those limits stop.
 ## The short version
 
 - The agent works in a **copy** of your repository, never in your checkout.
-- PrismaLens **never answers** a permission request for you. The agent's own mode and your own rules for it decide which calls ask, and each ask waits for your **Approve** or **Deny**. That is not a wall.
-- PrismaLens **does not sandbox** runs. Only the agent's own sandbox, where it has one, blocks a write or a network call at the operating-system level.
+- In a mode that asks, **no write or outside read happens without your Approve**. A mode that does not ask is the agent's own call. Neither is a wall.
+- The agent **cannot fetch URLs**. OpenCode also cannot web-search or read outside the snapshot.
+- Runs are **not sandboxed**. Nothing at the operating-system level blocks a write or a network call.
 - PrismaLens sends **no usage data** unless you opt in. An update check queries GitHub Releases without an identifier. Your agent sends your code and the alert to **its** model provider.
 - PrismaLens **never** reads or stores your agent's login.
 - Everything PrismaLens keeps is in **one folder**, `~/.prismalens`.
@@ -20,29 +21,26 @@ agent can reach, what PrismaLens does to limit it, and where those limits stop.
 ## How asks work
 
 PrismaLens never answers a permission request itself. The agent's own
-permission mode decides which calls ask, and that differs by agent and mode
-(see [Permission modes and asks](/coding-agents/#permission-modes-and-asks)).
-For example, Claude Code's Manual asks before edits and shell commands, such as
-`cat ~/.bashrc`. Codex's "Ask for approval" edits inside the snapshot without
-asking and asks to go past its sandbox. OpenCode asks only where your
-`opencode.json` says `ask`, by default for files outside the workspace.
+permission mode decides what it asks about (see
+[Permission modes and asks](/coding-agents/#permission-modes-and-asks)). In a
+mode that asks, such as Claude Code's Manual or Codex's "Ask for approval", a
+write, or a read outside the snapshot such as `cat ~/.bashrc`, shows in the
+conversation as an **Approve** / **Deny** card naming the call, and the board,
+sidebar and band say **Waiting for your approval**. Deny refuses it and the run
+goes on to its report. An ask nobody answers is denied after 10 minutes.
 
-When the agent asks, the conversation shows an **Approve** / **Deny** card
-naming the call, and the board, sidebar and band say **Waiting for your
-approval**. Deny refuses it and the run goes on to its report. An ask nobody
-answers is denied after 10 minutes.
-
-<Aside type="caution" title="Modes that ask less">
-Auto-accepting edits takes file edits without asking and still asks before
-other shell commands. Auto and Full access run most calls without asking, as
-they do in your terminal. PrismaLens does not sandbox the agent. The mode chip
-shows a lock only where a check saw the agent's own sandbox hold that mode,
-which today means Codex's sandboxed modes. For a real boundary, run PrismaLens
-under a user or in a VM that can read only what it should, and give the agent read-only credentials for anything outside the copy.
+<Aside type="caution" title="Modes that do not ask">
+Auto-accepting edits, Auto and Full access let the agent act without asking, as
+they do in your terminal. PrismaLens does not sandbox the agent, so nothing at
+the operating-system level blocks a write or a network call. For a real
+boundary, run PrismaLens under a user or in a VM that can read only what it
+should, and give the agent read-only credentials for anything outside the copy.
 </Aside>
 
-Claude Code applies your own `~/.claude/settings.json`: what it allows runs
-without asking, and what it denies is refused without asking.
+OpenCode asks only where your `opencode.json` says `ask`; by default that is
+files outside the workspace. Claude Code applies your own
+`~/.claude/settings.json`: what it allows runs without asking, and what it
+denies is refused without asking.
 
 Agent configuration committed in the repository never reaches the agent:
 before a run starts, PrismaLens removes `.claude`, `.opencode`, `opencode.json`,

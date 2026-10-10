@@ -6,7 +6,7 @@ const docsBase = import.meta.env.DEV ? 'http://localhost:4322' : 'https://docs.p
 const steps = [
   'An alert arrives from Prometheus Alertmanager, or you write the incident yourself.',
   'PrismaLens copies the service\'s repository at its last commit. Your own checkout is left alone.',
-  'Your coding agent investigates inside the copy, in its own permission mode. When it asks, you approve or deny.',
+  'Your coding agent investigates inside the copy. PrismaLens refuses its edits, deletes and mutating commands.',
   'You watch the run on the incident page while it happens.',
   'The report ranks the causes, shows the evidence for each, and lists what was ruled out and what to check next.',
 ]
@@ -20,7 +20,7 @@ const steps = [
       </h1>
       <p class="mt-6 max-w-2xl text-lg leading-relaxed text-muted-foreground">
         PrismaLens opens an incident from your alert, hands it to the coding agent you already use, and
-        keeps that agent on a copy of the code. You get the likely causes in order, each tied
+        keeps that agent on a read-only copy of the code. You get the likely causes in order, each tied
         to the file, line or commit that supports it.
       </p>
 
@@ -86,7 +86,7 @@ const steps = [
         <p><strong>It uses the agent you already have.</strong> OpenCode, Codex, Claude Code, Gemini CLI or deepagents. PrismaLens never calls a model and has no account to sign up for.</p>
         <p><strong>Your checkout stays yours.</strong> Every run gets its own copy of the last commit, with any agent config committed in the repository removed.</p>
         <p><strong>It reads code, not dashboards.</strong> 0.5.0 gives the agent the alert and the repository. It does not connect to your metrics, logs or traces.</p>
-        <p><strong>It tells you where the limits are.</strong> The agent's own mode and rules decide what it asks you about, PrismaLens never answers an ask for you, and PrismaLens does not sandbox runs. <a href={`${docsBase}/trust/`} class="underline underline-offset-4">What it reads and never does</a></p>
+        <p><strong>It tells you where the limits are.</strong> The agent runs in its own mode. In a mode that asks, nothing outside the workspace happens without your Approve, and runs are not sandboxed. <a href={`${docsBase}/trust/`} class="underline underline-offset-4">What it reads and never does</a></p>
         <p><strong>It keeps the record.</strong> A week later the report, the evidence and every command the agent ran are still on the incident.</p>
       </div>
     </div>

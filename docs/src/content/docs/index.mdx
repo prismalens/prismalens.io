@@ -17,7 +17,7 @@ PrismaLens never calls a model. Your agent does, with the sign-in it already has
 
 1. An alert arrives from Prometheus, or you write the incident by hand.
 2. PrismaLens takes a snapshot of the service's repository. Your own checkout is never the working directory.
-3. Your coding agent investigates inside that snapshot, in its own permission mode. When it asks before a call, the ask waits for your Approve or Deny.
+3. Your coding agent investigates inside that snapshot. PrismaLens refuses its attempts to edit, delete or run a mutating command.
 4. You watch the agent work on the incident page as it happens.
 5. The report lists hypotheses in order, each with the evidence behind it, what was ruled out, and what to check next.
 
@@ -25,8 +25,8 @@ PrismaLens never calls a model. Your agent does, with the sign-in it already has
 
 For a one-off question, ask your agent directly. PrismaLens is for everything
 around the question. A webhook creates the incident, so the alert is already in
-the brief when the agent starts. The run happens in a snapshot, and what the
-agent asks you about is set by its own mode and rules. And a week later the report, the evidence and the full event
+the brief when the agent starts. The run happens in a snapshot, and the
+agent asks before it writes. And a week later the report, the evidence and the full event
 stream are still on the incident.
 
 ## Where to go next
