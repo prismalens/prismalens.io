@@ -97,8 +97,12 @@ Boot pull: 2 source(s), 3 received, 0 new, 1 caught up, 1 resolved by absence, 0
 ```
 
 ```
-Status changed from triggered to resolved: no connected Alertmanager still lists HighLatency (4f1c2a9e0d3b7c61); no resolved notification was received
+Alerts cleared: no Alertmanager still lists it
+From Triggered to Alerts cleared: no connected Alertmanager still lists HighLatency (4f1c2a9e0d3b7c61); no resolved notification was received
 ```
+
+The timeline names states the way the incident header does. A status change
+reads "From Acknowledged to Resolved", not the stored status names.
 
 ## The webhook token
 
