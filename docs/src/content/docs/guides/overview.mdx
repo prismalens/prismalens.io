@@ -57,6 +57,7 @@ The **Next** strip under the brief always holds the one next thing to do:
 | The report has none | The agent found nothing to undo or switch off right away. The cause and the lasting fix are under Why. | |
 | Every alert has cleared | Every alert has cleared. Resolve the incident, or investigate again if it comes back. | **Resolve** |
 | Resolved | Resolved. If the alert fires again, PrismaLens opens a new incident and links it here. | |
+| Resolved, and the alert fired again | Resolved. | **Fired again as INC-N** |
 
 Once you start on a fix, the strip follows it, step by step (below).
 
@@ -120,7 +121,7 @@ to v1.41**.
 | 14:06 | Open INC-12 | Roll back checkout-api to v1.41. The command is under Stop the impact. **Copy command** | Not applied | |
 | 14:07 | **Copy command** | Command copied. Run it, then tell PrismaLens so it can check the result. **I applied it** **Copy again** | Not applied | |
 | 14:08 | Run `kubectl rollout undo deployment/checkout-api -n shop` in your terminal, then **I applied it** | Applied at 14:08. PrismaLens checks the alert again at 14:13. **Check now** | You applied this, **Undo** | You applied: Roll back checkout-api to v1.41 |
-| 14:13 | Nothing: the check runs by itself | Below the alert threshold. **Check again** | Below the threshold | Checked Roll back checkout-api to v1.41: Below the alert threshold |
+| 14:13 | Nothing: the check runs by itself | Below the alert threshold at 14:13. The alert clears on its own once its rule sees the recovery. **Check again** | Below the threshold | Checked Roll back checkout-api to v1.41: Below the alert threshold |
 | 14:16 | Nothing: Alertmanager sends `resolved` | It worked: the alert cleared at 14:16. Resolve the incident, or leave it until you are sure. **Resolve** | Worked | |
 | 14:20 | **Resolve**, then confirm the dialog | Resolved. If the alert fires again, PrismaLens opens a new incident and links it here. | Worked | |
 
