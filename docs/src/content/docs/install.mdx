@@ -164,7 +164,8 @@ workspace.
 ### With a background service: a trial, and rollback
 
 On a [background service](/guides/background-service/), `pl upgrade` keeps the
-new version only once it has proved itself:
+new version only once it has proved itself. The trial runs on the service's
+own workspace, even one installed with `--workspace`:
 
 1. It stops the service and copies `prismalens.db`, `prismalens.db-wal` and
    `prismalens.db-shm` to `upgrade-snapshot/` in your workspace.
@@ -188,6 +189,10 @@ Running:   yes (pid 48211)
 Version:   0.5.1
 Upgrade:   0.5.1 → 0.5.2 rolled back to 0.5.1 on 2026-10-02 09:14: no healthy 0.5.2 in time: http://127.0.0.1:6473 fetch failed
 ```
+
+When the new version exits during the trial, the reason is its last error
+line, with pairing links and tokens removed, and the path of the full log:
+`0.5.2 exited during the trial: <line> (full log: <path>)`.
 
 How far rollback goes depends on how PrismaLens was installed:
 

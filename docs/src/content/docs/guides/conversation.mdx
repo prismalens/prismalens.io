@@ -1,6 +1,6 @@
 ---
 title: The conversation
-description: Briefing an investigation, sending a message or a follow-up, stopping the agent, attaching files, and choosing the model and effort a run uses.
+description: Investigate or Ask, briefing an investigation, sending a message or a question, stopping the agent, attaching files, and choosing the model and effort a run uses.
 ---
 
 import { Aside } from '@astrojs/starlight/components';
@@ -9,19 +9,40 @@ The **Conversation** tab on an incident shows what the agent says and the
 tool calls it makes, with one box at the bottom to write to it. The box
 changes with the run, so what Enter does depends on where the run is.
 
+## Investigate or Ask
+
+An incident holds two kinds of thread, and both show in the sidebar under the
+open incident:
+
+- An **investigation** gathers the alert and the code, then works toward one
+  report. It is always named **Run #N**.
+- A **chat** is a question to the agent. It writes no report, and ends as
+  **Ended**, or **Error** when it fails.
+
+Where both make sense, a chip in the box says which one your next message
+asks for: **Investigate** or **Ask**. Enter and the send button do what the
+chip says.
+
 ## What the box does
 
-| The run is | The box says | Enter |
+| The thread is | The box says | Sending |
 | --- | --- | --- |
-| Not started | **Brief the agent (optional)** | Starts an investigation with your text as its brief. |
+| A new run, set to Investigate | **Brief the agent (optional)** | **Investigate** starts an investigation, with your text as its brief. |
+| A new run, set to Ask | **Ask about this incident** | Starts a chat. Text is required. |
 | Working | **Message the agent** | Sends a message to the running agent. |
-| Stopped by you | **Continue the investigation** | Continues the stopped run. |
-| Finished | **Ask a follow-up** | Sends a follow-up in the same session. |
-| Failed, or the agent cannot reopen a session | **Brief a new investigation** | Starts a new investigation. |
+| Stopped or failed before its report | **Say what to change, or just continue** | **Investigate** continues it to its report. **Ask** asks a question and leaves the run as it was. |
+| An investigation that wrote its report | **Ask about this run** | Asks a question in the same session. The report stays as it is. |
+| A chat | **Continue this chat** | Asks the next question in the same chat. |
+| A run whose session cannot reopen | "This run can't continue. Start a new run." | **New run** opens a new draft. |
 
-Nothing you type starts an investigation unless the box is in a starting mode:
-**Start investigation** before a run, **Investigate again** after a run that
-failed or cannot be reopened.
+A new run starts set to Investigate when the incident has alerts and no
+report yet, and set to Ask otherwise. **New run**, under the incident's
+**More actions** or under its runs in the sidebar, opens a new draft.
+
+The line under the box says how the run started (**Started by the alert** or
+**Started by you**) and, while it works, what it owes: **Working toward a
+report** or **Working on an answer**. When your last question did not get an
+answer, it says **Last message: stopped by you** or **Last message: error**.
 
 ## A message while the agent works
 
@@ -31,8 +52,8 @@ the same investigation.
 - **Enter**, or the send arrow, queues the message. The agent reads it at its
   next pause. The box shows `N waiting` while any are queued.
 - **Ctrl+Enter** (**Cmd+Enter** on macOS), or **Send now**, ends the agent's
-  current step and delivers the message at once. Anything that step had begun
-  is lost.
+  current step and delivers the message at once, after any messages still
+  waiting, in the order you sent them. Anything that step had begun is lost.
 - **Shift+Enter** starts a new line.
 
 A message can hold up to 4000 characters. Under **You**, each message shows
@@ -53,22 +74,36 @@ by you**, which is not a failure. To go on, see
 
 ## After the run ends
 
-What you write after a run depends on how it ended:
+What you can send after a run depends on how it ended:
 
-| The run | Your text | The agent | The report |
-| --- | --- | --- | --- |
-| Stopped by you | **Continue the investigation** | Reopens its own session on the code it saw and carries on | The continued run ends with a report, or stops or fails again |
-| Finished | **Ask a follow-up** | Answers in the same session on the same code | Stays as it is |
-| Failed | **Brief a new investigation** | A new run | A new report |
+| The run | Investigate | Ask |
+| --- | --- | --- |
+| Stopped by you, or failed, before its report | Continues the same session to its report | Answers in the same session; the run keeps its state |
+| Wrote its report | Not offered here; use **Investigate again** | Answers in the same session on the same code; the report stays as it is |
+| Its session cannot reopen | **New run** | **New run** |
 
-A follow-up on a finished run rebuilds the run's copy of the repository at
-the commits it read. If the session cannot be reopened, the message is refused
-with the reason. deepagents cannot
-reopen a finished session, so after a run it offers a new investigation,
-which starts from the report.
+A question on a finished run rebuilds the run's copy of the repository at the
+commits it read. If the session cannot be reopened, the message is refused
+with the reason. deepagents cannot reopen a finished session, so after a run
+its box offers **New run**.
 
-Only one follow-up runs at a time. A second one gets `A follow-up is already
-running.`
+**Investigate again**, under a finished report, opens a new run whose brief
+holds what you typed in the box and any files you attached, then the report
+quoted, for example:
+
+```text
+Re-check Run #1. It found: The p99 rise follows deploy 9f3c1a. Cause named: The cache TTL dropped to 1s. Next steps it proposed: Restore the TTL; Add a cache hit-rate alert.
+```
+
+Edit the brief before you send it. The first report stays as it is.
+
+One thread works on an incident at a time. While one works, the box on any
+other thread or a new run says, for example, `Run #2 is working; message it or
+stop it`.
+
+Only one question runs at a time. A second one gets `A follow-up is already
+running.`, and a message of the wrong kind for a working run gets, for
+example, `Run #2 is working on an answer; wait or stop it`.
 
 ## Attachments
 
@@ -104,10 +139,12 @@ continue and on a follow-up.
 Before a run starts, the box carries three controls next to the paperclip:
 the **agent and model picker**, the **access level** and, when the agent
 offers one, **effort**. The model list starts with **Agent default**, which
-names the model the agent reported using. Your choice is saved per agent, the
-same setting as **Settings → Agent**. Once a run starts, the box shows the
-agent, model and access level it is fixed on. A follow-up uses the model its
-run used.
+names the model the agent reported using. A choice in the box applies to that
+run only and never changes Settings. The defaults for the next run live in
+**Settings → Agent**, which has an **Effort** row too. Once a run starts, the
+box shows the agent, model and access level it is fixed on, and changing one
+of them opens a new run that is the same run with that one change. A follow-up
+uses the model its run used.
 
 | Agent | Model and effort |
 | --- | --- |

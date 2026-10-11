@@ -67,13 +67,17 @@ have run one investigation against real code and read its report.
    ```
 
    The first start creates the database and its secrets in `~/.prismalens`.
-   Leave this running.
+   Leave this running. Once the browser opens the link, `pl up` prints
+   `✔ Paired this machine's browser (<name>).`, and a device paired later
+   prints `✔ A device paired: <name>.`
 
 4. **Open it**
 
    Your browser opens on the `Open:` link by itself and lands on your
-   incidents. There is no account to create. If no browser opened, open the
-   link yourself; it works once, for 15 minutes. See
+   incidents. There is no account to create. If no browser opened, `pl up`
+   says `Couldn't open a browser on this machine. Open the link above.` Open
+   the link yourself; it works once, for 15 minutes. If it expires unused,
+   `pl up` says so, and `pl pair --operator` prints another. See
    [Opening it from other devices](/guides/devices/).
 
 5. **Point a service at its code**

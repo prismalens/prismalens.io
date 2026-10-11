@@ -97,6 +97,7 @@ pnpm exec task down
 | `cascading-upstream-failure` | A migration drops the index behind the library listing. |
 | `compound-latency-pool-and-sort` | Two regressions from two authors, days apart. |
 
-Every scenario fires the same alert. PrismaLens treats an alert that refires
-within 15 minutes as the same incident, so leave more than that between one
-scenario's alert clearing and the next one starting.
+Every scenario fires the same alert. An alert that fires again within 24 hours
+of clearing reopens the same incident, so **Resolve** the incident before you
+start the next scenario. After a Resolve, the next scenario's alert opens a new
+incident.

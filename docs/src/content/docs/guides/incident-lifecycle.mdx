@@ -1,6 +1,6 @@
 ---
 title: Resolving and reopening incidents
-description: What Acknowledge, Resolve and Reopen do, what an alert that fires again does to a finished incident, and how to stop a run and continue it.
+description: What Acknowledge, Resolve and Reopen do, what an alert that fires again does to a finished incident, how to stop a run and continue it, and how to merge two incidents.
 ---
 
 import { Aside } from '@astrojs/starlight/components';
@@ -34,6 +34,8 @@ The dialog asks for a cause and a category. Both are optional:
 - The fields start from the latest report's root cause and category, marked
   **from the report, edit if wrong**. Edit them or clear them.
 - Leave them empty and the incident resolves without a cause.
+- The cause holds up to 2,000 characters. Past that the field says by how
+  much, and **Resolve** waits until you shorten it.
 - After you resolve, **More actions → Edit cause** opens the same fields. An
   emptied field clears what was recorded.
 
@@ -59,9 +61,8 @@ investigate?** and starts a run after it reopens.
 **Alerts cleared** has nothing to reopen. Resolve it, or wait: an alert that
 fires again soon after reopens it by itself (below).
 
-**Investigate again**, under **More actions**, starts a new run on an
-incident in any status and leaves the status as it is. It is withheld while a
-run is working.
+**New run**, under **More actions**, opens a new run on an incident in any
+status. A run never changes the incident's status.
 
 ## What a refire does
 
@@ -72,12 +73,15 @@ ended.
 | The incident is | The alert fires again | What happens |
 | --- | --- | --- |
 | Triggered or Acknowledged | any time | The firing alert counts the repeat. Nothing else changes. |
-| Alerts cleared | within 15 minutes of clearing | The same alert reopens and the incident goes back to **Triggered**. The Timeline says `Incident reopened: alert refired (flap)`. No investigation starts. |
-| Alerts cleared | after 15 minutes | A new alert and a new incident. Its Timeline names the old one: `fired again after INC-12 had its alerts cleared`. |
+| Alerts cleared | within 24 hours of clearing | The same alert reopens and the incident goes back to **Triggered**. The Timeline says `Incident reopened: alert fired again`. A run starts if the service's investigation setting allows one, at most one an hour (below). |
+| Alerts cleared | after 24 hours | A new alert and a new incident. Its Timeline names the old one: `fired again after INC-12 had its alerts cleared`. |
 | Resolved | any time | A new alert and a new incident. Its Timeline says `fired again after INC-12 was resolved`. |
 
-The window is `PRISMALENS_ALERT_FLAP_WINDOW_MINUTES`, 15 by default. A
-Resolved incident is final to the source, so it never reopens by a refire.
+The window is `PRISMALENS_ALERT_FLAP_WINDOW_MINUTES`, 1440 (24 hours) by
+default. A run started by a reopen says **Started by the alert, reopened**
+under the box. If a reopen run already started on the incident in the last
+hour, the incident reopens without one and the Timeline says `Not re-run: a
+reopen run started within the hour`. A Resolved incident is final to the source, so it never reopens by a refire.
 The old incident's menu shows **Fired again as INC-13** with the time, and
 links to the new one.
 
@@ -95,7 +99,7 @@ rows show what you see after each step.
 | 14:02, Alertmanager delivers `firing` | Triggered, and a run starts if the service allows it | firing |
 | 14:05, you press **Acknowledge** | Acknowledged | firing |
 | 14:20, Alertmanager delivers `resolved` | Alerts cleared | cleared |
-| 14:26, `HighLatency` fires again | Triggered, Timeline `alert refired (flap)` | firing, 2 occurrences |
+| 14:26, `HighLatency` fires again | Triggered, Timeline `Incident reopened: alert fired again`, and a run starts if the service allows it | firing, 2 occurrences |
 | 14:40, you press **Resolve**, no cause | Resolved | cleared with the incident |
 | 15:10, `HighLatency` fires again | stays Resolved, menu shows **Fired again as INC-13** | INC-13 opens with a new alert |
 | 15:30, you open INC-12 and press **Reopen** | Acknowledged, in Needs you, cause shown as Previous | cleared |
@@ -107,17 +111,47 @@ in the box ends the run. **Esc** in the box does the same while the agent is
 working; **Esc** with the box not focused goes back a level. The run state reads **Stopping**, then **Stopped by you**. A stopped
 run does not put the incident in Needs you on its own; a **failed** run does.
 
-There is no paused state. A stopped run is over, and the box then offers
-**Continue the investigation**: the agent reopens its own session on the code
-it saw and goes on from there. A continued run ends the way any run does,
-with a report, stopped again, or failed. The line above the box names the
-code it picks up, or `the workspace it had` when none was recorded.
+There is no paused state. A stopped run is over. If it stopped or failed
+before writing a report, it can be continued: the box reads **Say what to
+change, or just continue**, and **Investigate** reopens the agent's own session
+on the code it saw and goes on to the report. A continued run ends the way any
+run does, with a report, stopped again, or failed. **Ask** instead puts a
+question to the same session and leaves the run as it was.
 
-Only a stopped run is continued. A run that finished takes a follow-up
-instead, and a failed one offers a new investigation. See
+A run that wrote its report takes questions, not a continue. See
 [The conversation](/guides/conversation/#after-the-run-ends).
 
 <Aside type="note" title="deepagents cannot continue">
-deepagents cannot reopen a finished session. After a stop its box offers a new
-investigation, which starts from the report.
+deepagents cannot reopen a finished session. After a stop its box says
+"This run can't continue. Start a new run." with a **New run** button.
 </Aside>
+
+## Merge into another incident
+
+When two incidents are one problem, for example the same outage alerting on
+two services, merge one into the other. On the incident to fold away, open
+**More actions → Merge into…**, pick an open incident, and confirm:
+
+```text
+Merge INC-12 into INC-14?
+Its 3 alerts move to INC-14 and INC-12 ends as merged. Its runs stay here.
+```
+
+- Every alert moves to the target, and fires there from then on.
+- The merged incident ends as **Resolved** and reads **Merged into INC-14**, with
+  a link. Both Timelines name the other: `Merged into INC-14` on one,
+  `Merged INC-12: 3 alerts from checkout-api` on the other.
+- The merged incident takes no new run and cannot be reopened, and its card
+  takes no drop on the board. It is left out of similar past incidents.
+- The target's next run is told what the merged incident's runs found. A run
+  already working on the target keeps the code it cloned; the next run also
+  clones the merged incident's service repositories.
+
+Merge is refused, with the reason, when:
+
+| The case | The message |
+| --- | --- |
+| The incident has a run working | `INC-12 has a run working; stop it before merging` |
+| The incident has ended | `INC-12 has ended; reopen it to merge it` |
+| It was merged already | `INC-12 was already merged` |
+| The target has ended | `INC-14 has ended; merge into an open incident` |

@@ -81,6 +81,7 @@ export default defineConfig({
 					items: [
 						{ label: 'Services and their code', slug: 'guides/services' },
 						{ label: 'Sending alerts', slug: 'guides/alerts' },
+						{ label: 'The incident board', slug: 'guides/incidents' },
 						{ label: 'The conversation', slug: 'guides/conversation' },
 						{ label: 'Resolving and reopening', slug: 'guides/incident-lifecycle' },
 						{ label: 'Opening it from other devices', slug: 'guides/devices' },
