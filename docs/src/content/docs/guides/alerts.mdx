@@ -14,7 +14,10 @@ What happens then:
   Alertmanager fingerprints it: two firings that differ in any label are two
   alerts, and the same label set firing again counts as a repeat.
 - The alert reaches a **service** through a `service` label whose value equals
-  the service's name exactly. Nothing else maps an alert to a service.
+  the service's name exactly. Nothing else maps an alert to a service. A
+  service you add or rename later takes the incidents still waiting with no
+  service whose alerts carry its name; their **Timeline** says so, and no run
+  starts on its own.
 - The alert joins an open incident on the same service that already carries an
   alert with the same title and text, whatever its other labels; otherwise it
   opens a new incident.
@@ -58,7 +61,10 @@ PrismaLens pulls on start, and **Pull now** pulls again:
 - From **Prometheus** it reads which alerts fired since the last pull that
   finished without an error, at most 24 hours back, and 24 hours on the first
   pull. This is the catch-up: alerts that fired while PrismaLens was off still
-  open incidents. A firing that has ended is resolved, and one still firing is left alone.
+  open incidents. Only an alert's latest firing in that window counts. One
+  that has ended, and whose rule Prometheus has checked since, is resolved and
+  the **Timeline** reads `Alerts cleared while PrismaLens was offline`; one
+  still firing, or not checked since, is left alone.
 
 After each webhook delivery PrismaLens also lists every Alertmanager again,
 for the resolve-by-absence rule below. It does not open incidents from that.
