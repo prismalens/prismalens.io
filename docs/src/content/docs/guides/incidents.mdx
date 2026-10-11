@@ -1,77 +1,144 @@
 ---
-title: The incident board
-description: The board's four columns, what puts a card in each, and what dragging a card to another column does, with the mouse, by touch or from the keyboard.
+title: Incidents and the Inbox
+description: The Inbox groups open incidents by what each one needs from you, with one next action per row. The sidebar lists every open incident under its service, and this page shows how the incident pages link.
 ---
 
-**Incidents** opens on the board. Each incident is one card, and the column it
-sits in follows from its state. The sidebar lists the same incidents, one row
-each, with the ones that want a person first.
+import IncidentFlow from '../../../components/IncidentFlow.astro';
 
-## The columns
+**Incidents** opens on the **Inbox**. It lists the incidents that need you,
+grouped by what each one needs, and each row carries the one action that
+moves it on. The header switches between three views, **Inbox**, **All
+incidents** and **Analytics**, and its **Filter** box matches an incident's
+ID, title or service.
 
-| Column | What sits there |
-| --- | --- |
-| Needs you | An incident that waits on a person, even while a run works on it. The card says why: **Needs acknowledging**, **Waiting for your approval**, **Run failed**, **Reopened by you, cause not confirmed**, or **Alerts cleared, resolve it**. The last kind sits at the bottom, under **To wrap up**. |
-| Working | An investigation is running and owes a report. A turn that only answers you, such as a follow-up question, leaves the card where it is. |
-| Concluded | Open, with nothing running and nothing waiting on you. |
-| Resolved | Incidents you resolved. Ones resolved more than a day ago fold under **Settled** below the columns. |
+## The tiles
 
-A Triggered card carries an **Acknowledge** button. On a wide window the four
-columns sit side by side; narrower, they sit two by two, and on a phone they
-stack. The keys **1** to **4** jump to the first card in each column.
+Three tiles sit at the top. Each one is a link.
 
-Opening a card shows the incident's tabs: **Overview**, **Conversation**,
-**Report**, **Alerts** and **Timeline**. **Esc** goes back a level, to the
-board in the end. For the box under the conversation, see
-[The conversation](/guides/conversation/). For Acknowledge, Resolve and
-Reopen, see [Resolving and reopening incidents](/guides/incident-lifecycle/).
-
-## Dragging a card
-
-A drag is a shortcut. Every drop does what a button on the card or the
-incident page does, so you never need to drag.
-
-While you carry a card, a column the card can go to is tinted. A column that
-refuses it dims, and while you hold the card over it, it says why. Dropping
-it there changes nothing.
-
-| Drop on | The card | What happens | The button that does the same |
-| --- | --- | --- | --- |
-| Working | Has no live run | Starts a run at once, with no form. A Triggered incident is acknowledged first. | **Investigate** |
-| Working | Has no live run, and is Resolved | Asks **Reopen INC-12 and investigate?**, then reopens it and starts a run. | **Reopen**, then **Investigate** |
-| Working | Has a live run, and is Triggered | Acknowledges it. The run goes on. | **Acknowledge** |
-| Working | Has a live run, already acknowledged | Refused: "Its run is already working". | |
-| Concluded | Has a live run | Stops the run, with no dialog. It reads **Stopped by you**. | **Stop** |
-| Concluded | Comes from Resolved | Asks **Reopen INC-12?**, then reopens it. | **Reopen** |
-| Concluded | Anything else | Refused: "Concluded follows from a finished investigation". | |
-| Resolved | Is not resolved yet | Opens the Resolve dialog. A live run stops when you confirm. | **Resolve** |
-| Resolved | Is already resolved | Refused: "Already resolved". | |
-| Needs you | Any card | Refused: "Needs you follows from the incident's state". | |
-| Any column | Was merged into another incident | Refused: "Merged into INC-14". | |
-
-When the agent cannot start, a drop on Working starts nothing and leaves the
-card as it was, not acknowledged. A message says **No run started** and why.
-
-### From the keyboard
-
-1. Tab to a card and press **Space** to pick it up.
-2. **Left** and **Right** carry it one column at a time.
-3. **Space** or **Enter** drops it. **Esc** puts it back where it was.
-
-A screen reader hears each step. Over a column it hears what a drop there
-would do, for example "Working: drop to acknowledge it and start a run", or
-the reason the column refuses the card.
-
-On a touch screen, press and hold a card to pick it up.
-
-### A worked example
-
-INC-12 is Triggered and sits in **Needs you**, marked **Needs acknowledging**.
-No run has started.
-
-| You | A screen reader hears | Afterwards |
+| Tile | What it says | Opens |
 | --- | --- | --- |
-| Carry INC-12 to Working and drop it | "Working: drop to acknowledge it and start a run" | Acknowledged. A run starts and the card moves to **Working**. |
-| Carry it to Concluded and drop it | "Concluded: drop to stop its run" | The run stops, with no dialog, and reads **Stopped by you**. The card moves to **Concluded**. |
-| Carry it to Resolved and drop it | "Resolved: drop to resolve it" | The Resolve dialog opens. Confirm, and the card moves to **Resolved**. |
-| Carry it back to Concluded and drop it | "Concluded: drop to reopen it" | **Reopen INC-12?** Confirm, and it goes back to Acknowledged, in **Needs you**, marked **Reopened by you, cause not confirmed**. |
+| Getting worse | The incident with more alerts firing now than an hour ago, for example `INC-12 HighLatency`. With none, **Nothing**, and under it "Firing alerts are holding steady" or "Nothing is firing". | That incident's overview |
+| Alerts | `3 firing` or **Nothing firing**, and under it how many cleared in the last day | Alerts |
+| Services | `2 of 5 degraded` with their names, or `5 of 5 healthy` | Services |
+
+Until a coding agent is set up, the third tile is **Agent: Not set up**,
+"Investigations wait until one is", and opens **Settings → Agent**.
+
+## Needs you
+
+Every open incident that waits on you sits in one group, in this order:
+
+| Group | An incident sits here when | The row's second line | The row's button |
+| --- | --- | --- | --- |
+| Waiting for your approval | A run is paused on an ask | **Waiting:** the agent asks before it runs a step | **Open**, on that run |
+| Finding ready | The newest finished investigation named a likely cause | **Likely:** and the cause's first clause | **Open** |
+| Run failed or stopped | The newest finished run failed or was stopped, and none is working | **Failed:** and why, or **Stopped by you** at 14:02, after 3m | **Retry run**, plus **Resolve** when nothing is firing |
+| No cause found | No run has started, or the last one ended without naming a cause | "Not investigated yet" or "The last run found nothing that explains it" | **Investigate** or **Investigate again** |
+| Alerts cleared | Every alert on it cleared, and you have not resolved it | **Cleared 2h ago.** and the likely cause, "No cause named" or "Never investigated" | **Resolve**, plus **Investigate** if no run ever started |
+
+An ask outranks everything else, and an incident whose alerts all cleared sits
+in Alerts cleared whatever its runs found.
+
+An incident with a run working and no finding yet asks nothing of you, so it
+is not in Needs you. It shows in the sidebar, where its run reads `working`.
+A Finding ready row whose incident has a new run working says **Checking a
+follow-up.** and keeps the finding.
+
+When an alert on an **Alerts cleared** incident fires again after the refire
+window, it opens a new incident (see
+[What a refire does](/guides/incident-lifecycle/#what-a-refire-does)). The
+old row then says **Same alert as INC-14.**, when it fired and how long it
+lasted, and its button is **Merge into INC-14**. Confirming moves its alerts to
+the newer incident and ends the old one as merged; its runs stay where they
+are.
+
+Each group shows five rows, then **Show N more**. With more than one group,
+chips above them filter to one group, each with its count.
+
+### A row
+
+From left to right, a row shows:
+
+- the severity, the ID and the title (hover for the full title), and the service;
+- the second line from the table above, with a breathing dot while a run works on the incident;
+- on a wide window, a line of the firing alerts over the last 24 hours;
+- **Firing, worse**, **Firing, steady**, **Not firing** or **No alert**;
+- how long ago it opened, such as `13h ago`;
+- the button, and a menu with **Open overview**, **Investigate again**, **Resolve** and **Merge into another incident**. The menu leaves out what the button already does.
+
+The button reads **Starting** or **Resolving** while it works. When the agent
+cannot start, nothing changes and a message says **No run started** and why.
+**Resolve** opens the same dialog as on the overview (see
+[Resolving and reopening](/guides/incident-lifecycle/)). A row that arrives
+while you watch glows once.
+
+### Empty and loading
+
+With nothing waiting, the group reads **Nothing needs you.**, or **Nothing
+matches.** while the filter has text. While the Inbox loads, the tiles and
+rows show placeholders and the sidebar's count stays blank.
+
+Before a coding agent is set up, the Needs you slot holds one card instead:
+**Set up a coding agent to investigate incidents**, with how much of setup is
+done and the line "Alerts still arrive and open incidents; nothing
+investigates them until an agent is set up." **Set up an agent** opens
+**Settings → Agent**.
+
+## Recently resolved
+
+Below Needs you, the incidents you resolved most recently, each with **Resolved
+by you** or **Merged into INC-14** and how long ago. **All incidents** beside
+the heading opens the All incidents view filtered to Resolved.
+
+## All incidents and Analytics
+
+**All incidents** lists every incident in a window (**All time**, **24
+hours**, **7 days**, **30 days**), newest first, with filters for status
+(**Open**, **Alerts cleared**, **Resolved**) and severity. Each row says where
+the incident stands in the Inbox's words: its Needs you group, **Run working**,
+**Open**, **Resolved** or **Merged into INC-14**.
+
+**Analytics** charts incidents over the last 7, 30 or 90 days.
+
+## The sidebar
+
+The sidebar lists every incident you have not resolved, under its service.
+PrismaLens groups by service: anything that alerts, such as an API, a
+database, a queue or a cache. Each service heading shows its type's icon and a
+health dot: **Degraded, getting worse**, **Degraded** or **Healthy** (a screen
+reader hears the words).
+
+- The incident's name opens its overview.
+- Its chevron lists its runs and questions, newest first: `Run 2, likely
+  cause`, `Run 1, failed`, `Ask: did v1.41 change the pool size?`. A working
+  run breathes. Each opens that run's transcript or the Ask conversation.
+- A service shows eight incidents, then **N more**.
+
+**Incidents** in the sidebar carries the count of incidents that need you. A
+screen reader hears it as "Incidents, 7 need you". **Settings** sits at the
+bottom.
+
+## How the incident pages link
+
+An incident has one overview, and a page for each run and each question.
+
+<IncidentFlow />
+
+- From the Inbox, a row's title or the Getting worse tile opens the overview.
+  So does the incident's name in the sidebar.
+- The overview links to a run's transcript from **Run 2 transcript** under
+  Why and from the run's name in the Latest run strip, and to the Ask
+  conversation from **You asked**. The **Runs and questions** menu lists them
+  all and ends with **New conversation**.
+- On a transcript or an Ask, the incident's name in the breadcrumb
+  (`HighLatency / Run 2`) goes back to the overview.
+- The back chevron goes to the Inbox from every incident page. So does
+  **Esc**, unless the cursor is in a field or a menu, a dialog or the Run
+  details panel is open; Esc closes those first.
+- A new conversation becomes a run or an Ask on its first send.
+
+Links to the old Report, Alerts and Timeline tabs open the overview. A link to
+a run by its own address opens that run's transcript.
+
+See [The incident overview](/guides/overview/) and
+[Runs and questions](/guides/runs/).

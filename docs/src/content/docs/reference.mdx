@@ -60,8 +60,14 @@ port. `pl doctor` prints the webhook URL Alertmanager should use and whether
 other machines can reach it (loopback bind = only this machine). For each agent
 it prints the path the binary was found at, or the `PATH` it searched. It never
 prints the token. It also prints the version and how it was installed, and
-lists every `pl` on `PATH`. `--workspace`, `--port` and `--host` check the
-values `pl up` would get with the same flags.
+lists every `pl` on `PATH`. The **Git** check is required: it prints git's
+version and the credential helpers this shell would use, per host, and fails
+when git is missing. With the background service installed, a **Git in the
+background service** line says the service has its own environment, so
+helpers that need a desktop keyring or an SSH agent may not work there (see
+[Git credentials](/guides/git-credentials/#checking-from-the-terminal)).
+`--workspace`, `--port` and `--host` check the values `pl up` would get with
+the same flags.
 
 ### `pl upgrade`
 
@@ -125,6 +131,15 @@ It answers `409` with one of these messages:
 
 `GET /api/instance` is public and returns `{instanceId, version, apiVersion}`. Launchers and `pl pair` check it to confirm a port belongs to this workspace before sending credentials or minting links.
 
+## A repository's credential
+
+`PATCH /api/repositories/{id}/credential` with `{"connectionId": "<saved token id>"}`
+pins a saved git host token to the repository; `{"connectionId": null}` sets
+it back to Auto. The repository is checked again and returned. The order
+Auto follows is on [Git credentials](/guides/git-credentials/#which-one-a-clone-uses).
+A git host token takes a **Host** (`github.com` by default, or your own host
+with `:port`) and the **Token**.
+
 ## Known limits
 
 - Runs on macOS, Linux and WSL2. Native Windows is a preview: it installs and runs, and CI checks it on every change, but expect rough edges.
@@ -154,16 +169,19 @@ the key is in the agent's environment.
 only check sign-in when the first investigation starts. Set the provider key
 and run again.
 
-**The service shows a git error.** It is git's message, word for word. Check
-that `git clone <the same URL>` works in your terminal. A clone that needs a
-password fails straight away, because PrismaLens never lets git prompt.
+**The service shows a git error.** The message says what failed and what to
+do; [Git credentials](/guides/git-credentials/#when-git-fails) lists them.
+Check that `git clone <the same URL>` works in your terminal. A clone that
+needs a password fails straight away, because PrismaLens never lets git
+prompt.
 
 **The report says the run was unmapped.** The incident has no service, or the
 service has no repository. Set the service's Repository field and run again.
 
-**A run failed.** The incident shows the error and the transcript
-path, `~/.prismalens/runs/<id>/transcript.jsonl`. If `pl up` was stopped
-during a run, that run is marked failed when the app starts again.
+**A run failed.** Why on the overview and the run's Run details say what
+went wrong, and the transcript is kept at
+`~/.prismalens/runs/<id>/transcript.jsonl`. If `pl up` was stopped during a
+run, that run is marked failed when the app starts again.
 
 **`pl up` says the port is in use.** `Port 6473 is in use by another
 PrismaLens.` means another PrismaLens holds it. Stop

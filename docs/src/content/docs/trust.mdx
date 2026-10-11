@@ -56,7 +56,8 @@ agent spots text trying to give it orders, it quotes it in the report under
 - **From PrismaLens:** no analytics unless you opt in (see [Usage telemetry](#usage-telemetry)), and no crash reports. An update check queries GitHub Releases without an identifier. `GET /api/instance` is public and returns `{instanceId, version, apiVersion}` so clients can confirm which instance answers before sending credentials. The app listens on `127.0.0.1` unless you pass `--host`.
 - **Update check:** once a day `pl up` checks GitHub Releases for a newer version by sending a `HEAD` request to `https://github.com/prismalens/prismalens/releases/latest`. The check sends no identifier, query, or body — only the standard IP address and User-Agent header of any HTTP request. Results are cached for 24 hours in `update-check.json` in the workspace folder. The check runs in the background and never delays startup. It is suppressed when standard output is not a TTY, in CI, when running under an Electron launcher, or when `PRISMALENS_UPDATE_CHECK=off` or `DO_NOT_TRACK` is set.
 - **From your agent:** what it reads, including source code, command output and the alert, goes to its model provider, as it would if you used the agent directly.
-- **From git:** fetching a repository URL contacts that host with your git credentials.
+- **From git:** fetching a repository URL, or reading its history for What changed, contacts that host with the credential the clone uses (see [Git credentials](/guides/git-credentials/)).
+- **From the Impact chart:** the overview asks your connected Prometheus for the alert's query over the last 24 hours, from the server. Nothing it answers is stored.
 
 ## Usage telemetry
 
@@ -157,8 +158,8 @@ Every event sent when telemetry is enabled carries a common platform block, plus
 | Your agent's login | Never reads, copies or stores it. |
 | Provider keys in your environment, such as `ANTHROPIC_API_KEY` | Passes the keys the chosen agent reads into its environment. Never stores them. |
 | A gateway for Claude Code | Set `ANTHROPIC_BASE_URL` and `ANTHROPIC_AUTH_TOKEN`; the model you set in Settings applies to every tier. The URL must be `https://` unless it is on this machine. |
-| Your git credentials | Never reads them. Git uses them. |
-| A GitHub token you add in Settings | Stores it encrypted and sends it only with git requests to GitHub. |
+| Your git login | Asks your credential helper whether it has a login for a host, keeps only the user name to label the clone, and discards the rest. Git uses the login itself. |
+| A git host token you add in Settings | Stores it encrypted and sends it only to git, for its own host, over HTTPS, as a header set through git's environment and never in the URL. Your credential helpers are off for that call. |
 | PrismaLens's own secrets | Generated on first start, stored as owner-only files, never given to the agent. |
 
 Apart from those provider keys, the agent gets only `PATH`, `HOME`, `USER`,

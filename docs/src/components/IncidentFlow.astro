@@ -1,0 +1,147 @@
+---
+// How the incident pages link to each other (prismalens/prismalens#811). Redraw when a link in the app changes.
+---
+
+<figure class="incident-flow not-content">
+	<svg viewBox="0 0 800 430" role="img" aria-labelledby="flow-title flow-desc">
+		<title id="flow-title">How the incident pages link</title>
+		<desc id="flow-desc">
+			The Inbox and the sidebar's incident name open the overview. The overview links to a run's
+			transcript and to the Ask conversation. The sidebar's chevron lists the runs and questions.
+			On a transcript or an Ask, the incident name in the breadcrumb goes back to the overview.
+			The back chevron and Esc go to the Inbox. A new conversation becomes a run or an Ask on
+			its first send.
+		</desc>
+		<defs>
+			<marker id="flow-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+				<path d="M0 0 L10 5 L0 10 z" class="head"></path>
+			</marker>
+		</defs>
+
+		<g class="box">
+			<rect x="20" y="30" width="170" height="64" rx="8"></rect>
+			<text x="105" y="58" class="name">Sidebar</text>
+			<text x="105" y="78" class="sub">on every page</text>
+		</g>
+		<g class="box">
+			<rect x="20" y="180" width="170" height="64" rx="8"></rect>
+			<text x="105" y="208" class="name">Inbox</text>
+			<text x="105" y="228" class="sub">Incidents</text>
+		</g>
+		<g class="box hero">
+			<rect x="300" y="180" width="190" height="64" rx="8"></rect>
+			<text x="395" y="208" class="name">Overview</text>
+			<text x="395" y="228" class="sub">one page per incident</text>
+		</g>
+		<g class="box">
+			<rect x="600" y="60" width="180" height="64" rx="8"></rect>
+			<text x="690" y="88" class="name">Run transcript</text>
+			<text x="690" y="108" class="sub">+ Run details panel</text>
+		</g>
+		<g class="box">
+			<rect x="600" y="180" width="180" height="64" rx="8"></rect>
+			<text x="690" y="208" class="name">Ask conversation</text>
+			<text x="690" y="228" class="sub">+ Question details</text>
+		</g>
+		<g class="box dashed">
+			<rect x="600" y="300" width="180" height="56" rx="8"></rect>
+			<text x="690" y="333" class="name">New conversation</text>
+		</g>
+
+		<g class="link">
+			<path d="M190 62 C 250 62, 270 160, 330 180"></path>
+			<text x="232" y="112" class="label">incident name</text>
+
+			<path d="M190 202 L 300 202"></path>
+			<text x="245" y="194" class="label">row, tile</text>
+
+			<path d="M190 62 C 380 20, 520 40, 600 82"></path>
+			<text x="400" y="36" class="label">chevron, then a run or question</text>
+
+			<path d="M490 196 C 540 160, 560 110, 600 98"></path>
+			<text x="520" y="132" class="label">Run N transcript</text>
+			<text x="520" y="147" class="label">Latest run</text>
+
+			<path d="M490 212 L 600 212"></path>
+			<text x="545" y="204" class="label">You asked</text>
+
+			<path d="M490 232 C 540 280, 560 320, 600 328"></path>
+			<text x="520" y="300" class="label">Runs and questions</text>
+
+			<path d="M690 300 L 690 244"></path>
+			<text x="700" y="276" class="label start">first send</text>
+		</g>
+
+		<g class="link back">
+			<path d="M600 236 C 560 262, 520 262, 490 238"></path>
+			<text x="545" y="270" class="label">breadcrumb</text>
+
+			<path d="M330 244 C 300 300, 220 300, 190 236"></path>
+			<text x="260" y="306" class="label">back chevron, Esc</text>
+		</g>
+
+		<text x="20" y="400" class="note start">Solid: open a page. Dashed: go back up. The back chevron and Esc go to the Inbox from every incident page;</text>
+		<text x="20" y="418" class="note start">the incident name in a transcript's breadcrumb goes to the overview.</text>
+	</svg>
+</figure>
+
+<style>
+	.incident-flow {
+		margin: 1.5rem 0;
+		overflow-x: auto;
+	}
+	.incident-flow svg {
+		width: 100%;
+		min-width: 640px;
+		height: auto;
+		display: block;
+		font-family: var(--sl-font);
+	}
+	.box rect {
+		fill: var(--sl-color-gray-6);
+		stroke: var(--sl-color-gray-5);
+		stroke-width: 1;
+	}
+	.box.hero rect {
+		fill: var(--sl-color-accent-low);
+		stroke: var(--sl-color-accent);
+	}
+	.box.dashed rect {
+		stroke-dasharray: 5 4;
+	}
+	.name {
+		fill: var(--sl-color-white);
+		font-size: 15px;
+		font-weight: 600;
+		text-anchor: middle;
+	}
+	.sub {
+		fill: var(--sl-color-gray-3);
+		font-size: 12px;
+		text-anchor: middle;
+	}
+	.link path {
+		fill: none;
+		stroke: var(--sl-color-gray-3);
+		stroke-width: 1.5;
+		marker-end: url(#flow-arrow);
+	}
+	.link.back path {
+		stroke-dasharray: 5 4;
+	}
+	.head {
+		fill: var(--sl-color-gray-3);
+	}
+	.label {
+		fill: var(--sl-color-gray-2);
+		font-size: 12px;
+		text-anchor: middle;
+	}
+	.note {
+		fill: var(--sl-color-gray-3);
+		font-size: 12px;
+	}
+	.start {
+		text-anchor: start;
+	}
+</style>

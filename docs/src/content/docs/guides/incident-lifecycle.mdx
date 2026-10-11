@@ -1,33 +1,37 @@
 ---
 title: Resolving and reopening incidents
-description: What Acknowledge, Resolve and Reopen do, what an alert that fires again does to a finished incident, how to stop a run and continue it, and how to merge two incidents.
+description: What Resolve and Reopen do, what an alert that fires again does to a finished incident, how to stop a run and continue it, and how to merge two incidents.
 ---
 
 import { Aside } from '@astrojs/starlight/components';
 
 An incident has a status, and the agent's run has its own state. The status
-is where the incident is in its life. The run state, shown on the strip under
-the title, says whether an agent is working. An incident can read
-**Acknowledged** with no agent running.
+is where the incident is in its life. The run state, shown in the overview's
+Latest run strip and on the run's own page, says whether an agent is working.
+A run never changes the incident's status.
 
 ## The statuses
 
 | Status | You see | What put it there |
 | --- | --- | --- |
-| Triggered | **Triggered** | An alert opened it, or you wrote it by hand. |
-| Investigating, identified, monitoring | **Acknowledged** | You pressed **Acknowledge**, or you reopened it. |
+| Open | The Inbox group it needs, or **Open** under All incidents | An alert opened it, you wrote it by hand, or you reopened it. |
 | Resolved by the source | **Alerts cleared** | Every alert on it was resolved by its source. No button writes this one. |
 | Resolved by you | **Resolved** | You pressed **Resolve**. |
+
+PrismaLens is single-user, so there is no step to take an incident on: an open
+incident is yours.
 
 An alert's own end reads **Cleared**, never Resolved: Resolved is the word for
 what you did.
 
 ## Resolve is one step
 
-**Resolve** is the button in the title bar. On the board, dropping a card on
-**Resolved** opens the same dialog, and stops a working run first. It is
-offered from Triggered, Acknowledged and Alerts cleared. There is no second
-step to close it afterwards.
+**Resolve** is the button in the incident's header, on the overview and on
+each run's page. In the Inbox, a row's **Resolve** opens the same dialog. It
+is offered on an open incident and on Alerts cleared. While an alert still
+fires, it first asks **Resolve while the alert is firing?**, with **Resolve
+anyway**. A run that is still working stops when you confirm. There is no
+second step to close it afterwards.
 
 The dialog asks for a cause and a category. Both are optional:
 
@@ -42,27 +46,23 @@ The dialog asks for a cause and a category. Both are optional:
 Resolve also ends the incident's alerts that are still firing, so a firing
 alert is not left behind on a finished incident. The dialog says how many are
 still firing in Alertmanager and what follows if they fire again. The
-Timeline records `Resolved 2 firing alerts with the incident`.
+timeline records `Resolved 2 firing alerts with the incident`.
 
 What you write as the cause outranks what the report guessed. A later incident
 that looks similar lists this one under similar incidents with that cause.
 
 ## Reopen
 
-**Reopen** appears only on a **Resolved** incident, behind a confirm. The
-incident goes back to **Acknowledged** and lands in **Needs you**, marked
-`Reopened by you, cause not confirmed`, until a run starts on it. Its cause
-stays as **Previous cause** until you resolve it again, and the next Resolve
-stamps a fresh resolve time.
-
-On the board, dropping a Resolved card on **Working** asks **Reopen and
-investigate?** and starts a run after it reopens.
+**Reopen** appears in the header only on a **Resolved** incident, behind a
+confirm. The incident opens again and goes back to the Inbox. Its cause stays
+as **Previous cause** until you resolve it again, and the next Resolve stamps
+a fresh resolve time.
 
 **Alerts cleared** has nothing to reopen. Resolve it, or wait: an alert that
 fires again soon after reopens it by itself (below).
 
-**New run**, under **More actions**, opens a new run on an incident in any
-status. A run never changes the incident's status.
+**New conversation**, at the end of the **Runs and questions** menu, opens a
+new run or Ask on an incident in any status.
 
 ## What a refire does
 
@@ -72,18 +72,21 @@ ended.
 
 | The incident is | The alert fires again | What happens |
 | --- | --- | --- |
-| Triggered or Acknowledged | any time | The firing alert counts the repeat. Nothing else changes. |
-| Alerts cleared | within 24 hours of clearing | The same alert reopens and the incident goes back to **Triggered**. The Timeline says `Incident reopened: alert fired again`. A run starts if the service's investigation setting allows one, at most one an hour (below). |
-| Alerts cleared | after 24 hours | A new alert and a new incident. Its Timeline names the old one: `fired again after INC-12 had its alerts cleared`. |
-| Resolved | any time | A new alert and a new incident. Its Timeline says `fired again after INC-12 was resolved`. |
+| Open | any time | The firing alert counts the repeat. Nothing else changes. |
+| Alerts cleared | within 24 hours of clearing | The same alert reopens and the incident is open again. The timeline says `Incident reopened: alert fired again`. A run starts if the service's investigation setting allows one, at most one an hour (below). |
+| Alerts cleared | after 24 hours | A new alert and a new incident. Its timeline names the old one: `fired again after INC-12 had its alerts cleared`. |
+| Resolved | any time | A new alert and a new incident. Its timeline says `fired again after INC-12 was resolved`. |
 
 The window is `PRISMALENS_ALERT_FLAP_WINDOW_MINUTES`, 1440 (24 hours) by
-default. A run started by a reopen says **Started by the alert, reopened**
-under the box. If a reopen run already started on the incident in the last
-hour, the incident reopens without one and the Timeline says `Not re-run: a
-reopen run started within the hour`. A Resolved incident is final to the source, so it never reopens by a refire.
-The old incident's menu shows **Fired again as INC-13** with the time, and
-links to the new one.
+default. In Run details, a run started by a reopen says "The alert fired
+again after the incident ended" under **Started**. If a reopen run already
+started on the incident in the last hour, the incident reopens without one
+and the timeline says `Not re-run: a reopen run started within the hour`. A
+Resolved incident is final to the source, so it never reopens by a refire.
+
+An Alerts cleared incident whose alert fired again as a new incident offers
+**Merge into INC-13** in the Inbox (see
+[Needs you](/guides/incidents/#needs-you)).
 
 A new incident follows the usual rule for investigations: its first alert, on
 a service with an investigation setting that allows it, starts a run. See
@@ -96,41 +99,43 @@ rows show what you see after each step.
 
 | Step | INC-12 | Alert `HighLatency` |
 | --- | --- | --- |
-| 14:02, Alertmanager delivers `firing` | Triggered, and a run starts if the service allows it | firing |
-| 14:05, you press **Acknowledge** | Acknowledged | firing |
+| 14:02, Alertmanager delivers `firing` | Open, and a run starts if the service allows it | firing |
 | 14:20, Alertmanager delivers `resolved` | Alerts cleared | cleared |
-| 14:26, `HighLatency` fires again | Triggered, Timeline `Incident reopened: alert fired again`, and a run starts if the service allows it | firing, 2 occurrences |
+| 14:26, `HighLatency` fires again | Open, timeline `Incident reopened: alert fired again`, and a run starts if the service allows it | firing, 2 occurrences |
 | 14:40, you press **Resolve**, no cause | Resolved | cleared with the incident |
-| 15:10, `HighLatency` fires again | stays Resolved, menu shows **Fired again as INC-13** | INC-13 opens with a new alert |
-| 15:30, you open INC-12 and press **Reopen** | Acknowledged, in Needs you, cause shown as Previous | cleared |
+| 15:10, `HighLatency` fires again | stays Resolved | INC-13 opens with a new alert, and its timeline names INC-12 |
+| 15:30, you open INC-12 and press **Reopen** | Open, back in the Inbox, cause shown as Previous | cleared |
 
 ## Stop, then continue
 
-Stopping is not a failure and does not change the incident's status. **Stop**
-in the box ends the run. **Esc** in the box does the same while the agent is
-working; **Esc** with the box not focused goes back a level. The run state reads **Stopping**, then **Stopped by you**. A stopped
-run does not put the incident in Needs you on its own; a **failed** run does.
+Stopping is not a failure and does not change the incident's status. **Stop
+run**, in the overview's Latest run strip or on the run's page, ends the run.
+**Esc** in the box does the same while the agent is working. The run state
+reads **Stopping**, then **Stopped by you**, and the incident moves to the
+Inbox's **Run failed or stopped** group with **Retry run**.
 
 There is no paused state. A stopped run is over. If it stopped or failed
-before writing a report, it can be continued: the box reads **Say what to
-change, or just continue**, and **Investigate** reopens the agent's own session
-on the code it saw and goes on to the report. A continued run ends the way any
+before writing a report, it can be continued: on its page the box reads **Say
+what to change, or just continue**, and **Continue Run 2** reopens the agent's
+own session on the code it saw and goes on to the report. A continued run ends the way any
 run does, with a report, stopped again, or failed. **Ask** instead puts a
 question to the same session and leaves the run as it was.
 
-A run that wrote its report takes questions, not a continue. See
-[The conversation](/guides/conversation/#after-the-run-ends).
+A run that wrote its report takes follow-ups in its session, or **Investigate
+again**. See [Runs and questions](/guides/runs/#after-it-ends).
 
 <Aside type="note" title="deepagents cannot continue">
 deepagents cannot reopen a finished session. After a stop its box says
-"This run can't continue. Start a new run." with a **New run** button.
+"This run kept no agent session, so it can't continue. Start a new run." with
+a **New run** button.
 </Aside>
 
 ## Merge into another incident
 
 When two incidents are one problem, for example the same outage alerting on
 two services, merge one into the other. On the incident to fold away, open
-**More actions → Merge into…**, pick an open incident, and confirm:
+**More actions → Merge into another incident**, pick an open incident, and
+confirm:
 
 ```text
 Merge INC-12 into INC-14?
@@ -139,10 +144,10 @@ Its 3 alerts move to INC-14 and INC-12 ends as merged. Its runs stay here.
 
 - Every alert moves to the target, and fires there from then on.
 - The merged incident ends as **Resolved** and reads **Merged into INC-14**, with
-  a link. Both Timelines name the other: `Merged into INC-14` on one,
+  a link. Both timelines name the other: `Merged into INC-14` on one,
   `Merged INC-12: 3 alerts from checkout-api` on the other.
-- The merged incident takes no new run and cannot be reopened, and its card
-  takes no drop on the board. It is left out of similar past incidents.
+- The merged incident takes no new run and cannot be reopened. It is left out
+  of similar past incidents.
 - The target's next run is told what the merged incident's runs found. A run
   already working on the target keeps the code it cloned; the next run also
   clones the merged incident's service repositories.

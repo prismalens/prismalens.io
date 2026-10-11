@@ -128,26 +128,16 @@ It depends on postgres."
 
 ## Private repositories
 
-PrismaLens uses your own git, so whatever lets you run `git clone` in a
-terminal works here too:
-
-- **SSH:** your SSH agent and keys.
-- **HTTPS:** your git credential helper, such as the one `gh auth login` or Git
-  Credential Manager sets up.
-- **A GitHub connection:** if you imported the repository from a GitHub token
-  or GitHub App connection, PrismaLens sends that connection's token with the
-  clone. It is passed through the environment of the git process, never written
-  into the URL or the mirror's config.
+A clone uses this machine's own git login (your SSH keys, or the credential
+helper your terminal's git uses) or a git host token you add under **Settings
+→ Integrations**. Each repository in the service's **Code** section says which
+one it clones with, for example `Code: machine git (gh, sumit)`, and when two
+saved tokens match its host, a picker sets which one. See
+[Git credentials](/guides/git-credentials/) for the order PrismaLens picks in
+and what each failure says.
 
 Git never prompts during a clone. A clone that would need a password fails
-straight away with git's message instead of hanging.
+straight away with a message that says what to do instead of hanging.
 
-PrismaLens needs `git` on the machine that runs `pl up`.
-
-## Importing from GitHub
-
-If you add a GitHub token or GitHub App connection under **Settings →
-Integrations**, **Import from VCS** on a service lists that account's
-repositories, and PrismaLens uses the connection's token to clone private
-ones. You do not need a connection if your own git can already clone the
-repository.
+PrismaLens needs `git` on the machine that runs `pl up`; `pl doctor` checks
+for it.

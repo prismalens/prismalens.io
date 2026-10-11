@@ -29,6 +29,8 @@ export default defineConfig({
 		'/concepts/byo-agent-and-key': '/coding-agents/',
 		'/concepts/ordered-evidence': '/guides/reports/',
 		'/concepts/data-and-privacy': '/trust/',
+		// 0.5.1 replaced the incident tabs with one overview and a page per run (prismalens#811).
+		'/guides/conversation': '/guides/runs/',
 	},
 	server: {
 		port: 4322,
@@ -80,9 +82,12 @@ export default defineConfig({
 					label: 'Using PrismaLens',
 					items: [
 						{ label: 'Services and their code', slug: 'guides/services' },
+						{ label: 'Git credentials', slug: 'guides/git-credentials' },
 						{ label: 'Sending alerts', slug: 'guides/alerts' },
-						{ label: 'The incident board', slug: 'guides/incidents' },
-						{ label: 'The conversation', slug: 'guides/conversation' },
+						{ label: 'Prometheus and the Impact chart', slug: 'guides/prometheus' },
+						{ label: 'Incidents and the Inbox', slug: 'guides/incidents' },
+						{ label: 'The incident overview', slug: 'guides/overview' },
+						{ label: 'Runs and questions', slug: 'guides/runs' },
 						{ label: 'Resolving and reopening', slug: 'guides/incident-lifecycle' },
 						{ label: 'Opening it from other devices', slug: 'guides/devices' },
 						{ label: 'Run in the background', slug: 'guides/background-service' },
