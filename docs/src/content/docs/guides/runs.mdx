@@ -26,7 +26,8 @@ to the overview; the back chevron goes to the Inbox.
 The strip under it says where the run is and what it used:
 
 - its state and activity: **Run 2 investigating** and what the agent does
-  now, or **Run 2 concluded**, **Likely cause found**, `4m ago, took 3m 12s`;
+  now, **Run 2 waiting for you** and what the agent asks to run, or **Run 2
+  concluded**, **Likely cause found**, `4m ago, took 3m 12s`;
 - the model. When the agent reported a different model from the one you asked
   for, the chip warns, for example **Sonnet, asked Opus**;
 - which credential cloned the code: `Code: machine git (gh)`, `Code: token
@@ -43,9 +44,36 @@ and rings it.
 When text in a step tried to give the agent an instruction, the step carries a
 red note with **See details**, which opens the flagged item in Run details.
 
-When the agent asks for permission, the transcript shows the call with
-**Approve** and **Deny**; what each permission level asks about is on
-[Coding agents](/coding-agents/).
+### When the agent asks
+
+Anything that waits on you opens in a dock on top of the box, not in the
+transcript: the agent's asks, the messages you queued, and the files going
+with your next message.
+
+```text
+Claude Code asks to run   Step 4          Denied at 14:12 if no one answers
+curl -s 'http://localhost:9093/api/v2/alerts'
+[Approve]  [Deny]
+Waits for the agent's next pause   Also check the pool size.
+```
+
+- One ask shows at a time, oldest first; with more than one the dock says
+  `1 of 3`. **Step 4** scrolls to the step it asks about.
+- For a tool from an MCP server, the dock names the tool and its server, for
+  example **ctx_batch_execute, a tool from the context-mode MCP server**, and
+  shows the arguments it would run with.
+- Nobody answering denies the ask after 10 minutes, or sooner when the run's
+  time limit is near.
+- Approve and Deny wait a moment after the next ask takes the slot, so one
+  click or key press never answers two asks.
+
+While it waits, the step reads **Waiting**, the strip reads **Run 2 waiting
+for you**, the sidebar row **Run 2, waiting for you**, and the overview says
+**Run 2 waits for your approval**. The overview's own box shows the same dock.
+Afterwards the step keeps one line on how the ask ended: **You approved it**,
+**You denied it**, **No one answered in 10 minutes, so it was denied**,
+**Denied: the run stopped** or **Denied: PrismaLens restarted**. What each
+permission level asks about is on [Coding agents](/coding-agents/).
 
 ### While it works
 
@@ -53,7 +81,9 @@ Messages go to the agent's own session, so it answers them as part of the
 same run.
 
 - **Enter**, or the send arrow, queues a message. The agent reads it at its
-  next pause, and the box shows `1 waiting` while any are queued.
+  next pause; until then it waits in the dock on the box, and still does
+  after a reload. If PrismaLens restarts first, the message reads **Not
+  delivered**.
 - **Ctrl+Enter** (**Cmd+Enter** on macOS) ends the agent's current step and
   delivers the message at once, after any still waiting. Anything that step
   had begun is lost.

@@ -112,7 +112,7 @@ answers `202` with one of these states:
 
 | State | When |
 | --- | --- |
-| `queued` | The run is live; the agent reads it at its next pause. |
+| `queued` | The run is live; the agent reads it at its next pause. The answer also carries `messageId`, which the run's `message_queued` event and the later `operator_message` event share. |
 | `sent` | The run is live and `mode` was `now`; the agent's current step was stopped to read it. |
 | `resumed` | The run had finished; the same agent session was reopened to answer it. |
 
