@@ -131,6 +131,36 @@ It answers `409` with one of these messages:
 
 `GET /api/instance` is public and returns `{instanceId, version, apiVersion}`. Launchers and `pl pair` check it to confirm a port belongs to this workspace before sending credentials or minting links.
 
+## What changed around an incident
+
+`GET /api/incidents/{id}/changes` returns what the overview's What changed
+card shows: the deploys, releases, merges and commits that landed on the
+default branch of each repository linked to the incident's services, from
+seven days before the incident opened until it was resolved (or now).
+
+| Query | Meaning |
+| --- | --- |
+| `limit` | Rows of `timeline` to return, newest first, 1 to 200; 6 by default. `total` counts them all. |
+| `refresh` | `true` reads the git hosts now instead of reusing a read from the last five minutes. |
+
+The answer carries `deploy` (the newest deploy, release or merge at or before
+the incident's start, else the newest commit, else `null`), `timeline`,
+`total`, `state` (`ok`, `partial`, `failed`, `pending` or `no-repos`) and
+`refreshing` (a read is still running; ask again shortly). Each entry in
+`sources` is one linked repository with its `status`, the `credential` git
+read it with, and a `problem` with a `message` and an `action`
+(`add-credential`, `pick-credential` or `replace-token`) when its read
+failed. The request waits up to 10 seconds for a read, then answers with what
+is stored.
+
+## A service's Impact metric
+
+A service's own PromQL for the Impact chart (see
+[A service's own metric](/guides/prometheus/#a-services-own-metric)) is kept
+as `metric` in the config of the service's link to its Prometheus source. Set
+it on the service page under **Telemetry → Impact metric**. The chart labels
+it as the service's metric, not the alert's, and a fix check never uses it.
+
 ## A repository's credential
 
 `PATCH /api/repositories/{id}/credential` with `{"connectionId": "<saved token id>"}`

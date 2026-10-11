@@ -40,7 +40,7 @@ An ask outranks everything else, and an incident whose alerts all cleared sits
 in Alerts cleared whatever its runs found.
 
 An incident with a run working and no finding yet asks nothing of you, so it
-is not in Needs you. It shows in the sidebar, where its run reads `working`.
+is not in Needs you; it is under [Working](#working).
 A Finding ready row whose incident has a new run working says **Checking a
 follow-up.** and keeps the finding.
 
@@ -87,6 +87,14 @@ investigates them until an agent is set up." **Set up an agent** opens
 Once an agent is set up but setup is not finished, a line above Needs you says
 what is missing and links to it, for example "Setup, 3 of 4 done: no service
 names its code yet, so runs read nothing." with **Add a service**.
+
+## Working
+
+Below Needs you, a quiet list of the incidents a run is working on with no
+finding yet: the ID, the title, the service, **No finding yet** and how long
+the run has been going, such as `6s`. A row opens the run's transcript. When
+the run reports, the incident moves to the Needs you group its finding puts it
+in. The list is hidden when nothing is working.
 
 ## Recently resolved
 
