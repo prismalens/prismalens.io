@@ -84,32 +84,88 @@ The other results are `sign in needed`, `no answer in 10s` and
 The agent does not inherit your whole environment. See
 [Credentials](/trust/#credentials).
 
-## Permission modes and asks
+## Permission levels and asks
 
-Each agent has its own permission modes, and the one a run starts in decides
-what the agent asks about. PrismaLens never answers an ask for you. Pick the
-mode in **Settings → Agent → Permission mode** (saved per agent) or from the
-mode chip under the composer. The chip lists the agent's own mode names.
+Every run has one of four permission levels. A level picks the agent's own
+mode for the run and decides how PrismaLens answers what the agent asks:
 
-| Mode | Claude Code | Codex | Gemini CLI | OpenCode |
+| Level | What it means on any agent |
+| --- | --- |
+| **Ask always** | The agent's most cautious mode. Every ask it raises waits for you here; reads and searches run. |
+| **Auto-accept edits** | File changes the agent asks about are approved by PrismaLens and logged; every other ask waits for you. |
+| **Auto** | The agent's own review mode where it has one. PrismaLens approves what it still asks and logs it. |
+| **Full access** | The agent's full-access mode. PrismaLens approves what it still asks and logs it. It can do anything your user can on this machine, inside whatever sandbox the agent itself runs. |
+
+There is no plan mode: every run executes under its level. When an agent asks
+to switch its own mode, such as entering its plan mode, PrismaLens refuses and
+the transcript says "Refused: the run keeps its mode".
+
+What each agent runs at each level:
+
+| Level | Claude Code | Codex | Gemini CLI | OpenCode |
 | --- | --- | --- | --- | --- |
-| Asks before acting (the default) | `default` (Manual) | `read-only` ("Ask for approval") | `default` | `build` |
-| Auto-accepts edits | `acceptEdits` | `workspace-write` (2.x only) | `autoEdit` | Not offered |
-| Auto | `auto` | `agent` | Not offered | Not offered |
-| Full access | `bypassPermissions` | `agent-full-access` | `yolo` | Not offered |
+| Ask always | Manual (`default`) | Ask for approval (`read-only`) | Default (`default`) | its build agent; each tool's catch-all asks |
+| Auto-accept edits | Accept Edits (`acceptEdits`) | Workspace write (`workspace-write`) | Default, as Ask always | build; edits are allowed and other tools ask |
+| Auto | Auto (`auto`); with a model that has no Auto, Accept Edits | Approve for me (`agent`), its own reviewer | Default, as Ask always | build, keeping the Ask always rules: OpenCode has no reviewer of its own |
+| Full access | Bypass Permissions (`bypassPermissions`), or Accept Edits where your settings turn it off | Full access (`agent-full-access`), outside its sandbox | Default, as Ask always | build with each tool's catch-all allowed; your own deny rules stay |
 
-Codex 1.13.1, the tested version, offers "Ask for approval" (`read-only`),
-`agent` and `agent-full-access`. The auto-accepts-edits mode exists on Codex 2.x
-only.
+- **Codex 1.13.1**, the tested version, has no Workspace write. There Ask
+  always and Auto-accept edits run the same mode, Ask for approval, and edits
+  inside the copy need no ask.
+- **Gemini CLI** runs the copy as an untrusted folder, which allows only its
+  Default mode, so every level runs as Ask always.
+- **OpenCode** has per-tool rules, not one mode. A level sets each tool's
+  catch-all rule; the patterns in your own `opencode.json` stay.
+- **deepagents** has no modes; PrismaLens answers its asks by the level.
 
-There is no plan mode. Plan modes are never offered and no run starts in one. A
-plan mode stored from an earlier version reads as the default mode.
+The agent reports the mode it switched to, and the run records that one. A
+mode the agent does not offer, or refuses, falls back as the table says, and
+otherwise the run fails before its first prompt.
 
-When the agent asks, the run waits:
+### Where a run's level comes from
 
-- The Conversation shows a card naming the call, with **Approve** and **Deny**. Deny refuses the call and the run goes on to its report.
-- The board, the sidebar run row and the incident band say **Waiting for your approval**.
-- The desktop app raises a notification, "INC-12 is waiting for your approval", and a click opens that run.
+The permission chip under the box lists the four levels, the default first
+with a tag, each with what it means, what this agent runs at it, and its
+sandbox line. A lock shows only where the agent's readiness check saw its own
+sandbox hold that mode. **Settings → Agent → Permission** sets the default
+for the next run you start, per agent; **Settings → Agent → Auto-started
+runs** sets it for runs PrismaLens starts from an alert.
+
+| The run | Settings → Agent | The agent's own default | The level | The chip's tag |
+| --- | --- | --- | --- | --- |
+| You start it | Permission: Full access | any | Full access | From Settings |
+| You start it | Permission: Default | Claude Code `"defaultMode": "acceptEdits"` in `~/.claude/settings.json` | Auto-accept edits | Your default |
+| You start it | Permission: Default | none set | Ask always | PrismaLens default |
+| An alert starts it | Auto-started runs: Ask always | not read | Ask always | |
+| An alert starts it | Auto-started runs: default | not read | Auto | |
+
+The agent's own default is read from:
+
+| Agent | Setting | Read as |
+| --- | --- | --- |
+| Claude Code | `permissions.defaultMode` in `~/.claude/settings.json`, or a managed settings file | `default` (Manual) is Ask always, `acceptEdits` Auto-accept edits, `auto` Auto, `bypassPermissions` Full access |
+| Codex | `sandbox_mode` and `approval_policy` in `~/.codex/config.toml`, or its active profile | With `approval_policy` unset or `on-request`: `read-only` is Ask always, `workspace-write` Auto-accept edits, `danger-full-access` Full access |
+| Gemini CLI | `general.defaultApprovalMode` in `~/.gemini/settings.json` | `default` is Ask always; other values cannot apply to an untrusted folder |
+| OpenCode, deepagents | not read | Ask always |
+
+The Permission row says which applies, for example `Your default: Auto-accept
+edits, from ~/.claude/settings.json ("acceptEdits").` or `Ask always,
+PrismaLens default. No default set in ~/.codex/config.toml.`
+
+At Ask always, a run PrismaLens starts from an alert waits for your approval
+of its first command, so the Auto-started runs default is Auto.
+
+### How asks work
+
+At **Ask always**, and at **Auto-accept edits** for anything but a file
+change, an ask waits for you:
+
+- The transcript shows a card naming the call, with **Approve** and **Deny**.
+  Deny refuses the call and the run goes on to its report.
+- The incident sits at the top of the Inbox under **Waiting for your
+  approval**, with **Open** on that run.
+- The desktop app raises a notification, "INC-12 is waiting for your
+  approval", and a click opens that run.
 - The ask survives a reload.
 
 An ask nobody answers is denied after 10 minutes, and the card reads "No one
@@ -119,25 +175,36 @@ says "The run's time limit is near, so this ask expires at 14:12:11", and then
 "Denied: the run's time limit was reached". Stopping the run denies a waiting ask
 too, and so does a restart of PrismaLens.
 
-OpenCode asks only where your `opencode.json` says `ask`. By default that is
-files outside the workspace only.
+An ask PrismaLens approves by the level shows in the transcript as "Allowed
+by the run's permission level", and never raises Waiting for your approval.
 
-Here is one ask, from Claude Code in Manual mode:
+Here is one run at each level, each asking for the same write:
 
 ```text
-Settings → Agent: Claude Code, Permission mode: Manual
+Ask always (Claude Code runs Manual)
 14:02:11  the agent asks to run "Write /tmp/pl-walk-write.txt"
           the card shows Approve and Deny, expiring at 14:12:11
-          the board, sidebar and band say "Waiting for your approval"
-          the desktop app notifies "INC-12 is waiting for your approval"
+          the Inbox shows INC-12 under "Waiting for your approval"
 14:03:40  you click Deny
-          the agent is told the call was refused
           the card reads "You denied it", and the agent goes on to its report
+
+Auto-accept edits (Claude Code runs Accept Edits)
+14:02:11  the agent asks to run "Write /tmp/pl-walk-write.txt"
+          "Allowed by the run's permission level"; nothing waits
+14:02:30  the agent asks to run "curl -X POST https://api.example.com/flush"
+          the card shows Approve and Deny: only file changes are approved
+
+Auto or Full access
+14:02:11  the agent asks to run "Write /tmp/pl-walk-write.txt"
+          "Allowed by the run's permission level"; nothing waits
+
+Any level
+14:02:05  the agent asks to switch to its plan mode
+          "Refused: the run keeps its mode", and the run goes on
 ```
 
-If nobody had answered by 14:12:11, the card would read "No one answered in 10
-minutes, so it was denied". A second answer to the same ask gets
-`409`; see [Reference](/reference/#answering-an-ask).
+A second answer to the same ask gets `409`; see
+[Reference](/reference/#answering-an-ask).
 
 ## Choosing a model
 
@@ -202,7 +269,5 @@ without your deleting it.
 ## Follow-ups on an older run
 
 A run keeps reasoning at the commit it was pinned to. When a newer run of the
-same incident exists, an older run shows "A newer run (Run #2) looks at
-`a1b2c3d`" above the box, with a link to the newer run. A follow-up on the older
-run tells the agent, so it knows newer commits exist. PrismaLens does not count
-them.
+same incident looked at a later commit, a follow-up on the older run tells the
+agent, so it knows newer commits exist. PrismaLens does not count them.

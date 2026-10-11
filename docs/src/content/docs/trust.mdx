@@ -1,6 +1,6 @@
 ---
 title: What PrismaLens reads and never does
-description: How asks work and where the limits stop, what leaves your machine, credentials, and where your data lives.
+description: Permission levels, asks and where the limits stop, what leaves your machine, credentials, and where your data lives.
 ---
 
 import { Aside } from '@astrojs/starlight/components';
@@ -11,30 +11,38 @@ agent can reach, what PrismaLens does to limit it, and where those limits stop.
 ## The short version
 
 - The agent works in a **copy** of your repository, never in your checkout.
-- In a mode that asks, **no write or outside read happens without your Approve**. A mode that does not ask is the agent's own call. Neither is a wall.
-- The agent **cannot fetch URLs**. OpenCode also cannot web-search or read outside the snapshot.
-- Runs are **not sandboxed**. Nothing at the operating-system level blocks a write or a network call.
+- Each run has a **permission level**. At **Ask always**, every ask the agent raises waits for your Approve. At the other levels PrismaLens approves what the level allows and logs it. What the agent does without asking is up to its own mode and your settings. Neither is a wall.
+- Fetching a URL or searching the web is a tool call like any other: it asks or runs by the level and the agent's own rules.
+- PrismaLens adds **no sandbox**. A lock on a level means the agent's readiness check saw the agent's own sandbox hold that mode; without one, nothing at the operating-system level blocks a write or a network call.
 - PrismaLens sends **no usage data** unless you opt in. An update check queries GitHub Releases without an identifier. Your agent sends your code and the alert to **its** model provider.
 - PrismaLens **never** reads or stores your agent's login.
 - Everything PrismaLens keeps is in **one folder**, `~/.prismalens`.
 
-## How asks work
+## Permission and asks
 
-PrismaLens never answers a permission request itself. The agent's own
-permission mode decides what it asks about (see
-[Permission modes and asks](/coding-agents/#permission-modes-and-asks)). In a
-mode that asks, such as Claude Code's Manual or Codex's "Ask for approval", a
-write, or a read outside the snapshot such as `cat ~/.bashrc`, shows in the
-conversation as an **Approve** / **Deny** card naming the call, and the board,
-sidebar and band say **Waiting for your approval**. Deny refuses it and the run
-goes on to its report. An ask nobody answers is denied after 10 minutes.
+A run's permission level picks the agent's own mode and decides how its asks
+are answered (see
+[Permission levels and asks](/coding-agents/#permission-levels-and-asks)). At
+**Ask always**, a write, or a read outside the snapshot such as `cat
+~/.bashrc`, shows in the transcript as an **Approve** / **Deny** card naming
+the call, and the incident waits in the Inbox under **Waiting for your
+approval**. Deny refuses it and the run goes on to its report. An ask nobody
+answers is denied after 10 minutes. At **Auto-accept edits** PrismaLens
+approves file changes and the rest waits for you; at **Auto** and **Full
+access** it approves what the agent asks. Every approval is logged in the
+transcript.
 
-<Aside type="caution" title="Modes that do not ask">
-Auto-accepting edits, Auto and Full access let the agent act without asking, as
-they do in your terminal. PrismaLens does not sandbox the agent, so nothing at
-the operating-system level blocks a write or a network call. For a real
-boundary, run PrismaLens under a user or in a VM that can read only what it
-should, and give the agent read-only credentials for anything outside the copy.
+Whatever the level, the brief tells the agent that its job ends at the report:
+changing the system (deploys, restarts, config, scaling, data) is not part of
+it, and an obvious fix goes into its next steps.
+
+<Aside type="caution" title="Levels that do not wait for you">
+Auto-accept edits, Auto and Full access let the agent act without asking you,
+as those modes do in your terminal. Unless the agent's own sandbox holds the
+mode, nothing at the operating-system level blocks a write or a network call.
+For a real boundary, run PrismaLens under a user or in a VM that can read only
+what it should, and give the agent read-only credentials for anything outside
+the copy.
 </Aside>
 
 OpenCode asks only where your `opencode.json` says `ask`; by default that is
@@ -44,8 +52,9 @@ denies is refused without asking.
 
 Agent configuration committed in the repository never reaches the agent:
 before a run starts, PrismaLens removes `.claude`, `.opencode`, `opencode.json`,
-`.mcp.json`, `.gemini` and `.codex` at any depth from the snapshot, so a
-repository cannot bring its own tools, hooks or instructions into the run.
+`.mcp.json`, `.gemini`, `.codex`, `AGENTS.md`, `AGENTS.override.md`,
+`CLAUDE.md`, `GEMINI.md` and `.cursorrules` at any depth from the snapshot, so
+a repository cannot bring its own tools, hooks or instructions into the run.
 
 Alert fields reach the agent inside a block marked as untrusted data. If the
 agent spots text trying to give it orders, it quotes it in the report under
@@ -194,7 +203,7 @@ own session. That conversation is kept by the agent in its own session store,
 such as `~/.claude/projects/` for Claude Code, outside `~/.prismalens`, and
 deleting the workspace folder does not remove it.
 
-The run keeps reasoning at its pinned commit. If a newer run has looked at a later commit, the older run shows "A newer run (Run #N) looks at `<sha>`", and a follow-up on it tells the agent that newer commits exist.
+The run keeps reasoning at its pinned commit. If a newer run has looked at a later commit, a follow-up on the older run tells the agent that newer commits exist.
 
 ## These websites
 

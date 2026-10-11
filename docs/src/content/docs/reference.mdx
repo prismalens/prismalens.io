@@ -132,11 +132,22 @@ waiting, which includes a second answer to the same ask:
 | --- | --- |
 | `This ask is no longer waiting: it was answered, timed out, or the run ended.` | The ask was already answered, the 10-minute window passed, or the run ended. |
 
-## Permission mode defaults
+An ask's outcome is one of `approved` and `denied` (your answer), `allowed`
+(approved by the run's permission level), `mode_kept` (an agent's request to
+switch its own mode, refused at every level), `timed_out`, `stopped`,
+`restarted` and `ended`.
 
-Each agent starts in its own asking mode. For OpenCode that is `build`; it was
-`plan` before. See [Permission modes and asks](/coding-agents/#permission-modes-and-asks)
-for every agent.
+## Permission settings
+
+| Setting | What it holds |
+| --- | --- |
+| `accessLevels` | The permission level per agent for runs you start: `supervised` (Ask always), `auto-edits` (Auto-accept edits), `auto` (Auto) or `full-access` (Full access). Unset follows the agent's own default, then Ask always. |
+| `autoAccessLevels` | The same, for runs PrismaLens starts from an alert. Unset is `auto`. |
+
+A run request can carry `accessLevel` with one of those values for that run
+only. A service's **Investigation notes** are kept in its
+`metadata.investigation.notes`, at most 4096 characters. See
+[Permission levels and asks](/coding-agents/#permission-levels-and-asks).
 
 ## Instance identity
 
