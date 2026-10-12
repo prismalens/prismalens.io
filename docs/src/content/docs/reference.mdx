@@ -24,7 +24,7 @@ overrides it for one run. On Linux and macOS, a foreground `pl up` suggests
 | `--verbose` | off | Stream every log line to the terminal. By default only warnings and errors appear. |
 | `--no-open` | opens | Print the pairing link without opening a browser. |
 | `--tailscale-serve` | off | Publish the app on your tailnet over HTTPS with `tailscale serve` and allow its name for this run. |
-| `--telemetry=off` | unset | Turn off opt-in usage telemetry for this run regardless of Settings. See [Usage telemetry](/trust/#usage-telemetry). |
+| `--telemetry=off` | unset | Turn off usage telemetry for this run regardless of Settings. See [Usage telemetry](/trust/#usage-telemetry). |
 
 ### `pl pair`
 
@@ -120,6 +120,34 @@ It answers `409` with one of these messages:
 | `This run's agent kept no session to reopen.` | The run finished before PrismaLens kept session ids, or its agent never opened one. |
 | `<Agent> is no longer installed.` | The run's agent is not on `PATH` any more. |
 | `This run recorded no workspace.` | The run failed before its code was cloned. |
+
+## Answering an ask
+
+`POST /api/investigations/{id}/asks/{askId}` with `{"decision": "approve" | "deny"}`
+answers an agent's permission request and returns the outcome, for example
+`{"outcome":"denied"}`. It answers `409` with this message when the ask is not
+waiting, which includes a second answer to the same ask:
+
+| Message | Why |
+| --- | --- |
+| `This ask is no longer waiting: it was answered, timed out, or the run ended.` | The ask was already answered, the 10-minute window passed, or the run ended. |
+
+An ask's outcome is one of `approved` and `denied` (your answer), `allowed`
+(approved by the run's permission level), `mode_kept` (an agent's request to
+switch its own mode, refused at every level), `timed_out`, `stopped` and
+`restarted`.
+
+## Permission settings
+
+| Setting | What it holds |
+| --- | --- |
+| `accessLevels` | The permission level per agent for runs you start: `supervised` (Ask always), `auto-edits` (Auto-accept edits), `auto` (Auto) or `full-access` (Full access). Unset follows the agent's own default, then Ask always. |
+| `autoAccessLevels` | The same, for runs PrismaLens starts from an alert. Unset is `auto`. |
+
+A run request can carry `accessLevel` with one of those values for that run
+only. A service's **Investigation notes** are kept in its
+`metadata.investigation.notes`, at most 4096 characters. See
+[Permission levels and asks](/coding-agents/#permission-levels-and-asks).
 
 ## Instance identity
 

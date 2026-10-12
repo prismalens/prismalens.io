@@ -44,13 +44,13 @@ trust, so PrismaLens turns off what each agent lets it:
 
 | Agent | Repo configuration |
 | --- | --- |
-| Claude Code | Not loaded. Project settings and hooks stay inert (`settingSources: []`). |
+| Claude Code | Your own `~/.claude/settings.json` applies (`settingSources: ["user"]`). The repo's project settings, hooks and `CLAUDE.md` stay off. |
 | OpenCode | Not loaded. The repo's `opencode.json` is ignored. |
 | Gemini CLI | Not loaded. The repo is an untrusted folder (`GEMINI_CLI_TRUST_WORKSPACE=false`), so `.gemini/settings.json`, `.env` files and `GEMINI.md` are ignored. |
 | deepagents | MCP servers are not started (`--no-mcp`). |
 | Codex | Loaded as in your terminal. PrismaLens turns nothing off. |
 
-Your own configuration for the agent is untouched either way.
+Your own configuration for the agent is untouched either way. For Claude Code that means your allow and deny rules, sandbox setting, hooks and `env` in `~/.claude/settings.json` apply, as they do in your terminal.
 
 ## How PrismaLens chooses
 
@@ -84,6 +84,133 @@ The other results are `sign in needed`, `no answer in 10s` and
 The agent does not inherit your whole environment. See
 [Credentials](/trust/#credentials).
 
+## Permission levels and asks
+
+Every run has one of four permission levels. A level picks the agent's own
+mode for the run and decides how PrismaLens answers what the agent asks:
+
+| Level | What it means on any agent |
+| --- | --- |
+| **Ask always** | The agent's most cautious mode. Every ask it raises waits for you here; reads and searches run. |
+| **Auto-accept edits** | File changes the agent asks about are approved by PrismaLens and logged; every other ask waits for you. |
+| **Auto** | The agent's own review mode where it has one. PrismaLens approves what it still asks and logs it. |
+| **Full access** | The agent's full-access mode. PrismaLens approves what it still asks and logs it. It can do anything your user can on this machine, inside whatever sandbox the agent itself runs. |
+
+There is no plan mode: every run executes under its level. When an agent asks
+to switch its own mode, such as entering its plan mode, PrismaLens refuses and
+the transcript says "Mode switch refused:" and the call.
+
+What each agent runs at each level:
+
+| Level | Claude Code | Codex | Gemini CLI | OpenCode |
+| --- | --- | --- | --- | --- |
+| Ask always | Manual (`default`) | Ask for approval (`read-only`) | Default (`default`) | its build agent; each tool's catch-all asks |
+| Auto-accept edits | Accept Edits (`acceptEdits`) | Workspace write (`workspace-write`) | Default, as Ask always | build; edits are allowed and other tools ask |
+| Auto | Auto (`auto`); with a model that has no Auto, Accept Edits | Approve for me (`agent`), its own reviewer | Default, as Ask always | build, keeping the Ask always rules: OpenCode has no reviewer of its own |
+| Full access | Bypass Permissions (`bypassPermissions`), or Accept Edits where your settings turn it off | Full access (`agent-full-access`), outside its sandbox | Default, as Ask always | build with each tool's catch-all allowed; your own deny rules stay |
+
+- **Codex 1.13.1**, the tested version, has no Workspace write. There Ask
+  always and Auto-accept edits run the same mode, Ask for approval, and edits
+  inside the copy need no ask.
+- **Gemini CLI** runs the copy as an untrusted folder, which allows only its
+  Default mode, so every level runs as Ask always.
+- **OpenCode** has per-tool rules, not one mode. A level sets each tool's
+  catch-all rule; the patterns in your own `opencode.json` stay.
+- **deepagents** has no modes; PrismaLens answers its asks by the level.
+
+The agent reports the mode it switched to, and the run records that one. A
+mode the agent does not offer, or refuses, falls back as the table says, and
+otherwise the run fails before its first prompt.
+
+### Where a run's level comes from
+
+The permission chip under the box lists the four levels, the default first
+with a tag, each with what it means, what this agent runs at it, and its
+sandbox line. A lock shows only where the agent's readiness check saw its own
+sandbox hold that mode. **Settings → Agent → Permission** sets the default
+for the next run you start, per agent; **Settings → Agent → Auto-started
+runs** sets it for runs PrismaLens starts from an alert.
+
+| The run | Settings → Agent | The agent's own default | The level | The chip's tag |
+| --- | --- | --- | --- | --- |
+| You start it | Permission: Full access | any | Full access | From Settings |
+| You start it | Permission: Default | Claude Code `"defaultMode": "acceptEdits"` in `~/.claude/settings.json` | Auto-accept edits | Your default |
+| You start it | Permission: Default | none set | Ask always | PrismaLens default |
+| An alert starts it | Auto-started runs: Ask always | not read | Ask always | |
+| An alert starts it | Auto-started runs: default | not read | Auto | |
+
+The agent's own default is read from:
+
+| Agent | Setting | Read as |
+| --- | --- | --- |
+| Claude Code | `permissions.defaultMode` in `~/.claude/settings.json`, or a managed settings file | `default` (Manual) is Ask always, `acceptEdits` Auto-accept edits, `auto` Auto, `bypassPermissions` Full access |
+| Codex | `sandbox_mode` and `approval_policy` in `~/.codex/config.toml`, or its active profile | With `approval_policy` unset or `on-request`: `read-only` is Ask always, `workspace-write` Auto-accept edits, `danger-full-access` Full access |
+| Gemini CLI | `general.defaultApprovalMode` in `~/.gemini/settings.json` | `default` is Ask always; other values cannot apply to an untrusted folder |
+| OpenCode, deepagents | not read | Ask always |
+
+The Permission row says which applies, for example `Your default: Auto-accept
+edits, from ~/.claude/settings.json ("acceptEdits").` or `Ask always,
+PrismaLens default. No default set in ~/.codex/config.toml.`
+
+At Ask always, a run PrismaLens starts from an alert waits for your approval
+of its first command, so the Auto-started runs default is Auto.
+
+### How asks work
+
+At **Ask always**, and at **Auto-accept edits** for anything but a file
+change, an ask waits for you:
+
+- A dock on top of the box under the transcript names the call, with
+  **Approve** and **Deny**, and the step it asks about reads **Waiting**.
+  Deny refuses the call and the run goes on to its report. How the dock
+  looks is on [Runs and questions](/guides/runs/).
+- The incident sits at the top of the Inbox under **Waiting for your
+  approval**, with **Open** on that run.
+- The desktop app raises a notification, "INC-12 is waiting for your
+  approval", and a click opens that run.
+- The ask survives a reload.
+
+An ask nobody answers is denied after 10 minutes, and its step reads "No one
+answered in 10 minutes, so it was denied". The window never outlives the run: it
+ends a minute before the run's 15-minute limit. When it is shortened, the dock
+says "The run's time limit is near, so this ask expires at 14:12", and then
+the step reads "Denied: the run's time limit was reached". Stopping the run
+denies a waiting ask too ("Denied: the run stopped"), and so does a restart of
+PrismaLens ("Denied: PrismaLens restarted").
+
+An ask PrismaLens approves by the level never waits and never raises Waiting
+for your approval. The transcript keeps one line for it, such as "Allowed at
+Auto-accept edits: Write /tmp/pl-walk-write.txt"; reads and searches leave
+none.
+
+Here is one run at each level, each asking for the same write:
+
+```text
+Ask always (Claude Code runs Manual)
+14:02  the agent asks to run "Write /tmp/pl-walk-write.txt"
+       the dock shows Approve and Deny: "Denied at 14:12 if no one answers"
+       the Inbox shows INC-12 under "Waiting for your approval"
+14:03  you click Deny
+       the step reads "You denied it", and the agent goes on to its report
+
+Auto-accept edits (Claude Code runs Accept Edits)
+14:02  the agent asks to run "Write /tmp/pl-walk-write.txt"
+       "Allowed at Auto-accept edits: Write /tmp/pl-walk-write.txt"; nothing waits
+14:02  the agent asks to run "curl -X POST https://api.example.com/flush"
+       the dock shows Approve and Deny: only file changes are approved
+
+Auto or Full access
+14:02  the agent asks to run "Write /tmp/pl-walk-write.txt"
+       "Allowed at Auto: Write /tmp/pl-walk-write.txt"; nothing waits
+
+Any level
+14:02  the agent asks to switch to its plan mode
+       "Mode switch refused:" and the call, and the run goes on
+```
+
+A second answer to the same ask gets `409`; see
+[Reference](/reference/#answering-an-ask).
+
 ## Choosing a model
 
 Each agent has its own default model. To use a different one, click the model
@@ -100,6 +227,19 @@ Codex, Gemini CLI and deepagents take no model setting. A model stored for one
 of them stops the next run before it starts, with the reason in **Settings →
 Agent** and on the Investigate button. For those agents the model pill offers
 only **Clear model**.
+
+### Custom models
+
+PrismaLens never probes your agent's endpoint, so the list shows only what the
+agent reports. To use a model your endpoint serves that the agent does not list,
+add its id in **Settings → Agent → Custom models** with **Add custom model**.
+Removing one asks for confirmation. Added ids show in the picker as "Added by
+you". A run on one that the endpoint does not serve fails.
+
+On Claude Code an added model reaches the agent through
+`ANTHROPIC_CUSTOM_MODEL_OPTION`, set when the agent starts. When your
+environment names the model with `ANTHROPIC_MODEL`, the Agent default row reads
+"`<model>`, from your environment".
 
 Upgrading from 0.5.0 drops the single shared model setting. Enter the model
 again for each agent that needs one.
@@ -130,3 +270,9 @@ With that file in `~/.prismalens`, the Claude Code suggestions show those two
 models, and Haiku is marked legacy. Delete the file to go back to the bundled
 catalogue. A release whose bundled catalogue is newer than your file wins
 without your deleting it.
+
+## Follow-ups on an older run
+
+A run keeps reasoning at the commit it was pinned to. When a newer run of the
+same incident looked at a later commit, a follow-up on the older run tells the
+agent, so it knows newer commits exist. PrismaLens does not count them.

@@ -69,6 +69,13 @@ file contents are not included. If you are debugging a change you have not
 committed yet, commit it (a local branch is fine) before you run.
 </Aside>
 
+## Investigation notes
+
+**Investigation notes**, in the service's form, holds what the agent should
+know first about this service: dashboards, usual causes, what not to touch.
+It takes up to 4096 characters. Every run on the service gets the notes in its
+brief, fenced as runbook notes from you.
+
 ## Several services, several repositories
 
 An incident can involve more than one service: its own, plus every service its
