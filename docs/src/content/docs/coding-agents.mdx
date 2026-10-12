@@ -106,10 +106,10 @@ mode for the run and decides how PrismaLens answers what the agent asks:
 
 | Level | What it means on any agent |
 | --- | --- |
-| **Ask always** | The agent's most cautious mode. Every ask it raises waits for you here; reads and searches run. |
-| **Auto-accept edits** | File changes the agent asks about are approved by PrismaLens and logged; every other ask waits for you. |
-| **Auto** | The agent's own review mode where it has one. PrismaLens approves what it still asks and logs it. |
-| **Full access** | The agent's full-access mode. PrismaLens approves what it still asks and logs it. It can do anything your user can on this machine, inside whatever sandbox the agent itself runs. |
+| **Ask always** | Reads and searches run; every other action the agent asks about waits for you. |
+| **Auto-accept edits** | Reads and file changes are approved and logged; every other ask waits for you. |
+| **Auto** | Runs the agent's own review mode where it has one; asks are approved and logged. |
+| **Full access** | Every ask is approved and logged; the agent can do anything your user can. |
 
 There is no plan mode: every run executes under its level. When an agent asks
 to switch its own mode, such as entering its plan mode, PrismaLens refuses and
@@ -130,7 +130,7 @@ What each agent runs at each level:
 - **Gemini CLI** runs the copy as an untrusted folder, which allows only its
   Default mode, so every level runs as Ask always.
 - **OpenCode** has per-tool rules, not one mode. A level sets each tool's
-  catch-all rule; the patterns in your own `opencode.json` stay.
+  default rule; your other rules in `opencode.json` stay.
 - **deepagents** has no modes; PrismaLens answers its asks by the level.
 
 The agent reports the mode it switched to, and the run records that one. A
