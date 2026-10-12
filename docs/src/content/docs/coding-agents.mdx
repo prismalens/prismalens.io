@@ -14,8 +14,8 @@ editor does.
 | Agent | Command PrismaLens looks for | Install | Tested with | Continue a finished run |
 | --- | --- | --- | --- | --- |
 | OpenCode | `opencode` | `curl -fsSL https://opencode.ai/install \| bash` or `npm i -g opencode-ai` | 1.18.30 | Yes |
-| Claude Code | `claude-agent-acp` | `npm i -g @agentclientprotocol/claude-agent-acp` | 0.81.1 | Yes |
-| Codex | `codex-acp` | `npm i -g @agentclientprotocol/codex-acp` | 1.13.1 | Yes |
+| Claude Code | `claude` | `curl -fsSL https://claude.ai/install.sh \| bash` or `npm i -g @anthropic-ai/claude-code` | 0.81.1 on Claude Code 2.1.296 | Yes |
+| Codex | `codex` | `npm i -g @openai/codex` | 1.13.1 | Yes |
 | Gemini CLI | `gemini` | `npm i -g @google/gemini-cli` | — | Yes |
 | deepagents | `dcode` | `uv tool install -U deepagents-code --with deepagents-acp` | 0.1.75 | Not yet |
 
@@ -23,6 +23,19 @@ editor does.
 PrismaLens's CI: it started in the right folder, finished on its own and
 returned a valid report. A dash means no such run yet; the agent is still
 supported and selectable.
+
+Claude Code and Codex speak ACP through an adapter, `claude-agent-acp` and
+`codex-acp`. PrismaLens ships both at the tested versions above, so the agent
+itself is all you install: the shipped adapter drives the `claude` or `codex`
+on your `PATH`, with your own sign-in and settings. An adapter you installed
+yourself, on your `PATH`, is used instead. **Settings → Agent** shows each
+agent's own version beside the one PrismaLens tested, and `pl doctor` says
+which adapter a run uses:
+
+```text
+✔ Harness: Claude Code: Claude Code found at /home/me/.local/bin/claude; runs through the claude-agent-acp PrismaLens ships
+✔ Harness ACP handshake: Claude Code: answers ACP, @agentclientprotocol/claude-agent-acp 0.81.1; ...
+```
 
 **Continue a finished run** means a message typed under a finished
 investigation reopens the same agent session: the agent keeps its whole
@@ -128,16 +141,16 @@ The permission chip under the box lists the four levels, the default first
 with a tag, each with what it means, what this agent runs at it, and its
 sandbox line. A lock shows only where the agent's readiness check saw its own
 sandbox hold that mode. **Settings → Agent → Permission** sets the default
-for the next run you start, per agent; **Settings → Agent → Auto-started
-runs** sets it for runs PrismaLens starts from an alert.
+for the next run you start, per agent. How a run starts decides which rule
+applies: a run an alert starts has nobody there to answer an ask, so it has no
+setting of its own (see [Runs an alert starts](#runs-an-alert-starts)).
 
 | The run | Settings → Agent | The agent's own default | The level | The chip's tag |
 | --- | --- | --- | --- | --- |
 | You start it | Permission: Full access | any | Full access | From Settings |
 | You start it | Permission: Default | Claude Code `"defaultMode": "acceptEdits"` in `~/.claude/settings.json` | Auto-accept edits | Your default |
 | You start it | Permission: Default | none set | Ask always | PrismaLens default |
-| An alert starts it | Auto-started runs: Ask always | not read | Ask always | |
-| An alert starts it | Auto-started runs: default | not read | Auto | |
+| An alert starts it | not read | not read | Auto; every ask beyond reading is refused | |
 
 The agent's own default is read from:
 
@@ -152,8 +165,24 @@ The Permission row says which applies, for example `Your default: Auto-accept
 edits, from ~/.claude/settings.json ("acceptEdits").` or `Ask always,
 PrismaLens default. No default set in ~/.codex/config.toml.`
 
-At Ask always, a run PrismaLens starts from an alert waits for your approval
-of its first command, so the Auto-started runs default is Auto.
+### Runs an alert starts
+
+Nobody is watching a run an alert starts, so it never stops to wait for a
+person. The agent runs in its own Auto mode (Claude Code's Auto, Codex's
+Approve for me), reads run as usual, and anything else it would ask you is
+refused at once. The agent carries on without it, and the transcript keeps a
+line for each refusal, such as "Refused, nobody was there to approve: Write
+/tmp/pl-walk-write.txt". OpenCode, Gemini CLI and deepagents have no reviewer
+of their own, so their alert-started runs can read the code and the context
+PrismaLens gathered, but run no command.
+
+To let a run ask you, start it yourself: **Investigate** on the incident, at
+the level the chip shows. A follow-up you send on an alert-started run runs at
+your **Permission** setting, not at Auto, and once the run has ended its chip
+shows that level. The run's **Access** row in Run details says: "An alert
+started it, so nobody was there to answer: past reading files, anything the
+agent asked was refused. A follow-up you send runs at your Permission
+setting."
 
 ### How asks work
 
