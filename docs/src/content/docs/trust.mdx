@@ -14,7 +14,7 @@ agent can reach, what PrismaLens does to limit it, and where those limits stop.
 - Each run has a **permission level**. At **Ask always**, every ask the agent raises waits for your Approve. At the other levels PrismaLens approves what the level allows and logs it. What the agent does without asking is up to its own mode and your settings. Neither is a wall.
 - Fetching a URL or searching the web is a tool call like any other: it asks or runs by the level and the agent's own rules.
 - PrismaLens adds **no sandbox**. A lock on a level means the agent's readiness check saw the agent's own sandbox hold that mode; without one, nothing at the operating-system level blocks a write or a network call.
-- PrismaLens sends **no usage data** unless you opt in. An update check queries GitHub Releases without an identifier. Your agent sends your code and the alert to **its** model provider.
+- PrismaLens counts **feature use** after a one-time notice, and never the alert, your code or a report. Turn it off in **Settings → Usage data** or with `PRISMALENS_TELEMETRY=off` or `DO_NOT_TRACK=1`. An update check queries GitHub Releases without an identifier. Your agent sends your code and the alert to **its** model provider.
 - PrismaLens **never** reads or stores your agent's login.
 - Everything PrismaLens keeps is in **one folder**, `~/.prismalens`.
 
@@ -62,22 +62,30 @@ agent spots text trying to give it orders, it quotes it in the report under
 
 ## What leaves your machine
 
-- **From PrismaLens:** no analytics unless you opt in (see [Usage telemetry](#usage-telemetry)), and no crash reports. An update check queries GitHub Releases without an identifier. `GET /api/instance` is public and returns `{instanceId, version, apiVersion}` so clients can confirm which instance answers before sending credentials. The app listens on `127.0.0.1` unless you pass `--host`.
+- **From PrismaLens:** usage counts after a one-time notice, unless you turn them off (see [Usage telemetry](#usage-telemetry)), and no crash reports. An update check queries GitHub Releases without an identifier. `GET /api/instance` is public and returns `{instanceId, version, apiVersion}` so clients can confirm which instance answers before sending credentials. The app listens on `127.0.0.1` unless you pass `--host`.
 - **Update check:** once a day `pl up` checks GitHub Releases for a newer version by sending a `HEAD` request to `https://github.com/prismalens/prismalens/releases/latest`. The check sends no identifier, query, or body — only the standard IP address and User-Agent header of any HTTP request. Results are cached for 24 hours in `update-check.json` in the workspace folder. The check runs in the background and never delays startup. It is suppressed when standard output is not a TTY, in CI, when running under an Electron launcher, or when `PRISMALENS_UPDATE_CHECK=off` or `DO_NOT_TRACK` is set.
 - **From your agent:** what it reads, including source code, command output and the alert, goes to its model provider, as it would if you used the agent directly.
 - **From git:** fetching a repository URL contacts that host with your git credentials.
 
 ## Usage telemetry
 
-Usage telemetry is **off by default**. Nothing is sent until the instance owner opts in.
+Usage telemetry is **on by default, after a notice**. The first start shows
+the notice and sends nothing; sending begins at the next start, unless you
+turn it off.
 
-### Where you answer
+### The notice, and turning it off
 
-The question is asked once:
-
-- **In the sidebar:** Until you answer, a short strip at the bottom of the sidebar asks to share usage counts. It offers **No thanks** and **Share**. Choosing either hides the strip.
-- **In Settings:** Under **Settings → Usage data**, the **Share usage data** toggle lets you change your decision at any time.
-- **`pl up --telemetry=off`:** The CLI flag disables usage telemetry for that run (`--telemetry` accepts only `off`; turning telemetry on must be done in Settings). While undecided, `pl up` prints a one-line notice pointing at Settings, but never prompts in the terminal.
+- **In the terminal:** the first `pl up` on a terminal prints `Usage data:
+  PrismaLens counts feature use under a random install id. Never an alert,
+  code, a repo or a report. Turn it off in Settings, Usage data, or with
+  PRISMALENS_TELEMETRY=off or DO_NOT_TRACK=1. Nothing is sent before the next
+  start.` It never prompts.
+- **In the app:** a strip reads "Usage counts are on." with what is counted,
+  and offers **OK** and **Turn off**. Either one hides it.
+- **In Settings:** **Settings → Usage data → Share usage counts** turns it off
+  or on again at any time.
+- **`pl up --telemetry=off`:** turns it off for that run. `--telemetry`
+  accepts only `off`.
 
 ### What forces it off
 
@@ -85,17 +93,17 @@ Three environment variables force telemetry off regardless of what is stored in 
 
 - `PRISMALENS_TELEMETRY=off` (also accepts `0` or `false`): Disables telemetry for the process.
 - `DO_NOT_TRACK`: When set to any value other than empty, `0`, `false`, or `off`, disables telemetry (and the update check).
-- `CI`: Any non-empty value disables telemetry. Automated runs cannot give consent and are never counted as installs.
+- `CI`: Any non-empty value disables telemetry. Automated runs are never counted as installs.
 
-When forced off, the Settings checkbox is disabled with a note explaining the environment override, and no events are collected or sent.
+When forced off, the Settings switch reads **Locked off** with a note explaining the environment override, and no events are collected or sent.
 
-### The install id, and your consent
+### The install id
 
 - **What it is:** A random UUID generated once for the workspace. It is sent as the `distinct_id` on every event so PrismaLens can count installs rather than disconnected events.
-- **Pseudonymous data:** Because the identifier is stable per install, it is pseudonymous rather than anonymous, and is treated as personal data under GDPR Recital 26. Consent is the sole legal basis for collection. It is never joined to an account, email, or user profile.
-- **Where it lives:** In the workspace SQLite database (`prismalens.db`) in the `settings` table under the `TELEMETRY` key. A factory reset deletes this row; a reset instance generates a fresh install ID and asks for consent again.
+- **Pseudonymous data:** Because the identifier is stable per install, it is pseudonymous rather than anonymous, and is treated as personal data under GDPR Recital 26. It is never joined to an account, email, or user profile.
+- **Where it lives:** In the workspace SQLite database (`prismalens.db`) in the `settings` table under the `TELEMETRY` key. A factory reset deletes this row; a reset instance generates a fresh install ID and shows the notice again.
 - **Retention:** Events are kept for as long as PostHog's plan retains them — at least one year on the plan we use — and are not joined to anything else.
-- **Withdrawal:** To withdraw consent, uncheck **Share usage data** in **Settings → Usage data**. Collection stops immediately from that moment. You can also pass `pl up --telemetry=off` or set `PRISMALENS_TELEMETRY=off` or `DO_NOT_TRACK=1`.
+- **Turning it off:** Switch off **Share usage counts** in **Settings → Usage data**. Collection stops immediately from that moment. You can also pass `pl up --telemetry=off` or set `PRISMALENS_TELEMETRY=off` or `DO_NOT_TRACK=1`.
 
 ### What is sent
 
@@ -147,7 +155,7 @@ Every event sent when telemetry is enabled carries a common platform block, plus
 
 | Event | What it counts | Property | Allowed values |
 | --- | --- | --- | --- |
-| `setup_completed` | Initial setup finished (reported once at opt-in). | _none_ | `{}` |
+| `setup_completed` | Initial setup finished (reported once, at the first send). | _none_ | `{}` |
 | `service_added` | A service gained repository code. | `source` | `local`, `git` |
 | `integration_configured` | An integration was configured. | `kind` | `github`, `slack`, `render`, `other` |
 | `first_webhook_received` | First inbound alert this install ever received (persisted to disk; reported once per install, never per alert). | `provider` | `prometheus`, `generic`, `render` |
