@@ -1,0 +1,224 @@
+---
+title: The incident overview
+description: One page per incident. What is happening, why, how to stop the impact, what changed, and the Next strip that walks a fix from Copy to I applied it to Check now and its verdict.
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+Opening an incident shows its overview: one page, no tabs. The window does not
+scroll. The Situation row takes the height it needs, and four cards share the
+rest: **Impact** and **Stop the impact**, then **Why** and **What changed and
+when**. A card whose content does not fit scrolls inside itself and says how
+much more there is. The chat box sits at the bottom.
+
+## The header and the Latest run strip
+
+The header reads `INC-12 HighLatency / Overview`, then the service, the
+severity and whether the alert fires (`Firing for 12h 48m` or **Not
+firing**). Once the incident has ended, the header names the end instead:
+**Alerts cleared**, **Resolved**, or **Merged into INC-14** as a link to the
+incident it joined. On the right:
+
+- **Resolve**. While an alert still fires it asks first, **Resolve while the
+  alert is firing?**, with **Resolve anyway**. Then the Resolve dialog opens
+  (see [Resolving and reopening](/guides/incident-lifecycle/)).
+- **Reopen**, on an incident you resolved.
+- **More actions**: **Write a status update**, **Change severity**, **Merge
+  into another incident**, **Export report as Markdown** (once a run has
+  reported), and **Edit cause** on a resolved incident.
+
+**Write a status update** drafts a few lines from what the incident records:
+its title and service, severity, whether it fires, and the likely cause.
+Edit it, then **Copy**. Copying adds the text to the timeline as a status
+update. When the browser blocks the clipboard, the text is selected for
+Ctrl+C and nothing is logged.
+
+Under the header, the **Latest run** strip names the newest investigation and
+its state, such as **Run 2 concluded**, **Likely cause found**, `4m ago, took
+3m 12s`, and the agent and model it used. The run's name opens its
+transcript. While it works, the strip shows what it is doing and **Stop run**.
+**Runs and questions** lists every run and Ask on the incident.
+
+## Situation
+
+The first row is the brief: the newest report's summary, or what PrismaLens
+knows so far when no run has reported, such as "An investigation waits for
+your approval." while a run waits on an ask. It shows three lines; click it to read
+all of it. Beside it, up to four facts: **Trend** (Getting worse, Steady or
+Recovered), **Cause** (the report's category), **Change** and **Mechanism**.
+Under it, what the service depends on: "Depends on booklogr-db (database) and
+redis (cache), both healthy at 12:20."
+
+The **Next** strip under the brief always holds the one next thing to do:
+
+| Where the incident stands | Next says | Button |
+| --- | --- | --- |
+| No run yet | No run yet. Investigate to find the cause and a way to stop the impact. | **Investigate** |
+| A run waits on an ask | Run 2 waits for your approval. Approve or deny it in the box below. | |
+| A run is investigating | Run 1 is investigating. Its finding and any way to stop the impact land on this page. | **Watch** |
+| The last run failed before a finding | Retry the investigation, and why the run stopped | **Retry run** |
+| The last run ended without a finding | The last run ended without a finding. Investigate again with what you know. | **Investigate again** |
+| The report has a way to stop the impact | The top option, and where its command is | **Copy command** |
+| The report has none | The agent found nothing to undo or switch off right away. The cause and the lasting fix are under Why. | |
+| Every alert has cleared | Every alert has cleared. Resolve the incident, or investigate again if it comes back. | **Resolve** |
+| Every alert has cleared, and the alert fired again as a new incident | Alerts cleared, and the alert fired again as a new incident. Resolve this one. | **Resolve**, and a **Fired again as INC-N** link |
+| Resolved | Resolved. If the alert fires again, PrismaLens opens a new incident and links it here. | |
+| Resolved, and the alert fired again | Resolved. | A **Fired again as INC-N** link |
+| Merged | Merged into, and a link to the incident it joined | |
+
+Once you start on a fix, the strip follows it, step by step (below).
+
+## Stop the impact
+
+The card holds the run's ways to stop the impact, up to three, best first. The
+top one shows its title, its state, the whole command (it wraps, and is never
+cut off) with **Copy**, and the facts the agent gave for it. The other options
+sit below as rows; click one to make it the current option.
+
+PrismaLens never runs a command. **Copy** puts it on your clipboard, you run
+it where you would run any change, and **I applied it** tells PrismaLens you
+did. When the run flagged text that tried to instruct it, the card says so
+beside the command: "Read this command before you run it."
+
+An option's state reads **Not applied**, **You applied this**, **Checking**,
+**Not working yet**, **Below the threshold**, **Could not check** or
+**Worked**.
+
+### Walking a fix
+
+1. **Copy command** copies the top option's command. The strip then offers
+   **I applied it** and **Copy again**. **I applied it** appears only after a
+   copy, unless the option has no command, or the browser blocked the
+   clipboard: then the command is selected for Ctrl+C and the button shows at
+   once.
+2. **I applied it** records the time and adds "You applied: …" to the
+   timeline. The card offers **Undo** until the first check.
+3. **Check now** asks the metrics source once. PrismaLens also checks by
+   itself five minutes after you applied it, while the overview is open.
+4. The check gives a verdict:
+
+| Verdict | It means | The strip offers |
+| --- | --- | --- |
+| Not yet | The alert's query is still over its threshold. Some fixes take a few minutes to settle. | **Check again**, and **Try the next option** when there is one |
+| Below the alert threshold | The query is back under the threshold. The alert clears on its own once its rule sees the recovery. | **Check again** |
+| Could not check | The metrics source did not answer, or this alert's query is not one PrismaLens can judge. | **Try again** when another try can help |
+| It worked | Every alert on the incident cleared after you applied the fix. | **Resolve** |
+
+Below the threshold is not It worked: only the alert clearing says that. Each
+check adds its verdict and time to the timeline, for example "Checked Roll
+back checkout-api to v1.41: Not yet". The measured value is never stored.
+
+When PrismaLens cannot check this alert at all, the strip says so right after
+**I applied it**: "PrismaLens cannot check this alert; if the fix worked, the
+alert clears on its own." Which alerts it can check is on
+[Prometheus and the Impact chart](/guides/prometheus/#checking-a-fix).
+
+A report written before this version shows its options with **Copy** only,
+marked "From a report written before fixes could be marked applied."
+
+### Worked example
+
+Alertmanager delivers `HighLatency` for `checkout-api`, from the rule
+`job:http_p99_latency_seconds:5m{job="checkout-api"} > 0.5`, and the
+Prometheus that evaluates it is connected. Run 1 has reported, and its top option is **Roll back checkout-api
+to v1.41**.
+
+| Time | You | Next strip | The option | Timeline |
+| --- | --- | --- | --- | --- |
+| 14:06 | Open INC-12 | Roll back checkout-api to v1.41. The command is under Stop the impact. **Copy command** | Not applied | |
+| 14:07 | **Copy command** | Command copied. Run it, then tell PrismaLens so it can check the result. **I applied it** **Copy again** | Not applied | |
+| 14:08 | Run `kubectl rollout undo deployment/checkout-api -n shop` in your terminal, then **I applied it** | Applied at 14:08. PrismaLens checks the alert again at 14:13. **Check now** | You applied this, **Undo** | You applied: Roll back checkout-api to v1.41 |
+| 14:13 | Nothing: the check runs by itself | Below the alert threshold at 14:13. The alert clears on its own once its rule sees the recovery. **Check again** | Below the threshold | Checked Roll back checkout-api to v1.41: Below the alert threshold |
+| 14:16 | Nothing: Alertmanager sends `resolved` | It worked: the alert cleared at 14:16. Resolve the incident, or leave it until you are sure. **Resolve** | Worked | |
+| 14:20 | **Resolve**, then confirm the dialog | Resolved. If the alert fires again, PrismaLens opens a new incident and links it here. | Worked | |
+
+Had the 14:13 check found p99 still over 500ms, the verdict would be **Not
+yet**, with **Check again** and **Try the next option**. Undo went away with
+the first check, since the timeline now holds a verdict about the fix.
+
+### You asked
+
+When you have asked the agent something, the card shows the latest question,
+how long ago, and its answer (or **Answering.** with a link to the
+conversation, or "The answer did not finish."). Earlier questions sit behind
+**1 earlier question** or **N earlier questions**. See
+[Runs and questions](/guides/runs/#asking-a-question).
+
+With no run reported yet, the card says "No options yet. No run has reached a
+finding." and names the latest deploy before the alert, if one shipped.
+
+## Impact
+
+The Impact card re-runs the alert's own query on Prometheus for the last 24
+hours: the line, the alert's threshold, deploy markers, **Now** and
+**Usually** (the median before the alert fired). Without a metrics source it
+shows what the alert alone says: how long it has fired, how many alerts fire,
+how often it fired this week, and a strip of when it fired over the last
+seven days, with **Connect Prometheus**. Every state, the limits and the
+per-service fallback metric are on
+[Prometheus and the Impact chart](/guides/prometheus/).
+
+Nothing else on the page waits for the chart.
+
+## Why
+
+Why holds the likely cause from the newest run that reported, tagged
+**Confirmed**, **Likely**, **Unconfirmed** or **No cause named**, with which
+run it came from and when.
+
+- Each evidence row says **For** or **Against** and opens the step in the
+  transcript that found it. A long row wraps to two lines; the full text is in
+  the row's tooltip and in Run details.
+- **N ruled out** and **N not checked** open the run, where Run details lists
+  them.
+- **Lasting fix** opens the run's fix for the cause, below the evidence.
+- **Investigate again** sets the chat box to Investigate again; send to
+  start the run. **Run 2 transcript** opens the run behind the finding.
+
+While a new run works, a banner says "Run 3 is investigating. This finding
+stands until it reports." with **Watch**. When the newest run failed, Why
+says so and keeps the older finding.
+
+## What changed and when
+
+The card lists what happened around the incident, newest first: deploys,
+merges and commits that landed on the default branch, the alert opening the
+incident, runs starting and concluding, your questions and notes. It shows
+the latest six; **All N events** shows the rest in the card. Times read
+`Today 14:02` or `Yesterday 21:40`; hover for the full date.
+
+The changes come from the git history of each repository linked to the
+incident's services, from seven days before the incident opened. PrismaLens
+reads it with the same credential that clones the code (see
+[Git credentials](/guides/git-credentials/)) and reads again at most every
+five minutes. The newest deploy before the alert stands at the top, with how
+long before the alert it shipped. While the history is read, the card says
+"Reading the git history".
+
+When the history cannot be read, the card says why, with one way on:
+
+| Why | The card says | Button |
+| --- | --- | --- |
+| No repository linked | No repository is linked to this incident's services, so deploys and merges cannot show here. | **Link a repository**, on the service |
+| No credential reaches the host | Add a git host token, or sign in to git on this machine, to see deploys and merges | **Add a token** |
+| A saved token was refused or expired | The git host's reason, such as `github.com rejected token "ci-bot" (fp 3f9a2c1b). It was revoked or mistyped; replace it.` | **Replace the token** |
+| Two or more tokens match the host | Which tokens match, and to pick one | **Pick a credential** |
+
+## The chat box
+
+The box at the bottom picks what Send does:
+
+| Action | What it does |
+| --- | --- |
+| **Ask** | A question to the agent; no new report. The answer appears under Stop the impact and as a conversation in the sidebar. |
+| **Investigate** or **Investigate again** | Starts the next run. You stay on the overview, and its finding lands here. An older finding stands until the new run reports. |
+| **Note** | Goes on the timeline. The agent never reads it. |
+| **Message** | Only while a run works: reaches it at its next pause. |
+
+Beside the action sit the model, effort and permission chips and the
+paperclip, as on a run (see [Runs and questions](/guides/runs/#the-box)). The
+line above the box says where the result will go.
+
+<Aside type="note" title="Old links">
+Links to an incident's old Report, Alerts and Timeline tabs open the overview.
+</Aside>

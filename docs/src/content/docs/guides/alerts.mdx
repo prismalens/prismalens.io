@@ -51,7 +51,9 @@ machine PrismaLens runs on.
 by URL. **Add a source** takes a kind, a URL and a name, then checks that the
 server answers. The server must be reachable from this machine without
 credentials. Each row shows **reachable** or **unreachable** with the last
-error, and has **Test** and **Pull now**.
+error, and has **Test** and **Pull now**. A Prometheus source also draws the
+overview's Impact chart and checks fixes (see
+[Prometheus and the Impact chart](/guides/prometheus/)).
 
 PrismaLens pulls on start, and **Pull now** pulls again:
 
