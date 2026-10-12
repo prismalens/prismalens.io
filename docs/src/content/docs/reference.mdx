@@ -134,7 +134,8 @@ waiting, which includes a second answer to the same ask:
 
 An ask's outcome is one of `approved` and `denied` (your answer), `allowed`
 (approved by the run's permission level), `mode_kept` (an agent's request to
-switch its own mode, refused at every level), `timed_out`, `stopped` and
+switch its own mode, refused at every level), `unattended` (refused because
+an alert started the run and nobody was there), `timed_out`, `stopped` and
 `restarted`.
 
 ## Permission settings
@@ -142,7 +143,9 @@ switch its own mode, refused at every level), `timed_out`, `stopped` and
 | Setting | What it holds |
 | --- | --- |
 | `accessLevels` | The permission level per agent for runs you start: `supervised` (Ask always), `auto-edits` (Auto-accept edits), `auto` (Auto) or `full-access` (Full access). Unset follows the agent's own default, then Ask always. |
-| `autoAccessLevels` | The same, for runs PrismaLens starts from an alert. Unset is `auto`. |
+
+A run an alert starts ignores this setting: it runs at `auto` and refuses every
+ask beyond reading.
 
 A run request can carry `accessLevel` with one of those values for that run
 only. A service's **Investigation notes** are kept in its

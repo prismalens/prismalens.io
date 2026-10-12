@@ -150,7 +150,7 @@ setting of its own (see [Runs an alert starts](#runs-an-alert-starts)).
 | You start it | Permission: Full access | any | Full access | From Settings |
 | You start it | Permission: Default | Claude Code `"defaultMode": "acceptEdits"` in `~/.claude/settings.json` | Auto-accept edits | Your default |
 | You start it | Permission: Default | none set | Ask always | PrismaLens default |
-| An alert starts it | not read | not read | Auto, and every ask is refused | |
+| An alert starts it | not read | not read | Auto; every ask beyond reading is refused | |
 
 The agent's own default is read from:
 
@@ -167,18 +167,22 @@ PrismaLens default. No default set in ~/.codex/config.toml.`
 
 ### Runs an alert starts
 
-Nobody is watching a run an alert starts, so PrismaLens does what coding
-agents do for runs nobody watches: Claude Code's routines and `claude -p`, and
-`codex exec` with approvals off, never stop to wait for a person. The agent
-runs in its own Auto mode (Claude Code's Auto, Codex's Approve for me), reads
-run as usual, and anything it would ask you is refused at once; the agent
-carries on without it and the transcript shows the refusal. OpenCode, Gemini
-CLI and deepagents have no reviewer of their own, so their alert-started runs
-can read the code and the context PrismaLens gathered, but run no command.
+Nobody is watching a run an alert starts, so it never stops to wait for a
+person. The agent runs in its own Auto mode (Claude Code's Auto, Codex's
+Approve for me), reads run as usual, and anything else it would ask you is
+refused at once. The agent carries on without it, and the transcript keeps a
+line for each refusal, such as "Refused, nobody was there to approve: Write
+/tmp/pl-walk-write.txt". OpenCode, Gemini CLI and deepagents have no reviewer
+of their own, so their alert-started runs can read the code and the context
+PrismaLens gathered, but run no command.
 
 To let a run ask you, start it yourself: **Investigate** on the incident, at
-the level the chip shows. A follow-up you send on an alert-started run keeps
-that run's level. A run's details say how its level was chosen.
+the level the chip shows. A follow-up you send on an alert-started run runs at
+your **Permission** setting, not at Auto, and once the run has ended its chip
+shows that level. The run's **Access** row in Run details says: "An alert
+started it, so nobody was there to answer: past reading files, anything the
+agent asked was refused. A follow-up you send runs at your Permission
+setting."
 
 ### How asks work
 
