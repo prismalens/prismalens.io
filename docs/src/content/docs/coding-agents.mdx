@@ -34,8 +34,10 @@ which adapter a run uses:
 
 ```text
 ✔ Harness: Claude Code: Claude Code found at /home/me/.local/bin/claude; runs through the claude-agent-acp PrismaLens ships
-✔ Harness ACP handshake: Claude Code: answers ACP, @agentclientprotocol/claude-agent-acp 0.81.1; ...
+✔ Harness ACP handshake: Claude Code: answers ACP, @agentclientprotocol/claude-agent-acp 0.81.1; signed in
 ```
+
+If Claude Code is not signed in, the handshake line is a warning that says `not signed in`, and a run fails until it is.
 
 **Continue a finished run** means a message typed under a finished
 investigation reopens the same agent session: the agent keeps its whole
