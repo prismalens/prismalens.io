@@ -9,8 +9,9 @@ switch a fault on, a real alert fires, Alertmanager posts it to PrismaLens, and
 your coding agent investigates booklogr's code. It is the quickest way to see a
 whole run without wiring up your own monitoring.
 
-You need docker, Node 24, pnpm, git and a coding agent from
-[Coding agents](/coding-agents/), plus PrismaLens from the [Quick start](/quickstart/).
+sreforge needs docker, pnpm and Node 18 or later. You also need git, a coding
+agent from [Coding agents](/coding-agents/), and PrismaLens from the
+[Quick start](/quickstart/).
 
 ## 1. Start PrismaLens so the containers can reach it
 
@@ -43,6 +44,8 @@ pnpm exec task up
 ```
 
 Replace `/path/from/pl/doctor` with the path you copied; keep the quotes.
+Set `AGENT_WEBHOOK_URL` as shown: sreforge's own default sends to port 3001,
+not to `pl up`'s 6473.
 
 The first `task up` clones booklogr and takes a few minutes. `pnpm exec task status`
 prints the two code folders you need next.
