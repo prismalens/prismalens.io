@@ -60,7 +60,7 @@ Waits for the agent's next pause   Also check the pool size.
 - One ask shows at a time, oldest first; with more than one the dock says
   `1 of 3`. **Step 4** scrolls to the step it asks about.
 - For a tool from an MCP server, the dock names the tool and its server, for
-  example **ctx_batch_execute, a tool from the context-mode MCP server**, and
+  example **query_logs, a tool from the observability MCP server**, and
   shows the arguments it would run with.
 - Nobody answering denies the ask after 10 minutes, or sooner when the run's
   time limit is near.
@@ -68,8 +68,8 @@ Waits for the agent's next pause   Also check the pool size.
   click or key press never answers two asks.
 
 While it waits, the step reads **Waiting**, the strip reads **Run 2 waiting
-for you**, the sidebar row **Run 2, waiting for you**, and the overview says
-**Run 2 waits for your approval**. The overview's own box shows the same dock.
+for you**, the sidebar row **Run 2, waiting for you**, the overview's Next strip says **Run 2 waits for your approval**,
+and its Situation line "An investigation waits for your approval." The overview's own box shows the same dock.
 Afterwards the step keeps one line on how the ask ended: **You approved it**,
 **You denied it**, **No one answered in 10 minutes, so it was denied**,
 **Denied: the run stopped** or **Denied: PrismaLens restarted**. What each
