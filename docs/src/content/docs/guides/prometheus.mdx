@@ -66,7 +66,7 @@ alert alone.
 | "The metrics source has not answered for 10 seconds. Nothing else on this page waits for it." | No answer within 10 seconds | **Try again** |
 | "The metrics source answered with an error:" and the error | Prometheus refused the query | **Try again** |
 | The alert alone, and "Connect Prometheus to see the trend and check a fix" | No Prometheus is connected | **Connect Prometheus** |
-| The alert alone, and "No chart:" with the reason | The alert's query is not known | **Open the query**, when the alert has a link |
+| The alert alone, and "No chart:" with the reason, such as "No chart: this incident has no alert of its own." | The alert's query is not known | **Open the query**, when the alert has a link |
 | The alert alone, and "No chart: the alert's query matches 50 series or more, too many to show which one is this alert." | 50 or more series came back | **Open the query** |
 
 "The alert alone" is four facts from the alert itself: **Firing for**, how
