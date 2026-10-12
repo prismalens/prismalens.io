@@ -24,7 +24,7 @@ A run's permission level picks the agent's own mode and decides how its asks
 are answered (see
 [Permission levels and asks](/coding-agents/#permission-levels-and-asks)). At
 **Ask always**, a write, or a read outside the snapshot such as `cat
-~/.bashrc`, shows in the transcript as an **Approve** / **Deny** card naming
+~/.bashrc`, waits in a dock on the box with **Approve** and **Deny**, naming
 the call, and the incident waits in the Inbox under **Waiting for your
 approval**. Deny refuses it and the run goes on to its report. An ask nobody
 answers is denied after 10 minutes. At **Auto-accept edits** PrismaLens

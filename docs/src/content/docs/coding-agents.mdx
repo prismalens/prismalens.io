@@ -98,7 +98,7 @@ mode for the run and decides how PrismaLens answers what the agent asks:
 
 There is no plan mode: every run executes under its level. When an agent asks
 to switch its own mode, such as entering its plan mode, PrismaLens refuses and
-the transcript says "Refused: the run keeps its mode".
+the transcript says "Mode switch refused:" and the call.
 
 What each agent runs at each level:
 
@@ -160,47 +160,52 @@ of its first command, so the Auto-started runs default is Auto.
 At **Ask always**, and at **Auto-accept edits** for anything but a file
 change, an ask waits for you:
 
-- The transcript shows a card naming the call, with **Approve** and **Deny**.
-  Deny refuses the call and the run goes on to its report.
+- A dock on top of the box under the transcript names the call, with
+  **Approve** and **Deny**, and the step it asks about reads **Waiting**.
+  Deny refuses the call and the run goes on to its report. How the dock
+  looks is on [Runs and questions](/guides/runs/).
 - The incident sits at the top of the Inbox under **Waiting for your
   approval**, with **Open** on that run.
 - The desktop app raises a notification, "INC-12 is waiting for your
   approval", and a click opens that run.
 - The ask survives a reload.
 
-An ask nobody answers is denied after 10 minutes, and the card reads "No one
+An ask nobody answers is denied after 10 minutes, and its step reads "No one
 answered in 10 minutes, so it was denied". The window never outlives the run: it
-ends a minute before the run's 15-minute limit. When it is shortened, the card
-says "The run's time limit is near, so this ask expires at 14:12:11", and then
-"Denied: the run's time limit was reached". Stopping the run denies a waiting ask
-too, and so does a restart of PrismaLens.
+ends a minute before the run's 15-minute limit. When it is shortened, the dock
+says "The run's time limit is near, so this ask expires at 14:12", and then
+the step reads "Denied: the run's time limit was reached". Stopping the run
+denies a waiting ask too ("Denied: the run stopped"), and so does a restart of
+PrismaLens ("Denied: PrismaLens restarted").
 
-An ask PrismaLens approves by the level shows in the transcript as "Allowed
-by the run's permission level", and never raises Waiting for your approval.
+An ask PrismaLens approves by the level never waits and never raises Waiting
+for your approval. The transcript keeps one line for it, such as "Allowed at
+Auto-accept edits: Write /tmp/pl-walk-write.txt"; reads and searches leave
+none.
 
 Here is one run at each level, each asking for the same write:
 
 ```text
 Ask always (Claude Code runs Manual)
-14:02:11  the agent asks to run "Write /tmp/pl-walk-write.txt"
-          the card shows Approve and Deny, expiring at 14:12:11
-          the Inbox shows INC-12 under "Waiting for your approval"
-14:03:40  you click Deny
-          the card reads "You denied it", and the agent goes on to its report
+14:02  the agent asks to run "Write /tmp/pl-walk-write.txt"
+       the dock shows Approve and Deny: "Denied at 14:12 if no one answers"
+       the Inbox shows INC-12 under "Waiting for your approval"
+14:03  you click Deny
+       the step reads "You denied it", and the agent goes on to its report
 
 Auto-accept edits (Claude Code runs Accept Edits)
-14:02:11  the agent asks to run "Write /tmp/pl-walk-write.txt"
-          "Allowed by the run's permission level"; nothing waits
-14:02:30  the agent asks to run "curl -X POST https://api.example.com/flush"
-          the card shows Approve and Deny: only file changes are approved
+14:02  the agent asks to run "Write /tmp/pl-walk-write.txt"
+       "Allowed at Auto-accept edits: Write /tmp/pl-walk-write.txt"; nothing waits
+14:02  the agent asks to run "curl -X POST https://api.example.com/flush"
+       the dock shows Approve and Deny: only file changes are approved
 
 Auto or Full access
-14:02:11  the agent asks to run "Write /tmp/pl-walk-write.txt"
-          "Allowed by the run's permission level"; nothing waits
+14:02  the agent asks to run "Write /tmp/pl-walk-write.txt"
+       "Allowed at Auto: Write /tmp/pl-walk-write.txt"; nothing waits
 
 Any level
-14:02:05  the agent asks to switch to its plan mode
-          "Refused: the run keeps its mode", and the run goes on
+14:02  the agent asks to switch to its plan mode
+       "Mode switch refused:" and the call, and the run goes on
 ```
 
 A second answer to the same ask gets `409`; see
