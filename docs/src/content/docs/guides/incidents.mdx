@@ -31,8 +31,8 @@ Every open incident that waits on you sits in one group, in this order:
 | Group | An incident sits here when | The row's second line | The row's button |
 | --- | --- | --- | --- |
 | Waiting for your approval | A run is paused on an ask | **Waiting:** the agent asks before it runs a step | **Open**, on that run |
-| Finding ready | The newest finished investigation named a likely cause | **Likely:** and the cause's first clause | **Open** |
-| Run failed or stopped | The newest finished run failed or was stopped, and none is working | **Failed:** and why, or **Stopped by you** at 14:02, after 3m | **Retry run**, plus **Resolve** when nothing is firing |
+| Finding ready | A finished investigation named a likely cause, even when a later run failed or was stopped | **Likely:** and the cause's first clause | **Open** |
+| Run failed or stopped | The newest finished run failed or was stopped, no earlier run named a cause, and none is working | **Failed:** and why, or **Stopped by you** at 14:02, after 3m | **Retry run**, plus **Resolve** when nothing is firing |
 | No cause found | No run has started, or the last one ended without naming a cause | "Not investigated yet" or "The last run found nothing that explains it" | **Investigate** or **Investigate again** |
 | Alerts cleared | Every alert on it cleared, and you have not resolved it | **Cleared 2h ago.** and the likely cause, "No cause named" or "Never investigated" | **Resolve**, plus **Investigate** if no run ever started |
 
@@ -105,7 +105,7 @@ the heading opens the All incidents view filtered to Resolved.
 ## All incidents and Analytics
 
 **All incidents** lists every incident in a window (**All time**, **24
-hours**, **7 days**, **30 days**), newest first, with filters for status
+hours**, **7 days**, **30 days**, **90 days**), newest first, with filters for status
 (**Open**, **Alerts cleared**, **Resolved**) and severity. Each row says where
 the incident stands in the Inbox's words: its Needs you group, **Run working**,
 **Open**, **Resolved** or **Merged into INC-14**.

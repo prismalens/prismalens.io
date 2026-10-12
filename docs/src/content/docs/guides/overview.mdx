@@ -15,7 +15,9 @@ much more there is. The chat box sits at the bottom.
 
 The header reads `INC-12 HighLatency / Overview`, then the service, the
 severity and whether the alert fires (`Firing for 12h 48m` or **Not
-firing**). On the right:
+firing**). Once the incident has ended, the header names the end instead:
+**Alerts cleared**, **Resolved**, or **Merged into INC-14** as a link to the
+incident it joined. On the right:
 
 - **Resolve**. While an alert still fires it asks first, **Resolve while the
   alert is firing?**, with **Resolve anyway**. Then the Resolve dialog opens
@@ -40,7 +42,8 @@ transcript. While it works, the strip shows what it is doing and **Stop run**.
 ## Situation
 
 The first row is the brief: the newest report's summary, or what PrismaLens
-knows so far when no run has reported. It shows three lines; click it to read
+knows so far when no run has reported, such as "An investigation waits for
+your approval." while a run waits on an ask. It shows three lines; click it to read
 all of it. Beside it, up to four facts: **Trend** (Getting worse, Steady or
 Recovered), **Cause** (the report's category), **Change** and **Mechanism**.
 Under it, what the service depends on: "Depends on booklogr-db (database) and
@@ -51,13 +54,17 @@ The **Next** strip under the brief always holds the one next thing to do:
 | Where the incident stands | Next says | Button |
 | --- | --- | --- |
 | No run yet | No run yet. Investigate to find the cause and a way to stop the impact. | **Investigate** |
+| A run waits on an ask | Run 2 waits for your approval. Approve or deny it in the box below. | |
 | A run is investigating | Run 1 is investigating. Its finding and any way to stop the impact land on this page. | **Watch** |
 | The last run failed before a finding | Retry the investigation, and why the run stopped | **Retry run** |
+| The last run ended without a finding | The last run ended without a finding. Investigate again with what you know. | **Investigate again** |
 | The report has a way to stop the impact | The top option, and where its command is | **Copy command** |
 | The report has none | The agent found nothing to undo or switch off right away. The cause and the lasting fix are under Why. | |
 | Every alert has cleared | Every alert has cleared. Resolve the incident, or investigate again if it comes back. | **Resolve** |
+| Every alert has cleared, and the alert fired again as a new incident | Alerts cleared, and the alert fired again as a new incident. Resolve this one. | **Resolve**, and a **Fired again as INC-N** link |
 | Resolved | Resolved. If the alert fires again, PrismaLens opens a new incident and links it here. | |
-| Resolved, and the alert fired again | Resolved. | **Fired again as INC-N** |
+| Resolved, and the alert fired again | Resolved. | A **Fired again as INC-N** link |
+| Merged | Merged into, and a link to the incident it joined | |
 
 Once you start on a fix, the strip follows it, step by step (below).
 

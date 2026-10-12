@@ -109,6 +109,16 @@ have run one investigation against real code and read its report.
    watch the agent read files and run commands as it goes. Most runs take a
    few minutes, and none can run longer than 15.
 
+   A fresh install runs at **Ask always**, unless your agent's own settings
+   name another default, so the agent asks before each command it runs
+   beyond reading files. Answer with **Approve** or **Deny** in the dock on
+   the box; meanwhile the incident waits in the Inbox under **Waiting for
+   your approval**, and an ask nobody answers is denied after 10 minutes. To
+   let it run without asking, pick another level on the permission chip
+   under the box for this run, or set the default in **Settings → Agent →
+   Permission**. See
+   [Permission levels and asks](/coding-agents/#permission-levels-and-asks).
+
    When it finishes, the overview shows the likely cause and its evidence
    under **Why**, and the ways to stop the impact under **Stop the impact**.
    The run's **Run details** panel holds the rest: what was ruled out, what
@@ -128,5 +138,6 @@ service page show both.
 
 ## Next
 
+- [Try it on a broken app](/guides/try-it/) to watch an alert start a run, without your own repository.
 - [Send alerts from Prometheus](/guides/alerts/) so incidents open on their own.
 - [What PrismaLens reads](/trust/) before you point it at anything sensitive.
