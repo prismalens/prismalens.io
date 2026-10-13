@@ -19,39 +19,41 @@ const steps = [
   ogImageHeight={640}
   ogImageAlt="PrismaLens: your coding agent, investigating your incidents. Beside it, an incident overview with the cause, the impact chart and the command that stops the impact."
 >
-  <section class="mx-auto max-w-6xl px-4 pt-16 pb-20 sm:px-6 sm:pt-24">
-    <div class="max-w-3xl">
-      <h1 class="text-4xl font-semibold leading-[1.1] tracking-tight sm:text-6xl">
-        Point it at an incident and the code behind it.
-      </h1>
-      <p class="mt-6 max-w-2xl text-lg leading-relaxed text-muted-foreground">
+  <section class="mx-auto max-w-6xl px-4 pt-16 pb-20 sm:px-6 sm:pt-24 lg:pt-12">
+    <h1 class="max-w-3xl text-4xl font-semibold leading-[1.1] text-balance tracking-tight sm:text-6xl lg:max-w-4xl lg:text-5xl lg:leading-[1.08]">
+      Point it at an incident and the code behind it.
+    </h1>
+    <div class="lg:mt-6 lg:grid lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)] lg:items-end lg:gap-x-14">
+      <p class="mt-6 max-w-2xl text-lg leading-relaxed text-muted-foreground lg:mt-0">
         PrismaLens opens an incident from your alert, hands it to the coding agent you already use, and
         keeps that agent on a throwaway copy of the code, asking first by default. You get the likely causes in order, each tied
         to the file, line or commit that supports it, and a command to stop the impact when the agent finds one.
       </p>
 
-      <div class="mt-8 flex flex-col gap-6 sm:flex-row sm:items-end">
-        <pre class="rounded-md border border-border bg-card px-4 py-3 text-sm leading-7"><span class="select-none text-muted-foreground">$ </span>npm install -g prismalens
+      <div>
+        <div class="mt-8 flex flex-col gap-6 sm:flex-row sm:items-end lg:mt-0 lg:flex-col lg:items-start lg:gap-4">
+          <pre class="rounded-md border border-border bg-card px-4 py-3 text-sm leading-7"><span class="select-none text-muted-foreground">$ </span>npm install -g prismalens
 <span class="select-none text-muted-foreground">$ </span>pl up</pre>
-        <div class="flex items-center gap-6 pb-1">
-          <a
-            href={`${docsBase}/quickstart/`}
-            class="rounded-md bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
-          >
-            Read the quick start
-          </a>
-          <a href="https://github.com/prismalens/prismalens" class="text-sm font-medium underline-offset-4 hover:underline">
-            Source on GitHub
-          </a>
+          <div class="flex items-center gap-6 pb-1 lg:pb-0">
+            <a
+              href={`${docsBase}/quickstart/`}
+              class="rounded-md bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+            >
+              Read the quick start
+            </a>
+            <a href="https://github.com/prismalens/prismalens" class="text-sm font-medium underline-offset-4 hover:underline">
+              Source on GitHub
+            </a>
+          </div>
         </div>
+        <p class="mt-3 text-sm text-muted-foreground">
+          Needs Node.js 24 or later on macOS, Linux or WSL2.
+          <a href={`${docsBase}/install/`} class="underline underline-offset-4">Install</a>
+        </p>
       </div>
-      <p class="mt-3 text-sm text-muted-foreground">
-        Needs Node.js 24 or later on macOS, Linux or WSL2.
-        <a href={`${docsBase}/install/`} class="underline underline-offset-4">Install</a>
-      </p>
     </div>
 
-    <figure class="demo mt-14 sm:mt-20" data-demo data-cleared-at="17.5">
+    <figure class="demo mt-14 sm:mt-20 lg:mt-10" data-demo data-cleared-at="17.5">
       <div class="demo-glow" aria-hidden="true"></div>
       <div class="demo-window">
         <div class="demo-bar">
