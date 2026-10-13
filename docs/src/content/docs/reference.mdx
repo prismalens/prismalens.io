@@ -24,7 +24,7 @@ overrides it for one run. On Linux and macOS, a foreground `pl up` suggests
 | `--verbose` | off | Stream every log line to the terminal. By default only warnings and errors appear. |
 | `--no-open` | opens | Print the pairing link without opening a browser. |
 | `--tailscale-serve` | off | Publish the app on your tailnet over HTTPS with `tailscale serve` and allow its name for this run. |
-| `--telemetry=off` | unset | Turn off opt-in usage telemetry for this run regardless of Settings. See [Usage telemetry](/trust/#usage-telemetry). |
+| `--telemetry=off` | unset | Turn off usage telemetry for this run regardless of Settings. See [Usage telemetry](/trust/#usage-telemetry). |
 
 ### `pl pair`
 
@@ -60,8 +60,14 @@ port. `pl doctor` prints the webhook URL Alertmanager should use and whether
 other machines can reach it (loopback bind = only this machine). For each agent
 it prints the path the binary was found at, or the `PATH` it searched. It never
 prints the token. It also prints the version and how it was installed, and
-lists every `pl` on `PATH`. `--workspace`, `--port` and `--host` check the
-values `pl up` would get with the same flags.
+lists every `pl` on `PATH`. The **Git** check is required: it prints git's
+version and the credential helpers this shell would use, per host, and fails
+when git is missing. With the background service installed, a **Git in the
+background service** line says the service has its own environment, so
+helpers that need a desktop keyring or an SSH agent may not work there (see
+[Git credentials](/guides/git-credentials/#checking-from-the-terminal)).
+`--workspace`, `--port` and `--host` check the values `pl up` would get with
+the same flags.
 
 ### `pl upgrade`
 
@@ -106,7 +112,7 @@ answers `202` with one of these states:
 
 | State | When |
 | --- | --- |
-| `queued` | The run is live; the agent reads it at its next pause. |
+| `queued` | The run is live; the agent reads it at its next pause. The answer also carries `messageId`, which the run's `message_queued` event and the later `operator_message` event share. |
 | `sent` | The run is live and `mode` was `now`; the agent's current step was stopped to read it. |
 | `resumed` | The run had finished; the same agent session was reopened to answer it. |
 
@@ -121,9 +127,79 @@ It answers `409` with one of these messages:
 | `<Agent> is no longer installed.` | The run's agent is not on `PATH` any more. |
 | `This run recorded no workspace.` | The run failed before its code was cloned. |
 
+## Answering an ask
+
+`POST /api/investigations/{id}/asks/{askId}` with `{"decision": "approve" | "deny"}`
+answers an agent's permission request and returns the outcome, for example
+`{"outcome":"denied"}`. It answers `409` with this message when the ask is not
+waiting, which includes a second answer to the same ask:
+
+| Message | Why |
+| --- | --- |
+| `This ask is no longer waiting: it was answered, timed out, or the run ended.` | The ask was already answered, the 10-minute window passed, or the run ended. |
+
+An ask's outcome is one of `approved` and `denied` (your answer), `allowed`
+(approved by the run's permission level), `mode_kept` (an agent's request to
+switch its own mode, refused at every level), `unattended` (refused because
+an alert started the run and nobody was there), `timed_out`, `stopped` and
+`restarted`.
+
+## Permission settings
+
+| Setting | What it holds |
+| --- | --- |
+| `accessLevels` | The permission level per agent for runs you start: `supervised` (Ask always), `auto-edits` (Auto-accept edits), `auto` (Auto) or `full-access` (Full access). Unset follows the agent's own default, then Ask always. |
+
+A run an alert starts ignores this setting: it runs at `auto` and refuses every
+ask beyond reading.
+
+A run request can carry `accessLevel` with one of those values for that run
+only. A service's **Investigation notes** are kept in its
+`metadata.investigation.notes`, at most 4096 characters. See
+[Permission levels and asks](/coding-agents/#permission-levels-and-asks).
+
 ## Instance identity
 
 `GET /api/instance` is public and returns `{instanceId, version, apiVersion}`. Launchers and `pl pair` check it to confirm a port belongs to this workspace before sending credentials or minting links.
+
+## What changed around an incident
+
+`GET /api/incidents/{id}/changes` returns what the overview's What changed
+card shows: the deploys, releases, merges and commits that landed on the
+default branch of each repository linked to the incident's services, from
+seven days before the incident opened until it was resolved (or now).
+
+| Query | Meaning |
+| --- | --- |
+| `limit` | Rows of `timeline` to return, newest first, 1 to 200; 6 by default. `total` counts them all. |
+| `refresh` | `true` reads the git hosts now instead of reusing a read from the last five minutes. |
+
+The answer carries `deploy` (the newest deploy, release or merge at or before
+the incident's start, else the newest commit, else `null`), `timeline`,
+`total`, `state` (`ok`, `partial`, `failed`, `pending` or `no-repos`) and
+`refreshing` (a read is still running; ask again shortly). Each entry in
+`sources` is one linked repository with its `status`, the `credential` git
+read it with, and a `problem` with a `message` and an `action`
+(`add-credential`, `pick-credential` or `replace-token`) when its read
+failed. The request waits up to 10 seconds for a read, then answers with what
+is stored.
+
+## A service's Impact metric
+
+A service's own PromQL for the Impact chart (see
+[A service's own metric](/guides/prometheus/#a-services-own-metric)) is kept
+as `metric` in the config of the service's link to its Prometheus source. Set
+it on the service page under **Telemetry → Impact metric**. The chart labels
+it as the service's metric, not the alert's, and a fix check never uses it.
+
+## A repository's credential
+
+`PATCH /api/repositories/{id}/credential` with `{"connectionId": "<saved token id>"}`
+pins a saved git host token to the repository; `{"connectionId": null}` sets
+it back to Auto. The repository is checked again and returned. The order
+Auto follows is on [Git credentials](/guides/git-credentials/#which-one-a-clone-uses).
+A git host token takes a **Host** (`github.com` by default, or your own host
+with `:port`) and the **Token**.
 
 ## Known limits
 
@@ -154,16 +230,19 @@ the key is in the agent's environment.
 only check sign-in when the first investigation starts. Set the provider key
 and run again.
 
-**The service shows a git error.** It is git's message, word for word. Check
-that `git clone <the same URL>` works in your terminal. A clone that needs a
-password fails straight away, because PrismaLens never lets git prompt.
+**The service shows a git error.** The message says what failed and what to
+do; [Git credentials](/guides/git-credentials/#when-git-fails) lists them.
+Check that `git clone <the same URL>` works in your terminal. A clone that
+needs a password fails straight away, because PrismaLens never lets git
+prompt.
 
 **The report says the run was unmapped.** The incident has no service, or the
 service has no repository. Set the service's Repository field and run again.
 
-**A run failed.** The incident shows the error and the transcript
-path, `~/.prismalens/runs/<id>/transcript.jsonl`. If `pl up` was stopped
-during a run, that run is marked failed when the app starts again.
+**A run failed.** Why on the overview and the run's Run details say what
+went wrong, and the transcript is kept at
+`~/.prismalens/runs/<id>/transcript.jsonl`. If `pl up` was stopped during a
+run, that run is marked failed when the app starts again.
 
 **`pl up` says the port is in use.** `Port 6473 is in use by another
 PrismaLens.` means another PrismaLens holds it. Stop

@@ -1,0 +1,145 @@
+---
+title: Prometheus and the Impact chart
+description: How the overview's Impact chart re-runs the alert's own query on Prometheus, every state the card can show, the limits, the per-service fallback metric, and which alerts a fix check can judge.
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+With Prometheus connected, an incident's **Impact** card shows the alert's own
+query over the last 24 hours, and **Check now** on a fix asks Prometheus
+whether the query is back under its threshold. PrismaLens asks Prometheus
+from the server each time; it stores no metric values.
+
+## Connect Prometheus
+
+Add the server under **Settings → Alert sources → Add a source**: kind
+**Prometheus**, its URL and a name. The server must be reachable from this
+machine without credentials. The same source also catches up alerts that
+fired while PrismaLens was off (see [Sending alerts](/guides/alerts/#alert-sources)),
+and a run's brief tells the agent to query it.
+
+For an incident, PrismaLens asks the Prometheus that the alert's own link
+names, when that one is connected. Otherwise it asks the Prometheus linked to
+the alert's service, and otherwise any connected Prometheus.
+
+## What the chart draws
+
+Alertmanager sends each alert with a link to its rule's graph page, and the
+link holds the rule's expression. PrismaLens splits an expression such as
+`job:http_p99_latency_seconds:5m{job="checkout-api"} > 0.5` into the series
+(`job:http_p99_latency_seconds:5m{job="checkout-api"}`) and the threshold
+(`> 0.5`), and asks Prometheus for the series over the last 24 hours. When it
+finds the same rule among the rules Prometheus has loaded, it keeps only this
+alert's series.
+
+The card then shows:
+
+- the line, labelled **This alert's series**, or **N series match** when more
+  than one matches;
+- a dashed line at the threshold, such as **Alert fires above 500ms**;
+- a marker for each deploy in the window, from
+  [What changed](/guides/overview/#what-changed-and-when);
+- for one series, **Now** and **Usually**: the latest value and the median
+  before the alert fired.
+
+The line under the title says where the series comes from: "The alert's own
+query, from prod-prometheus, last 24 hours". Hover the legend for the query.
+Units come from the metric's name: `_seconds` reads as seconds or
+milliseconds, `_bytes` as bytes, `_ratio` as a percentage, and a `rate()`
+adds `/s`.
+
+### Alerts from a catch-up
+
+An alert that PrismaLens caught up from Prometheus, instead of receiving from
+Alertmanager, carries no expression of its own. When exactly one rule with
+that alert's name is loaded on Prometheus now and the alert carries its
+labels, the card charts that rule and says "The alert's rule as loaded now;
+it may have changed since this alert fired". Otherwise the card shows the
+alert alone.
+
+## The card's states
+
+| The card shows | When | What you can do |
+| --- | --- | --- |
+| "Asking for the last 24 hours", with a placeholder | Prometheus has not answered yet | Wait; nothing else on the page waits for it |
+| The chart | Prometheus answered | Hover the legend for the query |
+| "The metrics source has not answered for 10 seconds. Nothing else on this page waits for it." | No answer within 10 seconds | **Try again** |
+| "The metrics source answered with an error:" and the error | Prometheus refused the query | **Try again** |
+| The alert alone, and "Connect Prometheus to see the trend and check a fix" | No Prometheus is connected | **Connect Prometheus** |
+| The alert alone, and "No chart:" with the reason, such as "No chart: this incident has no alert of its own." | The alert's query is not known | **Open the query**, when the alert has a link |
+| The alert alone, and "No chart: the alert's query matches 50 series or more, too many to show which one is this alert." | 50 or more series came back | **Open the query** |
+
+"The alert alone" is four facts from the alert itself: **Firing for**, how
+many of the incident's alerts fire, **Fired before** (times this week), and
+a strip of when it fired over the last seven days. Hover a span for its
+times.
+
+The reasons the query is not known:
+
+| Reason | What it means |
+| --- | --- |
+| The alert's sender gave no expression. | The alert carried no link with an expression. |
+| The alert came from a Prometheus that is not connected. | A caught-up alert names a server that is not under Alert sources. |
+| Prometheus did not list its rules. | The rules lookup failed. |
+| The rule is no longer loaded. | No loaded rule has this alert's name and labels. |
+| 3 rules share this name. | More than one loaded rule fits, so none is picked. |
+
+## Limits
+
+| Limit | Value |
+| --- | --- |
+| Window | The last 24 hours, about 300 points |
+| Deadline | 10 seconds per chart or check |
+| Series | Fewer than 50 |
+| Answer size | 2 MB |
+| At once | 2 queries per Prometheus connection; more wait their turn |
+| Stored | Nothing: each overview asks again |
+
+## A service's own metric
+
+When an alert's query is not known, the card can chart a metric you name for
+the service instead. Open **Services → the service → Telemetry**. On the
+Prometheus row, **Impact metric** reads **none**; choose **Add**, enter a
+PromQL query such as the service's p99 latency, and **Save**.
+
+```promql
+histogram_quantile(0.99, sum by (le) (rate(http_request_duration_seconds_bucket{job="checkout-api"}[5m])))
+```
+
+The card labels it **Service metric** and says "The service's metric, not
+this alert's". It has no threshold line, and a fix check never uses it. The
+alert's own query, when known, always wins.
+
+## Checking a fix
+
+**Check now** on a fix (see [Walking a fix](/guides/overview/#walking-a-fix))
+asks Prometheus for the alert's series once, at this moment, and compares the
+value with the threshold in code. It can judge an alert when all of these
+hold:
+
+- Prometheus is connected;
+- the alert carried its own expression (a caught-up alert's current rule is
+  not enough);
+- the expression is one comparison of a series against a number, such as
+  `series > 0.5`, with no `bool`;
+- the series uses no range selector or function over one (`rate(...[5m])`,
+  `increase(...)`), no subquery, no `offset` and no `@`, so the value is
+  current;
+- the rule is found on Prometheus and the query returns this alert's one
+  series.
+
+If the alert cannot be judged, the strip says so as soon as you mark the fix
+applied: "PrismaLens cannot check this alert; if the fix worked, the alert
+clears on its own." A check that runs and cannot judge says **Could not
+check**; **Try again** shows when another try can help (no answer in time,
+an error, too many series, or the rule not found).
+
+<Aside type="tip" title="A rule the check can judge">
+Put the range function in a recording rule, and alert on the recorded series:
+`job:http_p99_latency_seconds:5m > 0.5` can be checked, while
+`histogram_quantile(0.99, rate(...[5m])) > 0.5` charts but cannot be checked.
+</Aside>
+
+Only the alert clearing says **It worked**. A check below the threshold says
+**Below the alert threshold**, and the alert clears once its rule sees the
+recovery.

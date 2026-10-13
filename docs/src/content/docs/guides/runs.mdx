@@ -1,0 +1,236 @@
+---
+title: Runs and questions
+description: A run's transcript while it works and after it ends, asking the agent a question, the Run details panel, the box under each page, attachments, and choosing the model and effort.
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+An incident holds two kinds of conversation with the agent:
+
+- A **run** (an investigation) gathers the alert and the code, then works
+  toward one report. Runs are numbered: **Run 1**, **Run 2**.
+- An **Ask** is a question to the agent. It writes no report, and its latest
+  answer also shows on the overview.
+
+Each one has its own page. Open it from the sidebar (the chevron beside the
+incident), from the overview, or from the **Runs and questions** menu on any
+incident page (it reads **Runs** on a narrower window). The menu ends with
+**New conversation**. How the pages link is drawn on
+[Incidents and the Inbox](/guides/incidents/#how-the-incident-pages-link).
+
+## The transcript
+
+The header reads `INC-12 HighLatency / Run 2`. The incident's name goes back
+to the overview; the back chevron goes to the Inbox.
+
+The strip under it says where the run is and what it used:
+
+- its state and activity: **Run 2 investigating** and what the agent does
+  now, **Run 2 waiting for you** and what the agent asks to run, or **Run 2
+  concluded**, **Likely cause found**, `4m ago, took 3m 12s`;
+- the model. When the agent reported a different model from the one you asked
+  for, the chip warns, for example **Sonnet, asked Opus**;
+- which credential cloned the code: `Code: machine git (gh)`, `Code: token
+  ci-bot` or `Code: public` (see [Git credentials](/guides/git-credentials/));
+- **Stop run** while it works, and the **Runs and questions** menu.
+
+Below it, the brief and then the agent's text and its tool calls. Each tool
+call is a numbered step that says what it did, **Ran**, **Read**,
+**Searched**, **Edited** or **Failed**, with the command or file. Click a step
+to see the full command and its output. Steps in a row fold into one line,
+such as **Ran 8 commands**, until you open it. A link ending in `#step-4` opens that step
+and rings it.
+
+When text in a step tried to give the agent an instruction, the step carries a
+red note with **See details**, which opens the flagged item in Run details.
+
+### When the agent asks
+
+Anything that waits on you opens in a dock on top of the box, not in the
+transcript: the agent's asks, the messages you queued, and the files going
+with your next message.
+
+```text
+Claude Code asks to run   Step 4          Denied at 14:12 if no one answers
+curl -s 'http://localhost:9093/api/v2/alerts'
+[Approve]  [Deny]
+Waits for the agent's next pause   Also check the pool size.
+```
+
+- One ask shows at a time, oldest first; with more than one the dock says
+  `1 of 3`. **Step 4** scrolls to the step it asks about.
+- For a tool from an MCP server, the dock names the tool and its server, for
+  example **query_logs, a tool from the observability MCP server**, and
+  shows the arguments it would run with.
+- Nobody answering denies the ask after 10 minutes, or sooner when the run's
+  time limit is near.
+- Approve and Deny wait a moment after the next ask takes the slot, so one
+  click or key press never answers two asks.
+
+While it waits, the step reads **Waiting**, the strip reads **Run 2 waiting
+for you**, the sidebar row **Run 2, waiting for you**, the overview's Next strip says **Run 2 waits for your approval**,
+and its Situation line "An investigation waits for your approval." The overview's own box shows the same dock.
+Afterwards the step keeps one line on how the ask ended: **You approved it**,
+**You denied it**, **No one answered in 10 minutes, so it was denied**,
+**Denied: the run's time limit was reached** (an ask the run's time limit cut short),
+**Denied: the run stopped** or **Denied: PrismaLens restarted**. What each
+permission level asks about is on [Coding agents](/coding-agents/).
+
+### While it works
+
+Messages go to the agent's own session, so it answers them as part of the
+same run.
+
+- **Enter**, or the send arrow, queues a message. The agent reads it at its
+  next pause; until then it waits in the dock on the box, and still does
+  after a reload. If PrismaLens restarts first, the message reads **Not
+  delivered**.
+- **Ctrl+Enter** (**Cmd+Enter** on macOS) ends the agent's current step and
+  delivers the message at once, after any still waiting. Anything that step
+  had begun is lost.
+- **Shift+Enter** starts a new line. A message holds up to 4000 characters.
+
+If the run ends before a message reaches it, the box says "The run ended
+before your message reached it." and **Save as note** keeps the text on the
+incident's timeline.
+
+**Stop run**, or **Esc** in the box while the agent works, ends the run. It
+reads **Stopping**, then **Run 2 stopped**, "Stopped by you". Stopping is not
+a failure. See [Stop, then continue](/guides/incident-lifecycle/#stop-then-continue).
+
+### After it ends
+
+The box offers what the run allows:
+
+| The run | The box offers |
+| --- | --- |
+| Stopped or failed before its report | **Continue Run 2**, which resumes the agent's session and takes the run on to its report, and **Ask**, a question in the same session that writes no report |
+| Wrote its report | **Continue Run 2**, a follow-up in Run 2's session whose answer shows here, and **Investigate again**, which starts Run 3 with this report quoted and anything you typed |
+| Kept no session | "This run kept no agent session, so it can't continue. Start a new run." with **New run** |
+
+The placeholder reads **Say what to change, or just continue**. A follow-up
+on a finished run rebuilds the run's copy of the repository at the commits it
+read. Investigate again runs live and ends in a new report on the overview;
+the old finding stands until then.
+
+## Asking a question
+
+**New conversation** opens a page with the box in the middle and what the
+agent already knows above it: "Asking about INC-12. The agent already knows
+this: Likely cause from Run 2: …". Choose **Ask** or **Investigate** in the
+box, then send. The page becomes the new Ask or run.
+
+An Ask shows your question, the agent's tool calls as steps, and the answer.
+Follow-ups stay in the same conversation, and the latest answer also shows
+on the overview under **You asked**. On the overview itself, **Ask** in the
+chat box starts one without leaving the page.
+
+## Run details
+
+The details icon in the header opens the **Run details** panel beside the
+transcript (**Question details** on an Ask). It carries a red dot when
+something in the run was flagged. **Esc** or the close button closes it and
+returns focus to the icon. The panel has four tabs.
+
+**Summary**
+
+| Row | What it says |
+| --- | --- |
+| Status | **Investigating**, **Concluded: likely cause**, **Failed** with why, or **Stopped by you** |
+| Started | `Today 14:02 by PrismaLens` or `by you`; for a run PrismaLens started, why, such as "A critical alert fired; runs start on their own for those" |
+| Took | How long it ran, or **Running for** while it works |
+| Can continue | **Yes** or **No**, and why |
+| Agent | The agent and its version |
+| Model | The model it ran. On a mismatch: "You asked for Opus; the agent reported Sonnet. A running agent cannot switch models; investigate again to use Opus." |
+| Effort | The effort it accepted, when the agent offers one |
+| Access | The permission level it ran, what that level does, and its sandbox line, such as "No sandbox on this machine." |
+| Code | Each repository at its commit, `main at 3f2c9a1`, and the credential that cloned it |
+
+The sandbox line reads **Sandboxed:** and why only where the agent's
+readiness check saw its own sandbox hold that mode. Otherwise it reads "No
+sandbox on this machine.", "Sandbox unknown:" and why, or "Sandbox not checked
+yet." When the agent ran a different level from the one asked for, the line
+says both: "Asked for Full access; the agent ran Auto-accept edits."
+
+**Evidence**
+
+- **Likely cause**, with each piece of evidence and the **Step N** that
+  found it; click to jump to the step.
+- **Also possible**, **Ruled out**, **Checked** and **Not checked**. A source
+  the agent could not reach offers **Connect a source**.
+- **Agent's suggested next steps**. The first links to Stop the impact on the
+  overview.
+
+A run with no report says so ("The run failed before it reported.") and names
+the older run whose finding stands, with **Open Run 1**.
+
+**Context**
+
+- **Flagged** first: where text tried to instruct the agent ("A command's
+  output tried to give the agent an instruction"), the quote, and the step.
+- **Brief**: what the run started with, and who wrote it.
+- **Alert**: its name, labels and when it fired.
+- **Your messages**, each with where it got to: "Waiting for the agent's next
+  pause", "Read by the agent at its next pause", **Sent now**, **Answered**,
+  or "The run ended before it reached the agent".
+
+**Steps**
+
+Every step as one row, its summary over its command and the clock time,
+filtered by **All**, **Commands**, **Files** or **Failed**. Clicking a row
+jumps to that step in the transcript.
+
+## The box
+
+Before a run starts, the box carries, beside the paperclip, the **agent and
+model picker**, the **permission level** and, when the agent offers one,
+**effort**. The model list starts with **Agent default**, which names the
+model the agent reported using. A choice in the box applies to that run only;
+the defaults for the next run are in **Settings → Agent**. On a run, the chips
+show what the run used, and changing one opens a new conversation with that
+change. A follow-up uses its run's model.
+
+The effort control appears only when the agent's readiness check found an
+effort option, and offers the agent's own values with its default marked.
+
+If the agent did not take the model or effort, the run stops before its first
+prompt with the reason: `<Agent> would not switch to <model>; it offered <its
+models>`, or `<Agent> would not take <effort> effort; it offered <its
+values>`. A model set for Gemini CLI or deepagents is refused before the run:
+`<Agent> picks its own model. Clear <model> in the picker above.`
+
+| Agent | Model and effort |
+| --- | --- |
+| OpenCode, Claude Code, Codex | Sent to the agent over ACP |
+| Gemini CLI, deepagents | The agent picks its own model |
+
+One run works on an incident at a time. While one works, the box on another
+page says, for example, `Run 2 is working; message it or stop it`.
+
+## Attachments
+
+Attach a file with the paperclip, by pasting it, or by dropping it on the box.
+A message takes up to **5 files**.
+
+| Kind | Types | Limit |
+| --- | --- | --- |
+| Image | PNG, JPEG, WebP, GIF | 4 MB each |
+| Text | `.log`, `.json`, `.csv`, `.md`, `.txt`, `.yaml`, `.yml`, or any `text/*` type | 256 KB each |
+
+PrismaLens checks the bytes, not the file name or the type your browser
+sends: an image must be one of the four image formats and a text file must be
+UTF-8.
+
+- Text goes to the agent inside the message, fenced as data and named by the
+  file. The agent treats it as evidence, not instructions, and marks anything
+  it took from it as **inferred** unless a command it runs shows the same.
+- An image goes only to an agent that says it reads images. Until the agent's
+  readiness check has run, the paperclip says "Images: not checked yet. Text
+  files only." Run it with **Settings → Agent → Check readiness**.
+- Files are stored in your PrismaLens workspace, outside the copy of the code
+  the agent reads.
+
+<Aside type="note" title="Keys in the box">
+Enter sends or queues, Ctrl+Enter sends now, Shift+Enter is a new line, and Esc
+stops the agent while it works. The `?` key opens the full keyboard map.
+</Aside>
