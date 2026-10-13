@@ -5,52 +5,97 @@ const docsBase = import.meta.env.DEV ? 'http://localhost:4322' : 'https://docs.p
 
 const steps = [
   'An alert arrives from Prometheus Alertmanager, or you write the incident yourself.',
-  'PrismaLens copies the service\'s repository at its last commit. Your own checkout is left alone.',
-  'Your coding agent investigates inside the copy. At Ask always, PrismaLens\'s default for a run you start, what it asks to do waits for your Approve.',
-  'You watch the run on the incident page while it happens.',
-  'The report ranks the causes, shows the evidence for each, and lists what was ruled out and what to check next.',
+  'PrismaLens copies the last commit of every repository the incident\'s services link. Your own checkout is left alone.',
+  'Your coding agent investigates inside the copy. At Ask always, the default for a run you start, anything it asks to do beyond reading waits for your Approve.',
+  'You can open the run and watch the agent read files and run commands as it goes.',
+  'The incident\'s overview shows the likely cause with its evidence, up to three ways to stop the impact with the command for each, and what changed before the alert. What was ruled out and what to check next stay on the run.',
 ]
 ---
 
-<BaseLayout title="Your coding agent, investigating your incidents">
-  <section class="mx-auto max-w-6xl px-4 pt-16 pb-20 sm:px-6 sm:pt-24">
-    <div class="max-w-3xl">
-      <h1 class="text-4xl font-semibold leading-[1.1] tracking-tight sm:text-6xl">
-        Point it at an incident and the code behind it.
-      </h1>
-      <p class="mt-6 max-w-2xl text-lg leading-relaxed text-muted-foreground">
+<BaseLayout
+  title="Your coding agent, investigating your incidents"
+  ogImage="/og.png"
+  ogImageWidth={1280}
+  ogImageHeight={640}
+  ogImageAlt="PrismaLens: your coding agent, investigating your incidents. Beside it, an incident overview with the cause, the impact chart and the command that stops the impact."
+>
+  <section class="mx-auto max-w-6xl px-4 pt-16 pb-20 sm:px-6 sm:pt-24 lg:pt-12">
+    <h1 class="max-w-3xl text-4xl font-semibold leading-[1.1] text-balance tracking-tight sm:text-6xl lg:max-w-4xl lg:text-5xl lg:leading-[1.08]">
+      Point it at an incident and the code behind it.
+    </h1>
+    <div class="lg:mt-6 lg:grid lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)] lg:items-end lg:gap-x-14">
+      <p class="mt-6 max-w-2xl text-lg leading-relaxed text-muted-foreground lg:mt-0">
         PrismaLens opens an incident from your alert, hands it to the coding agent you already use, and
         keeps that agent on a throwaway copy of the code, asking first by default. You get the likely causes in order, each tied
-        to the file, line or commit that supports it.
+        to the file, line or commit that supports it, and a command to stop the impact when the agent finds one.
       </p>
 
-      <div class="mt-8 flex flex-col gap-6 sm:flex-row sm:items-end">
-        <pre class="rounded-md border border-border bg-card px-4 py-3 text-sm leading-7"><span class="select-none text-muted-foreground">$ </span>npm install -g prismalens
+      <div>
+        <div class="mt-8 flex flex-col gap-6 sm:flex-row sm:items-end lg:mt-0 lg:flex-col lg:items-start lg:gap-4">
+          <pre class="rounded-md border border-border bg-card px-4 py-3 text-sm leading-7"><span class="select-none text-muted-foreground">$ </span>npm install -g prismalens
 <span class="select-none text-muted-foreground">$ </span>pl up</pre>
-        <div class="flex items-center gap-6 pb-1">
-          <a
-            href={`${docsBase}/quickstart/`}
-            class="rounded-md bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
-          >
-            Read the quick start
-          </a>
-          <a href="https://github.com/prismalens/prismalens" class="text-sm font-medium underline-offset-4 hover:underline">
-            Source on GitHub
-          </a>
+          <div class="flex items-center gap-6 pb-1 lg:pb-0">
+            <a
+              href={`${docsBase}/quickstart/`}
+              class="rounded-md bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+            >
+              Read the quick start
+            </a>
+            <a href="https://github.com/prismalens/prismalens" class="text-sm font-medium underline-offset-4 hover:underline">
+              Source on GitHub
+            </a>
+          </div>
         </div>
+        <p class="mt-3 text-sm text-muted-foreground">
+          Needs Node.js 24 or later on macOS, Linux or WSL2.
+          <a href={`${docsBase}/install/`} class="underline underline-offset-4">Install</a>
+        </p>
       </div>
-      <p class="mt-3 text-sm text-muted-foreground">Needs Node.js 24 or later on macOS, Linux or WSL2.</p>
     </div>
 
+    <figure class="demo mt-14 sm:mt-20 lg:mt-10" data-demo data-cleared-at="17.5">
+      <div class="demo-glow" aria-hidden="true"></div>
+      <div class="demo-window">
+        <div class="demo-bar">
+          <span class="demo-status" data-demo-status data-state="firing" aria-hidden="true">
+            <span class="demo-dot"></span>
+            <span data-demo-label>Firing</span>
+          </span>
+          <span class="demo-title">INC-8 BooklogrApiDown</span>
+          <button type="button" class="demo-toggle" data-demo-toggle data-state="paused" aria-label="Play video">
+            <svg class="icon-play" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M5 3.5v9l7.5-4.5z" fill="currentColor" /></svg>
+            <svg class="icon-pause" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M4.5 3.5h2.5v9H4.5zM9 3.5h2.5v9H9z" fill="currentColor" /></svg>
+          </button>
+        </div>
+        <video
+          class="demo-video"
+          width="1600"
+          height="900"
+          muted
+          loop
+          playsinline
+          preload="none"
+          poster="/video/hero-poster.webp"
+          aria-label="A 28-second recording of PrismaLens on a real lab incident: an alert fires for a stopped API container, the agent finds the cause, you run the docker start command it gives, and the alert clears."
+        >
+          <source src="/video/hero-short.mp4" type="video/mp4" />
+          <source src="/video/hero-short.webm" type="video/webm" />
+        </video>
+      </div>
+      <figcaption class="mt-4 text-sm text-muted-foreground">
+        A real lab incident on 0.5.1, with the waits shortened: the alert fires, the agent finds the stopped
+        container, you run the command it gives, and the alert clears.
+      </figcaption>
+    </figure>
   </section>
 
   <section class="border-t border-border">
     <div class="mx-auto grid max-w-6xl gap-10 px-4 py-20 sm:px-6 md:grid-cols-[1fr_2fr]">
       <h2 class="text-2xl font-semibold tracking-tight">What happens in a run</h2>
-      <ol class="space-y-5">
+      <ol class="steps space-y-5" data-steps>
         {steps.map((step, i) => (
-          <li class="grid grid-cols-[2rem_1fr] text-base leading-relaxed">
-            <span class="font-mono text-muted-foreground">{i + 1}</span>
+          <li class="grid grid-cols-[2rem_1fr] text-base leading-relaxed" style={`--i: ${i}`}>
+            <span class="step-num font-mono text-muted-foreground">{i + 1}</span>
             <span>{step}</span>
           </li>
         ))}
@@ -59,19 +104,19 @@ const steps = [
   </section>
 
   <section class="mx-auto max-w-6xl px-4 pb-20 sm:px-6">
-    <a href="/screenshots/report-0.5.0.webp" class="block">
+    <a href="/screenshots/report-0.5.1.webp" class="shot block">
       <img
-        src="/screenshots/report-0.5.0.webp"
+        src="/screenshots/report-0.5.1.webp"
         width="1600"
-        height="1246"
-        alt="The PrismaLens report for the run above: root cause, culprit commit, coverage of what was and was not checked, the supported hypothesis with its four pieces of evidence, and the next step"
-        class="w-full rounded-lg border border-border"
+        height="900"
+        alt="The PrismaLens incident overview after a finished run: the summary, the confirmed cause under Why with its evidence, the alert's query on the Impact chart, the docker start command under Stop the impact with Copy, and the commits under What changed and when"
+        class="w-full rounded-xl"
         loading="lazy"
       />
     </a>
     <p class="mt-3 text-sm text-muted-foreground">
-      The report for the run above, as the 0.5.0 dashboard shows it. The coverage panel names what the
-      agent did not check.
+      A real lab incident on 0.5.1: a stopped container. The overview holds the cause and its evidence,
+      the command that stops the impact, and the alert's own query from Prometheus.
     </p>
   </section>
 
@@ -84,9 +129,9 @@ const steps = [
       <div class="grid gap-x-10 gap-y-8 leading-relaxed sm:grid-cols-2">
         <p><strong>Nobody pastes the alert.</strong> Alertmanager posts to PrismaLens, and a critical or high alert on a known service starts a run. You can change that per service.</p>
         <p><strong>It uses the agent you already have.</strong> OpenCode, Codex, Claude Code, Gemini CLI or deepagents. PrismaLens never calls a model and has no account to sign up for.</p>
-        <p><strong>Your checkout stays yours.</strong> Every run gets its own copy of the last commit, with any agent config committed in the repository removed.</p>
-        <p><strong>It reads code, not dashboards.</strong> 0.5.0 gives the agent the alert and the repository. It does not connect to your metrics, logs or traces.</p>
-        <p><strong>It tells you where the limits are.</strong> At Ask always, PrismaLens's default for a run you start, every ask waits for your Approve. A run an alert starts refuses what the agent asks beyond reading. PrismaLens adds no sandbox. <a href={`${docsBase}/trust/`} class="underline underline-offset-4">What it reads and never does</a></p>
+        <p><strong>Your checkout stays yours.</strong> Every run gets its own copy of the last commit of each repository it reads, with any agent config committed in them removed.</p>
+        <p><strong>It starts from the code.</strong> The agent gets the alert, every repository involved, the service's dependencies and similar past incidents. With Prometheus connected, the run's brief points the agent at it and the overview charts the alert's own query. PrismaLens does not connect to logs or traces.</p>
+        <p><strong>It tells you where the limits are.</strong> At Ask always, the default for a run you start, anything the agent asks beyond reading waits for your Approve, and an ask nobody answers is denied after 10 minutes. A run an alert starts refuses every ask beyond reading. PrismaLens adds no sandbox. <a href={`${docsBase}/trust/`} class="underline underline-offset-4">What it reads and never does</a></p>
         <p><strong>It keeps the record.</strong> A week later the report, the evidence and every command the agent ran are still on the incident.</p>
       </div>
     </div>
@@ -104,3 +149,214 @@ const steps = [
     </div>
   </section>
 </BaseLayout>
+
+<script>
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)')
+
+  const demo = document.querySelector<HTMLElement>('[data-demo]')
+  if (demo) {
+    const video = demo.querySelector('video')!
+    const toggle = demo.querySelector<HTMLButtonElement>('[data-demo-toggle]')!
+    const status = demo.querySelector<HTMLElement>('[data-demo-status]')!
+    const label = demo.querySelector<HTMLElement>('[data-demo-label]')!
+    const clearedAt = Number(demo.dataset.clearedAt)
+    let userPaused = reduce.matches
+    let visible = false
+
+    const play = () => video.play().catch(() => {})
+    const syncButton = () => {
+      const playing = !video.paused
+      toggle.dataset.state = playing ? 'playing' : 'paused'
+      toggle.setAttribute('aria-label', playing ? 'Pause video' : 'Play video')
+    }
+    const flip = () => {
+      if (video.paused) {
+        userPaused = false
+        play()
+      } else {
+        userPaused = true
+        video.pause()
+      }
+    }
+
+    toggle.addEventListener('click', flip)
+    video.addEventListener('click', flip)
+    video.addEventListener('play', syncButton)
+    video.addEventListener('pause', syncButton)
+    video.addEventListener('timeupdate', () => {
+      const cleared = video.currentTime >= clearedAt
+      status.dataset.state = cleared ? 'cleared' : 'firing'
+      label.textContent = cleared ? 'Cleared' : 'Firing'
+    })
+
+    // Plays only while on screen, so the video never decodes below the fold
+    new IntersectionObserver(
+      ([entry]) => {
+        visible = entry.intersectionRatio >= 0.25
+        if (visible && !userPaused) play()
+        else if (!visible) video.pause()
+      },
+      { threshold: 0.25 },
+    ).observe(video)
+  }
+
+  const steps = document.querySelector<HTMLElement>('[data-steps]')
+  if (steps) {
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry.isIntersecting) return
+        steps.classList.add('is-lit')
+        io.disconnect()
+      },
+      { threshold: 0.4 },
+    )
+    io.observe(steps)
+  }
+</script>
+
+<style>
+  .demo {
+    position: relative;
+    isolation: isolate;
+  }
+  .demo-glow {
+    position: absolute;
+    inset: -10% -6% -14%;
+    z-index: -1;
+    border-radius: 50%;
+    background: radial-gradient(closest-side, color-mix(in oklch, var(--primary) 70%, transparent) 40%, transparent);
+    filter: blur(56px);
+    opacity: 0.45;
+    animation: breathe 7s ease-in-out infinite;
+  }
+  :global(:root:not(.dark)) .demo-glow {
+    opacity: 0.28;
+  }
+  .demo-window {
+    overflow: hidden;
+    border-radius: 14px;
+    /* The recording is dark in both themes, so the window is too */
+    background: oklch(0.141 0.005 285.823);
+    box-shadow:
+      0 1px 0 0 oklch(1 0 0 / 0.06) inset,
+      0 40px 80px -24px oklch(0 0 0 / 0.55),
+      0 12px 24px -12px oklch(0 0 0 / 0.4);
+  }
+  .demo-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    height: 2.5rem;
+    padding: 0 0.5rem 0 0.875rem;
+    background: oklch(0.21 0.006 285.885);
+    color: oklch(0.705 0.015 286.067);
+    font-size: 0.8125rem;
+  }
+  .demo-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.15rem 0.55rem 0.15rem 0.45rem;
+    border-radius: 999px;
+    font-weight: 500;
+    color: oklch(0.8 0.12 25);
+    background: color-mix(in oklch, var(--destructive) 18%, transparent);
+    transition: color 400ms ease, background-color 400ms ease;
+  }
+  .demo-dot {
+    width: 0.45rem;
+    height: 0.45rem;
+    border-radius: 999px;
+    background: var(--destructive);
+    box-shadow: 0 0 0 0 color-mix(in oklch, var(--destructive) 60%, transparent);
+    animation: pulse 1.6s ease-out infinite;
+  }
+  .demo-status[data-state='cleared'] {
+    color: oklch(0.82 0.12 162);
+    background: color-mix(in oklch, var(--success) 18%, transparent);
+  }
+  .demo-status[data-state='cleared'] .demo-dot {
+    background: var(--success);
+    animation: none;
+    box-shadow: 0 0 8px 1px color-mix(in oklch, var(--success) 70%, transparent);
+  }
+  .demo-title {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: oklch(0.92 0.004 286.32);
+  }
+  .demo-toggle {
+    margin-left: auto;
+    display: grid;
+    place-items: center;
+    width: 1.875rem;
+    height: 1.875rem;
+    flex: none;
+    border-radius: 8px;
+    color: oklch(0.92 0.004 286.32);
+    cursor: pointer;
+    transition: background-color 150ms ease;
+  }
+  .demo-toggle:hover {
+    background: oklch(1 0 0 / 0.08);
+  }
+  .demo-toggle[data-state='playing'] .icon-play,
+  .demo-toggle[data-state='paused'] .icon-pause {
+    display: none;
+  }
+  .demo-video {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 16 / 9;
+    cursor: pointer;
+  }
+
+  .step-num {
+    position: relative;
+    transition: color 500ms ease;
+    transition-delay: calc(var(--i) * 220ms);
+  }
+  .step-num::before {
+    content: '';
+    position: absolute;
+    left: -0.875rem;
+    top: 0.7em;
+    width: 0.35rem;
+    height: 0.35rem;
+    border-radius: 999px;
+    background: var(--primary);
+    box-shadow: 0 0 10px 2px color-mix(in oklch, var(--primary) 60%, transparent);
+    opacity: 0;
+    transform: scale(0.4);
+    transition: opacity 500ms ease, transform 500ms ease;
+    transition-delay: inherit;
+  }
+  .is-lit .step-num {
+    color: var(--primary);
+  }
+  .is-lit .step-num::before {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  .shot img {
+    box-shadow: 0 24px 60px -28px oklch(0 0 0 / 0.5);
+    transition: transform 250ms ease, box-shadow 250ms ease;
+  }
+  .shot:hover img {
+    transform: translateY(-3px);
+    box-shadow: 0 32px 70px -26px oklch(0 0 0 / 0.55);
+  }
+
+  @keyframes breathe {
+    0%, 100% { opacity: 0.35; transform: scale(0.98); }
+    50% { opacity: 0.6; transform: scale(1.02); }
+  }
+  @keyframes pulse {
+    0% { box-shadow: 0 0 0 0 color-mix(in oklch, var(--destructive) 60%, transparent); }
+    80%, 100% { box-shadow: 0 0 0 6px transparent; }
+  }
+</style>
