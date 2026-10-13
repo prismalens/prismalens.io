@@ -192,7 +192,7 @@ const steps = [
     // Plays only while on screen, so the video never decodes below the fold
     new IntersectionObserver(
       ([entry]) => {
-        visible = entry.isIntersecting
+        visible = entry.intersectionRatio >= 0.25
         if (visible && !userPaused) play()
         else if (!visible) video.pause()
       },
