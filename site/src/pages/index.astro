@@ -5,10 +5,10 @@ const docsBase = import.meta.env.DEV ? 'http://localhost:4322' : 'https://docs.p
 
 const steps = [
   'An alert arrives from Prometheus Alertmanager, or you write the incident yourself.',
-  'PrismaLens copies the service\'s repository at its last commit. Your own checkout is left alone.',
-  'Your coding agent investigates inside the copy. At Ask always, PrismaLens\'s default for a run you start, what it asks to do waits for your Approve.',
-  'You watch the run on the incident page while it happens.',
-  'The report ranks the causes, shows the evidence for each, and lists what was ruled out and what to check next.',
+  'PrismaLens copies the last commit of every repository the incident\'s services link. Your own checkout is left alone.',
+  'Your coding agent investigates inside the copy. At Ask always, the default for a run you start, anything it asks to do beyond reading waits for your Approve.',
+  'You can open the run and watch the agent read files and run commands as it goes.',
+  'The incident\'s overview shows the likely cause with its evidence, up to three ways to stop the impact with the command for each, and what changed before the alert. What was ruled out and what to check next stay on the run.',
 ]
 ---
 
@@ -21,7 +21,7 @@ const steps = [
       <p class="mt-6 max-w-2xl text-lg leading-relaxed text-muted-foreground">
         PrismaLens opens an incident from your alert, hands it to the coding agent you already use, and
         keeps that agent on a throwaway copy of the code, asking first by default. You get the likely causes in order, each tied
-        to the file, line or commit that supports it.
+        to the file, line or commit that supports it, and a command to stop the impact when the agent finds one.
       </p>
 
       <div class="mt-8 flex flex-col gap-6 sm:flex-row sm:items-end">
@@ -39,7 +39,11 @@ const steps = [
           </a>
         </div>
       </div>
-      <p class="mt-3 text-sm text-muted-foreground">Needs Node.js 24 or later on macOS, Linux or WSL2.</p>
+      <p class="mt-3 text-sm text-muted-foreground">
+        For macOS, Linux or WSL2. npm needs Node.js 24 or later. Without Node, the installer brings its own:
+        <code class="font-mono">curl -fsSL https://prismalens.io/install.sh | sh</code>. Homebrew, Windows and the
+        desktop app are on <a href={`${docsBase}/install/`} class="underline underline-offset-4">Install</a>.
+      </p>
     </div>
 
   </section>
@@ -59,19 +63,19 @@ const steps = [
   </section>
 
   <section class="mx-auto max-w-6xl px-4 pb-20 sm:px-6">
-    <a href="/screenshots/report-0.5.0.webp" class="block">
+    <a href="/screenshots/report-0.5.1.webp" class="block">
       <img
-        src="/screenshots/report-0.5.0.webp"
+        src="/screenshots/report-0.5.1.webp"
         width="1600"
-        height="1246"
-        alt="The PrismaLens report for the run above: root cause, culprit commit, coverage of what was and was not checked, the supported hypothesis with its four pieces of evidence, and the next step"
+        height="900"
+        alt="The PrismaLens incident overview after a finished run: the summary, the confirmed cause under Why with its evidence, the alert's query on the Impact chart, the docker start command under Stop the impact with Copy, and the commits under What changed and when"
         class="w-full rounded-lg border border-border"
         loading="lazy"
       />
     </a>
     <p class="mt-3 text-sm text-muted-foreground">
-      The report for the run above, as the 0.5.0 dashboard shows it. The coverage panel names what the
-      agent did not check.
+      A real lab incident on 0.5.1: a stopped container. The overview holds the cause and its evidence,
+      the command that stops the impact, and the alert's own query from Prometheus.
     </p>
   </section>
 
@@ -84,9 +88,9 @@ const steps = [
       <div class="grid gap-x-10 gap-y-8 leading-relaxed sm:grid-cols-2">
         <p><strong>Nobody pastes the alert.</strong> Alertmanager posts to PrismaLens, and a critical or high alert on a known service starts a run. You can change that per service.</p>
         <p><strong>It uses the agent you already have.</strong> OpenCode, Codex, Claude Code, Gemini CLI or deepagents. PrismaLens never calls a model and has no account to sign up for.</p>
-        <p><strong>Your checkout stays yours.</strong> Every run gets its own copy of the last commit, with any agent config committed in the repository removed.</p>
-        <p><strong>It reads code, not dashboards.</strong> 0.5.0 gives the agent the alert and the repository. It does not connect to your metrics, logs or traces.</p>
-        <p><strong>It tells you where the limits are.</strong> At Ask always, PrismaLens's default for a run you start, every ask waits for your Approve. A run an alert starts refuses what the agent asks beyond reading. PrismaLens adds no sandbox. <a href={`${docsBase}/trust/`} class="underline underline-offset-4">What it reads and never does</a></p>
+        <p><strong>Your checkout stays yours.</strong> Every run gets its own copy of the last commit of each repository it reads, with any agent config committed in them removed.</p>
+        <p><strong>It starts from the code.</strong> The agent gets the alert, every repository involved, the service's dependencies and similar past incidents. With Prometheus connected, the run's brief points the agent at it and the overview charts the alert's own query. PrismaLens does not connect to logs or traces.</p>
+        <p><strong>It tells you where the limits are.</strong> At Ask always, the default for a run you start, anything the agent asks beyond reading waits for your Approve, and an ask nobody answers is denied after 10 minutes. A run an alert starts refuses every ask beyond reading. PrismaLens adds no sandbox. <a href={`${docsBase}/trust/`} class="underline underline-offset-4">What it reads and never does</a></p>
         <p><strong>It keeps the record.</strong> A week later the report, the evidence and every command the agent ran are still on the incident.</p>
       </div>
     </div>
