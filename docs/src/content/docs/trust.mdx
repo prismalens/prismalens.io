@@ -66,6 +66,7 @@ agent spots text trying to give it orders, it quotes it in the report under
 - **Update check:** once a day `pl up` checks GitHub Releases for a newer version by sending a `HEAD` request to `https://github.com/prismalens/prismalens/releases/latest`. The check sends no identifier, query, or body — only the standard IP address and User-Agent header of any HTTP request. Results are cached for 24 hours in `update-check.json` in the workspace folder. The check runs in the background and never delays startup. It is suppressed when standard output is not a TTY, in CI, when running under an Electron launcher, or when `PRISMALENS_UPDATE_CHECK=off` or `DO_NOT_TRACK` is set.
 - **From your agent:** what it reads, including source code, command output and the alert, goes to its model provider, as it would if you used the agent directly.
 - **From git:** fetching a repository URL, or reading its history for What changed, contacts that host with the credential the clone uses (see [Git credentials](/guides/git-credentials/)).
+- **From Case File capture** (an experiment, off by default): kubectl contacts your cluster with your kubeconfig's identity. See [Captured cluster output](#captured-cluster-output).
 - **From the Impact chart:** the overview asks your connected Prometheus for the alert's query over the last 24 hours, from the server. Nothing it answers is stored.
 
 ## Usage telemetry
@@ -190,6 +191,77 @@ revoke other devices. Devices are named `<link label> · <browser> on <OS>`,
 e.g. "This machine · Firefox on Linux". A paired device stays valid until revoked
 (the cookie renews on use). See [Opening it from other devices](/guides/devices/).
 
+## Captured cluster output
+
+<Aside type="caution" title="Experiment, off by default">
+This section applies only to the [Case File](/guides/case-files/)
+experiment, which is not in any released version and runs only after you
+turn on **Settings → Experiments → Case File capture** and bind a service.
+</Aside>
+
+**What PrismaLens runs.** At alert time, PrismaLens runs kubectl itself
+against the service's bound context and namespace, with nothing else in the
+command line:
+
+- `config view --minify` and `auth whoami`, to check that the context still
+  points at the server you bound. Only the context, cluster, user name and
+  server are kept from them, never the kubeconfig itself;
+- `get events`, `get deployments`, `get replicasets` and `get pods`, as JSON;
+- `logs --previous` for up to five containers that restarted, at most 500
+  lines and 1 MiB each.
+
+It never runs `get secrets`, `get configmaps`, `exec`, `cp`, `port-forward`,
+`proxy`, `describe` or `--raw`. Each command has a 15-second timeout and an
+8 MiB output cap, and the whole capture has 60 seconds. kubectl gets your
+`KUBECONFIG` and your cloud CLI settings (`AWS_*`, `CLOUDSDK_CONFIG`,
+`GOOGLE_APPLICATION_CREDENTIALS`, `AZURE_CONFIG_DIR`) so your kubeconfig's
+sign-in helper keeps working, and none of PrismaLens's own secrets. The
+cluster sees the identity your kubeconfig uses, and it decides what that
+identity can read.
+
+**Redaction, before anything is shown or handed on.** Every command's output
+is redacted before the Case page, the API or the agent can see it:
+
+- In deployments, replicasets and pods, every environment variable's value
+  becomes `[REDACTED:env]` (its name stays), every item of a container's
+  `command` and `args` becomes `[REDACTED:argv]`, probe header values become
+  `[REDACTED:header]`, and `managedFields` and the
+  `last-applied-configuration` annotation are removed.
+- All output, logs and error text included, is then scanned with a
+  maintained set of secret-detection rules (cloud keys, tokens, private
+  keys), plus patterns for `KEY=value`, `key: value` (YAML too), JSON keys,
+  `--password value` and `-p value` flags, passwords in URLs,
+  `Authorization: Bearer`, `x-api-key` and `?token=` or `?api_key=`, where the
+  key names a password, secret, token or API key. Each match is replaced with
+  `[REDACTED:<rule>]`, and the count per rule is shown with the artifact.
+
+Redaction runs in a separate worker thread, so a large log never stalls the
+app, and has 15 seconds per artifact. It fails closed: if it errors or runs out of time, that artifact is
+**withheld**. No redacted copy exists, the Case page and the API show no text
+for it, and the agent's copy lists it as withheld with no file.
+
+Redaction catches the shapes above. It cannot recognise a secret with no
+recognisable name or format, such as a bare password printed alone on a log
+line.
+
+**What is stored.** Each artifact is kept twice under
+`~/.prismalens/cases/<capture id>/`, as owner-only files: the redacted text,
+and the exact bytes kubectl returned, encrypted with the workspace's
+encryption key. The exact bytes are never served by any page or route; they
+are decrypted only to re-check their hash when you choose **Verify record**.
+Retention runs every hour, even while the experiment is off. For each bound
+service it keeps at most 256 MiB, and nothing older than 30 days; the oldest
+captures go first. Captures whose binding was removed expire after 30 days.
+An expired capture keeps its record and loses its files.
+
+**The agent's own commands are not covered.** Redaction applies only to the
+commands PrismaLens itself runs. If the agent runs kubectl, or any other
+command, in its own shell (its permission level and its own settings decide
+whether it can), the output goes straight to the agent and from there to its
+model provider. PrismaLens sees that output only after the model has, and
+does not redact it. The Case page lists those commands as "The agent
+reported this", apart from what PrismaLens ran.
+
 ## Where your data lives
 
 Everything is under `~/.prismalens`, or the folder you pass to
@@ -202,6 +274,7 @@ Everything is under `~/.prismalens`, or the folder you pass to
 | `runs/<id>/repo`, `runs/<id>/repos/` | The snapshots a run read, deleted when the run ends, whatever its outcome. A follow-up rebuilds them at the same commits and deletes them again when it ends |
 | `runs/<id>/transcript.jsonl` | Raw messages between PrismaLens and the agent, kept as a best effort |
 | `repos/` | Mirrors of repositories added by URL |
+| `cases/<capture id>/` | Case File experiment only: each capture's redacted output, and kubectl's exact output encrypted with the workspace key. Expired by retention (256 MiB and 30 days per bound service) |
 | `logs/` | App logs |
 | `PRISMALENS_*_FILE` | Generated secrets |
 

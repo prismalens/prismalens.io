@@ -92,6 +92,7 @@ export default defineConfig({
 						{ label: 'Opening it from other devices', slug: 'guides/devices' },
 						{ label: 'Run in the background', slug: 'guides/background-service' },
 						{ label: 'Reading the report', slug: 'guides/reports' },
+						{ label: 'Case Files (experiment)', slug: 'guides/case-files' },
 					],
 				},
 				{ label: 'What PrismaLens reads', slug: 'trust' },

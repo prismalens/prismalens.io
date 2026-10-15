@@ -69,6 +69,66 @@ file contents are not included. If you are debugging a change you have not
 committed yet, commit it (a local branch is fine) before you run.
 </Aside>
 
+## Bind a service to its Kubernetes target
+
+<Aside type="caution" title="Experiment, off by default">
+Binding belongs to the [Case File](/guides/case-files/) experiment. It is not
+in any released version. While **Settings → Experiments → Case File capture**
+is off, the service page has no Case File section and nothing below happens.
+</Aside>
+
+With the experiment on, a service page gets a **Case File capture** section.
+A binding names one kube context and one namespace. When an alert opens or
+reopens an incident on the service, PrismaLens runs its read-only capture
+against that target.
+
+1. Open **Services**, then the service. The section asks kubectl on this
+   machine for its contexts and pre-fills the form with the current context
+   and that context's namespace (`default` when the context names none),
+   under the line "Detected from kubectl on this machine."
+2. Change the context or namespace if the service runs elsewhere, then choose
+   **Confirm**. This is the only step.
+
+Confirm reads the context from your kubeconfig and stores its server URL with
+the binding. kubectl gets no secret from PrismaLens: it reads your kubeconfig
+as it does in your terminal. Confirm is refused when kubectl is not on
+`PATH`, or when the context is not in the kubeconfig. PrismaLens then checks
+the binding with one real read as the bound identity:
+`kubectl --context <ctx> -n <ns> get pods -o name`. The section shows the
+answer in plain words, and **Check again** repeats the read. **Unbind** removes
+the binding.
+
+| Check result | The section says |
+| --- | --- |
+| `ok` | Checked: kubectl can read this namespace. |
+| `unchecked` | Not checked yet. |
+| `no-kubectl` | kubectl is not on this machine's PATH. |
+| `context-missing` | This context is no longer in the kubeconfig. |
+| `identity-mismatch` | The context now points at a different cluster or user than when it was bound. |
+| `unauthorised` | kubectl was refused: these credentials cannot read the namespace. |
+| `unreachable` | The cluster did not answer. |
+
+A binding that is missing or stops working never stops PrismaLens from
+starting, and never holds up an investigation. The capture does not run, and
+the incident's Case File shows a gap with one fix:
+
+| Situation at alert time | Case File shows | Fix it shows |
+| --- | --- | --- |
+| Service has no binding | No pod state captured: this incident's service isn't bound to a Kubernetes target. | Bind the service in Services. |
+| Incident has no service | No pod state captured: this incident has no service. | Link the incident to a service, then bind it in Services. |
+| kubectl not on `PATH` | No pod state captured: kubectl isn't on PATH on this machine. | Install kubectl, then run pl doctor. |
+| Context gone | No pod state captured: context `<ctx>` is not in this machine's kubeconfig. | Re-bind the service in Services. |
+| Context now points at another server | Not captured: context `<ctx>` now points at `<server>`, not the bound `<cluster>`. | Check kubectl config, or re-bind. |
+| Bound identity refused | Not captured: the bound identity can't list pods in `<ns>`. | Grant get/list on pods, events, replicasets, deployments. |
+| Cluster did not answer | Not captured: the cluster didn't answer. | Check the cluster is reachable from this machine. |
+
+The identity check runs before every capture. When the context points at a
+different server from the one you confirmed, no command runs against it.
+
+`pl doctor` adds a **Capture (Kubernetes)** line that names kubectl and the
+current context, or says kubectl is not on `PATH`. It is never a failing
+check.
+
 ## Investigation notes
 
 **Investigation notes**, in the service's form, holds what the agent should

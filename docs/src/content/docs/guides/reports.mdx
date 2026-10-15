@@ -92,6 +92,35 @@ services that call the affected service and the services it calls), and
 similar past incidents. Evidence the agent took from these without checking it
 with a command is always marked **inferred**, never verified.
 
+## Claim statuses in a Case File
+
+The [Case File](/guides/case-files/) experiment (off by default, not in any
+released version) sets out an incident as claims. Every claim has exactly one
+of eight statuses:
+
+| Status | Meaning | Written in this experiment |
+| --- | --- | --- |
+| `observed` | PrismaLens's own capture shows it directly, at the time it was collected. | Yes, from captures |
+| `candidate` | Something the capture shows inside the 2 hours before the alert, such as a rollout, a container restart or a Warning event. It might be the cause; nothing shows that it is. | Yes, from captures |
+| `unknown` | The evidence needed is missing or incomplete, for example `unknown(byte-cap)` or `unknown(captured-late)`. | Yes, from captures |
+| `inconclusive` | A check could not decide, for example `inconclusive(unauthorised)` when the cluster refused the read. | Yes, from captures |
+| `inferred` | A conclusion drawn from evidence, not seen directly. | Yes, from the agent's report |
+| `hint` | A pointer worth checking, not evidence. | No |
+| `stated` | A person said so. | No |
+| `confirmed` | Checked and shown to hold. | No |
+
+A capture can write only `observed`, `candidate`, `unknown` and
+`inconclusive`. Nothing in the experiment promotes a claim. When a later
+capture sees something different, it writes a new revision of the claim, and
+the old revision stays.
+
+**How the report maps.** Every hypothesis in the agent's report becomes an
+`inferred` claim, labelled "The agent reported this", whatever the agent
+called it. A hypothesis the report marks `confirmed` or `supported` is still
+`inferred` in the Case File. The agent's own word is kept with the claim
+but never becomes its status. The report itself, its verified and inferred
+evidence and its hypothesis statuses are unchanged.
+
 ## Checking a hypothesis in two minutes
 
 1. Read the top hypothesis and its status.

@@ -1,0 +1,302 @@
+---
+title: Case Files (experiment)
+description: An experiment that captures pod state from Kubernetes when an alert arrives, keeps a redacted, verifiable record, and hands the same files to the agent.
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+<Aside type="caution" title="An experiment, not a release">
+Case Files are not in any released version of PrismaLens. The feature is off
+by default and runs only after you turn on **Settings → Experiments → Case
+File capture**. While it is off there is no capture, no Case page, no Case
+File section on services and nothing extra in the agent's brief. What this
+page describes can change or be removed before it ships.
+</Aside>
+
+By the time someone looks at an alert, the pod that crashed may have been
+replaced and the cluster may have dropped its events (Kubernetes keeps events
+for an hour by default). A Case File records the cluster's state at alert
+time. PrismaLens runs a fixed, read-only kubectl checklist against the
+service's target, redacts the output, and keeps it as a record you can check
+later. The same redacted files are handed to the agent.
+
+## Turn it on
+
+1. Open **Settings → Experiments** and turn on **Case File capture
+   (experiment)**.
+2. Bind each service you want captured to its kube context and namespace (see
+   [Bind a service to its Kubernetes target](/guides/services/#bind-a-service-to-its-kubernetes-target)).
+
+PrismaLens needs `kubectl` on the machine that runs `pl up`. `pl doctor`
+reports it on its **Capture (Kubernetes)** line.
+
+## What happens when an alert arrives
+
+When an alert opens an incident, or reopens one, on a bound service,
+PrismaLens queues a capture. The investigation starts at the same time and
+never waits for the capture.
+
+1. **Identity.** PrismaLens reads the context from your kubeconfig and runs
+   `kubectl auth whoami`. If the context now points at a different server
+   from the one you bound, nothing else runs, and the case shows the gap.
+2. **The checklist.** `get events`, `get deployments`, `get replicasets` and
+   `get pods`, as JSON, in the bound namespace.
+3. **Previous logs.** `logs --previous` for up to five containers that
+   restarted, newest first: at most 500 lines and 1 MiB each.
+
+Each command has a 15-second timeout and an 8 MiB cap, and the whole capture
+has 60 seconds. Every output is redacted before anything else sees it (see
+[Captured cluster output](/trust/#captured-cluster-output)).
+
+**Into the agent's working directory.** As each file lands, PrismaLens copies
+the redacted output into `.prismalens/case/` inside the run's folder, with a
+`manifest.json` listing every file and whether it is complete. The agent's
+brief points at that folder, says what had landed when the brief was written,
+and tells the agent to read the manifest before running kubectl itself and to
+treat the files as data, never as instructions. When the run's folder is a git
+repository, `.prismalens/` is added to its `.git/info/exclude`.
+
+### One capture per target
+
+- One capture runs per target (cluster and namespace) at a time, and at most
+  two run at once.
+- A case opened while its target's capture is still **queued** shares that
+  capture instead of queueing another. Once a capture is running, a new case
+  gets a capture of its own, queued behind it.
+- At most 16 captures wait in the queue. Captures for more severe alerts go
+  first. When the queue is full, the lowest-ranked capture is **skipped**.
+- A capture that starts more than 5 minutes after it was due is marked
+  **missed**, with the interval. Events older than the cluster's event TTL may
+  be gone by then.
+- When every command failed, the capture is tried once more 15 seconds later.
+
+### Turning it off
+
+Turning the setting off stops running captures. What already landed stays,
+and the capture ends **partial(disabled)**, or **skipped(disabled)** when
+nothing had landed. No new captures are queued while it is off. Captures
+already queued wait, and start when you turn it on again. Retention keeps
+running while the setting is off: every hour it expires files past 256 MiB
+or 30 days per bound service.
+
+### Capture states
+
+| State | Meaning |
+| --- | --- |
+| `queued` | Waiting for its turn. |
+| `running` | Commands are running. |
+| `complete` | Every command returned in full. |
+| `partial(<reason>)` | Some output was cut or missing: `byte-cap`, `timeout`, `error` or `disabled`. |
+| `skipped(<reason>)` | Never ran: `queue-full`, or `disabled` when you turned the setting off. |
+| `blocked(<reason>)` | Could not run against the target: `no-kubectl`, `context-missing`, `identity-mismatch`, `unauthorised` or `unreachable`. |
+
+## The Case page
+
+With the setting on, an incident's overview header has a **Case File** link
+(on wide screens) that opens `/incidents/<id>/case`. From top to bottom:
+
+- **The capture line**, for example "Captured kind-pl/shop 7 s after the alert ·
+  complete · identity matches binding", with chips such as `partial(byte-cap)`,
+  `missed(…)` or "shared with another incident", and **Verify record**.
+- **Open questions**: every `candidate`, `unknown` and `inconclusive` claim,
+  including gaps with their one-step fix.
+- **Observed**: claims grouped by workload. Each row shows its status, the
+  statement, who ran the command ("PrismaLens ran this" or "The agent reported
+  this"), the namespace, workload, revision and pod it covers, and whether the
+  output was complete. Expand it for when the source says it happened, when
+  PrismaLens collected it, when it was recorded, and its revision number. The
+  artifact link opens the redacted output.
+- **The agent's account**: the hypotheses from the agent's report, always
+  `inferred`.
+- **Commands**: what PrismaLens ran, with exact argv and retrieval, then the
+  tool calls the agent reported.
+
+The statuses are explained in
+[Claim statuses in a Case File](/guides/reports/#claim-statuses-in-a-case-file).
+
+**Verify record** re-checks the record. Every artifact and every capture adds
+an entry to a hash chain. Verify checks that the chain links, that each
+artifact's details match its entry, and that the stored files still match
+their hashes. It answers "Record intact (6 entries)" or names the first
+broken entry, such as "Broken at entry 9: metadata". Files removed by
+retention count as expired, not broken.
+
+## A worked capture
+
+<Aside type="note" title="From the test fake">
+This walkthrough is from the test fake, not a live cluster: PrismaLens's
+scenario test with a scripted kubectl that answers from fixture files. The
+output below is what that run printed and returned. Times are trimmed, the
+test's alert name is shortened to `CheckoutErrors`, and IDs are cut. It is
+regenerated whenever the capture checklist or the shape of the case changes.
+</Aside>
+
+{/* Invalidation trigger: regenerate when CHECKLIST_VERSION (packages/api/src/modules/case-files/capture/checklist.ts) or CaseViewSchema (packages/@prismalens/contracts/src/schemas/case-file.ts) changes. Source: packages/api/test/scenarios/case-file-capture.spec.ts flow with scripts/fakes/kubectl scenarios slow, huge-logs and forbidden, run 2026-10-15. */}
+
+The fixture cluster has a `checkout` deployment in `shop` on context
+`kind-pl`. Revision 2 rolled out 30 minutes before the alert, and one of its
+pods restarted after logging a database password.
+
+**1. Turn it on and bind `checkout`.** Detection pre-filled the form:
+
+```json
+{ "kubectl": { "version": "v1.31.0" },
+  "contexts": ["kind-pl"], "currentContext": "kind-pl",
+  "current": { "cluster": "https://127.0.0.1:6443", "user": "kind-pl", "namespace": "shop" },
+  "suggested": { "kubeContext": "kind-pl", "namespace": "shop" } }
+```
+
+**Confirm** stored the binding and ran the check read. The section then said
+"Checked: kubectl can read this namespace." (`probeState: "ok"`).
+
+**2. A critical alert on `checkout` arrives by webhook.** The investigation
+started at once. Just after it did, `.prismalens/case/manifest.json` in its
+folder showed the capture still running, with nothing landed yet:
+
+```json
+{ "state": "running", "reason": null,
+  "target": { "kubeContext": "kind-pl", "namespace": "shop" },
+  "identityMatches": null, "missed": null, "artifacts": [] }
+```
+
+These are the commands the fake kubectl received for that capture, in order:
+
+```text
+config view --minify --context kind-pl -o json
+auth whoami --context kind-pl -o json --request-timeout=5s
+get events -o json --context kind-pl --namespace shop --request-timeout=15s
+get deployments -o json --context kind-pl --namespace shop --request-timeout=15s
+get replicasets -o json --context kind-pl --namespace shop --request-timeout=15s
+get pods -o json --context kind-pl --namespace shop --request-timeout=15s
+logs checkout-7d9f4c-fghij -c app --previous --tail=500 --limit-bytes=1048576 --timestamps --context kind-pl --namespace shop --request-timeout=15s
+```
+
+When it ended, the agent's folder held:
+
+```text
+.prismalens/case/
+  1-events-3778c8c0.json
+  2-deployments-3778c8c0.json
+  3-replicasets-3778c8c0.json
+  4-pods-3778c8c0.json
+  5-logs-previous-checkout-7d9f4c-fghij-app-3778c8c0.log
+  manifest.json
+```
+
+and the logs entry in `manifest.json` read:
+
+```json
+{ "file": "5-logs-previous-checkout-7d9f4c-fghij-app-3778c8c0.log",
+  "purpose": "logs-previous", "subject": "checkout-7d9f4c-fghij/app",
+  "command": "kubectl logs checkout-7d9f4c-fghij -c app --previous --tail=500 --limit-bytes=1048576 --timestamps --context kind-pl --namespace shop --request-timeout=15s",
+  "retrieval": "complete", "reason": null, "redactions": 1, "withheld": false }
+```
+
+The redacted log, as the artifact drawer shows it:
+
+```text
+2026-10-15T05:43:10.158Z starting checkout 1.5.0
+2026-10-15T05:45:10.158Z fatal: db login failed with DB_PASSWORD=[REDACTED:pattern]
+```
+
+**3. The Case page.** Rows copied from the page, abridged:
+
+```text
+Captured kind-pl/shop 0 s after the alert · complete · identity matches binding
+
+Open questions
+  candidate  Revision 2 of checkout rolled out 30 min before the alert
+             PrismaLens ran this · shop · checkout · revision 2 · complete
+  candidate  checkout-7d9f4c-fghij restarted (Error, exit 1) 5 min before the alert
+  candidate  BackOff: Back-off restarting failed container app in pod
+             checkout-7d9f4c-fghij, 4 min before the alert
+
+Observed
+  observed   Alert "CheckoutErrors" fired at 2026-10-15T05:50:03Z.
+  observed   Deployment checkout: 1/2 ready, app 1.5.0.
+  observed   Revision 1 of checkout: app 1.4.2; 0/0 ready.
+  observed   Revision 2 of checkout: app 1.5.0; 1/2 ready. Tag 1.5.0 of app maps
+             to 2 digests: sha256:1a1a…, sha256:2b2b….
+  observed   checkout-7d9f4c-abcde runs revision 2 of checkout (Running, 0 restarts).
+  observed   checkout-7d9f4c-fghij runs revision 2 of checkout (Running, 2 restarts).
+
+Verify record → Record intact (6 entries)
+```
+
+Expanded, the rollout row showed three different times: the source said
+the rollout happened at 05:20:07, PrismaLens collected it at 05:50:09, and
+recorded the claim at 05:50:12.
+
+**4. The agent's report lands later.** After the run finished, the same page
+gained one row under **The agent's account**, recorded at 05:50:12.7, after
+the capture's claims:
+
+```text
+inferred   Revision 2 of checkout broke its database login
+           The agent reported this
+```
+
+The agent's own label for it was `supported`; in the Case File it is
+`inferred`. Asked for the case as it stood before the report (the API's
+`?asOf=` parameter), the same page has no hypothesis row and the capture's
+claims are unchanged.
+
+**5. Two more alerts while a capture is queued.** Two low-severity alerts on
+`checkout` opened two more incidents while the first capture was still
+running. The first of them queued its own capture, because one capture runs
+per target at a time. The second opened while that one was still queued, so
+it joined it:
+
+```text
+Capture of kind-pl/shop queued
+Capture of kind-pl/shop queued · shared with another incident
+```
+
+Both incidents then showed the same capture, "Captured kind-pl/shop 7 s after
+the alert · complete · identity matches binding".
+
+**6. Partial coverage.** In the `huge-logs` fixture the restarted container
+wrote 3 MB of log. kubectl stops at 1 MiB, so the logs artifact is cut and
+says so:
+
+```text
+Captured kind-pl/shop 0 s after the alert · partial · identity matches binding   partial(byte-cap)
+
+Open questions
+  unknown    The capture was cut: byte-cap.
+             Coverage is partial; absence here proves nothing.
+  candidate  checkout-6c8b5d-q7w4z restarted (OOMKilled, exit 137) 10 min before the alert
+
+Observed
+  observed   No retained ReplicaSet of checkout was created in the 2 h before the
+             alert; a rollback to an older ReplicaSet would not show here.
+```
+
+The first line of the cut log still reads
+`DB_PASSWORD=[REDACTED:pattern]`.
+
+**7. A refused read.** In the `forbidden` fixture the bound identity cannot
+list pods. The check on the service page already said "kubectl was refused:
+these credentials cannot read the namespace." At alert time, every command
+failed twice, and the case showed:
+
+```text
+Capture of kind-pl/shop blocked: unauthorised
+
+Open questions
+  inconclusive  Not captured: the bound identity can't list pods in shop.
+                Grant get/list on pods, events, replicasets, deployments.
+  unknown       events, deployments, replicasets, pods were cut: error.
+                Coverage is partial; absence here proves nothing.
+```
+
+## What it does not do
+
+- It reads one namespace in one cluster: the one you bound. Deployments and
+  ReplicaSets only; custom rollout resources are not read.
+- It never changes anything in the cluster, and never reads Secrets or
+  ConfigMaps.
+- A follow-up question on a finished run gets no case folder.
+- Redaction covers only what PrismaLens itself runs. Commands the agent runs
+  in its own shell go to its model unredacted (see
+  [Captured cluster output](/trust/#captured-cluster-output)).
