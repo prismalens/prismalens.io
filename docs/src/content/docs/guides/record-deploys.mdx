@@ -1,0 +1,98 @@
+---
+title: Record deploys
+description: Tell PrismaLens what shipped and when, from CI with one command or from GitHub Deployments, so an investigation can see the deploy next to the alert.
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+<Aside type="caution" title="Coming in 0.5.2">
+This page describes deploy recording built for 0.5.2 (prismalens#855). It is
+not in 0.5.1.
+</Aside>
+
+A deploy is often the answer to "what changed". PrismaLens lists deploys with
+commits under what changed, newest first. There are two ways to get them in.
+
+## From CI: `prismalens deploy`
+
+Run it as the last step of a deploy job:
+
+```bash
+prismalens deploy --service web --version "$(git rev-parse HEAD)" --env production
+```
+
+| Flag | Default | What it does |
+| --- | --- | --- |
+| `--service <name>` | required | The service's name, as listed under **Services** |
+| `--version <v>` | required | The commit sha or tag that was deployed |
+| `--env <name>` | `production` | The environment deployed to |
+| `--status <s>` | `succeeded` | `succeeded`, `failed` or `started` |
+| `--url <url>` | none | A link to the deploy run or release |
+| `--actor <who>` | none | Who or what deployed |
+| `--sha <sha>` | none | The commit sha, when `--version` is a tag |
+| `--server <url>` | `PRISMALENS_URL`, else `http://localhost:6473` | The instance to record on |
+| `--secret <secret>` | `PRISMALENS_WEBHOOK_SECRET` | The instance's [webhook token](/guides/alerts/#the-webhook-token) |
+
+It prints `Recorded web <version>.`, or `Already recorded web <version>.` when
+that service, environment, version and status was recorded before, so a retried
+job adds nothing. An unknown service is an error that names it, and a wrong
+token says the instance refused the secret.
+
+### The endpoint
+
+The command posts JSON to `POST /api/webhooks/deploy`, with the webhook token
+as `Authorization: Bearer`. Any sender that can do that works without the CLI:
+
+```bash
+curl -X POST "$PRISMALENS_URL/api/webhooks/deploy" \
+  -H "Authorization: Bearer $PRISMALENS_WEBHOOK_SECRET" \
+  -H "Content-Type: application/json" \
+  -d "{\"service\":\"web\",\"version\":\"$(git rev-parse HEAD)\",\"environment\":\"production\"}"
+```
+
+The reply carries `created: false` for a repeat. The body fields are `service`,
+`version`, `environment`, `status`, `url`, `actor` and `sha`, as the flags.
+
+### GitHub Actions
+
+Store `PRISMALENS_URL` and `PRISMALENS_WEBHOOK_SECRET` as repository secrets.
+
+```yaml
+- run: >
+    npx prismalens deploy --service web --version ${{ github.sha }}
+    --env production
+    --url ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+  env:
+    PRISMALENS_URL: ${{ secrets.PRISMALENS_URL }}
+    PRISMALENS_WEBHOOK_SECRET: ${{ secrets.PRISMALENS_WEBHOOK_SECRET }}
+```
+
+### GitLab CI
+
+Set the same two as CI/CD variables.
+
+```yaml
+record-deploy:
+  stage: deploy
+  script:
+    - npx prismalens deploy --service web --version $CI_COMMIT_SHA --env production --url $CI_PIPELINE_URL
+```
+
+### Any shell
+
+```bash
+PRISMALENS_URL=https://pl.example \
+PRISMALENS_WEBHOOK_SECRET=... \
+prismalens deploy --service web --version "$(git rev-parse HEAD)"
+```
+
+The instance must be reachable from where the job runs. See
+[Opening it from other devices](/guides/devices/).
+
+## From GitHub Deployments
+
+For a repository with a saved github.com token (see
+[Git credentials](/guides/git-credentials/)), PrismaLens also reads the
+repository's GitHub Deployments, each with its latest status, while it syncs
+what changed. This is read-only and writes the same kind of row, with source
+`github`. If the pull fails, it is logged and commits still show.

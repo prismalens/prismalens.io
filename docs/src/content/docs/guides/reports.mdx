@@ -3,6 +3,8 @@ title: Reading the report
 description: What each part of an investigation report means, why hypotheses are ranked instead of scored, and how to check one quickly.
 ---
 
+import { Aside } from '@astrojs/starlight/components';
+
 When an investigation finishes, its report fills the incident's
 [overview](/guides/overview/): the summary in Situation, the likely cause and
 its evidence under **Why**, and its ways to stop the impact under **Stop the
@@ -98,6 +100,45 @@ with a command is always marked **inferred**, never verified.
 2. Click its first supporting piece of evidence to open the step, and run the same command, or open the same file, yourself.
 3. Look at **Ruled out** before you chase the second hypothesis. The agent may already have been there.
 4. If the report is wrong, open the run's transcript to see where the reasoning went off. Every tool call is recorded.
+
+## Opening the evidence at its revision
+
+<Aside type="caution" title="Coming in 0.5.2">
+This is built for 0.5.2 (prismalens#850). It is not in 0.5.1.
+</Aside>
+
+A line like `src/pool.ts:88` is only worth something if it is the line the
+agent read. The code moves on, so PrismaLens opens it at the commit the run
+recorded.
+
+1. Open the run's **Run details**, **Evidence** tab.
+2. Click a citation of the form `src/pool.ts:88 @ 3f2c9a1`, or **Open the file
+   at 3f2c9a1** on a step that read a file. The Why card's evidence opens the
+   file directly.
+3. A read-only, line-numbered view opens at the cited line, which is
+   highlighted. On a phone it covers the screen, and Back returns you to the
+   citation.
+
+**Files the agent read** lists every file the run read, grouped as
+`repo @ 3f2c9a1`, in the order it first read each, with `read x2` for a repeat.
+New tool calls never move the file you have open.
+
+The file comes from the repository the run cloned, or its mirror, read-only at
+that commit. Only a tracked file at a commit this run recorded opens; anything
+else is refused. Binary files and files over 1 MiB are named, not shown. A
+symlink shows the path it points to.
+
+When it cannot show the file, the view says why:
+
+| State | Shown |
+| --- | --- |
+| `source-removed` | The source this run cloned is gone: the folder was removed, or the mirror was pruned. |
+| `commit-gone` | Commit `abc1234` is no longer in the repository. |
+| `not-retained` | Not committed at `abc1234`: the file was untracked or uncommitted when the run read it, and PrismaLens does not keep those. |
+| `not-a-file` | At `abc1234` this path is a folder or a submodule, not a file. |
+
+Pruning a mirror turns old citations into `source-removed`, so keep mirrors for
+as long as you want to open old evidence.
 
 ## Sharing it
 

@@ -11,13 +11,15 @@ editor does.
 
 ## Supported agents
 
-| Agent | Command PrismaLens looks for | Install | Tested with | Continue a finished run |
-| --- | --- | --- | --- | --- |
-| OpenCode | `opencode` | `curl -fsSL https://opencode.ai/install \| bash` or `npm i -g opencode-ai` | 1.18.30 | Yes |
-| Claude Code | `claude` | `curl -fsSL https://claude.ai/install.sh \| bash` or `npm i -g @anthropic-ai/claude-code` | 0.81.1 on Claude Code 2.1.296 | Yes |
-| Codex | `codex` | `npm i -g @openai/codex` | 1.13.1 | Yes |
-| Gemini CLI | `gemini` | `npm i -g @google/gemini-cli` | — | Yes |
-| deepagents | `dcode` | `uv tool install -U deepagents-code --with deepagents-acp` | 0.1.75 | Not yet |
+| Agent | Command PrismaLens looks for | Install | Tested with | Continue a finished run | Takes PrismaLens tools (0.5.2) |
+| --- | --- | --- | --- | --- | --- |
+| OpenCode | `opencode` | `curl -fsSL https://opencode.ai/install \| bash` or `npm i -g opencode-ai` | 1.18.30 | Yes | Expected |
+| Claude Code | `claude` | `curl -fsSL https://claude.ai/install.sh \| bash` or `npm i -g @anthropic-ai/claude-code` | 0.81.1 on Claude Code 2.1.296 | Yes | Yes |
+| Codex | `codex` | `npm i -g @openai/codex` | 1.13.1 | Yes | Pending |
+| Gemini CLI | `gemini` | `npm i -g @google/gemini-cli` | — | Yes | Expected |
+| deepagents | `dcode` | `uv tool install -U deepagents-code --with deepagents-acp` | 0.1.75 | Not yet | No |
+
+**Takes PrismaLens tools** is whether the agent is given the [gateway](/guides/investigation-data/#which-agents-take-the-tools) in 0.5.2. Claude Code has been seen using it. OpenCode and Gemini CLI are expected to from their source and have not been seen; Codex is pending; deepagents does not take it.
 
 **Tested with** is the version that completed an unattended investigation in
 PrismaLens's CI: it started in the right folder, finished on its own and

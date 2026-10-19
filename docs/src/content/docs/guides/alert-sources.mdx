@@ -1,0 +1,159 @@
+---
+title: Alert sources
+description: Send alerts from Grafana, Datadog, Sentry, PagerDuty, AWS CloudWatch, Azure Monitor or New Relic, with what to paste where in each.
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+<Aside type="caution" title="Coming in 0.5.2">
+This page describes the vendor endpoints built for 0.5.2 (prismalens#857). It
+is not in 0.5.1. Prometheus Alertmanager is on [Sending alerts](/guides/alerts/).
+</Aside>
+
+Each vendor has its own endpoint, so you paste a URL and a credential and
+change nothing else. A firing alert opens or joins an incident like any other
+(see [Sending alerts](/guides/alerts/)); a repeat of the same alert folds into
+the same incident, and the vendor's own **resolved** closes it.
+
+All URLs below are on your instance, `https://<your-instance>/api/webhooks/…`,
+which the vendor must be able to reach (see
+[Opening it from other devices](/guides/devices/)). `<token>` is the
+[webhook token](/guides/alerts/#the-webhook-token).
+
+| Vendor | Endpoint | Credential | What identifies an alert |
+| --- | --- | --- | --- |
+| Grafana (unified alerting) | `/grafana` | Token (Bearer, Basic or HMAC) | The alert `fingerprint` |
+| Datadog | `/datadog` | Token in a custom header | `alert_id` with `alert_scope` or `hostname` |
+| Sentry | `/sentry` | `Sentry-Hook-Signature`, or token | The issue id, or the metric rule id |
+| PagerDuty (v3) | `/pagerduty` | `X-PagerDuty-Signature`, or token | The incident id |
+| AWS CloudWatch via SNS | `/cloudwatch` | Basic auth in the subscription URL | The alarm ARN |
+| Azure Monitor (common schema) | `/azure-monitor` | Token in a header, or `?token=` | `essentials.alertId` |
+| New Relic (workflow or classic) | `/newrelic` | Token in a custom header | The issue id, or the incident id |
+
+A delivery without a credential gets `401`, and a wrong one `403`.
+
+The alert reaches a service through a `service` label, as for every alert (see
+[Sending alerts](/guides/alerts/)). Where that value comes from differs:
+
+| Vendor | `service` comes from |
+| --- | --- |
+| Grafana | The alert's `service` label |
+| Datadog | A `service:` tag |
+| Sentry | The event's `service` tag |
+| PagerDuty | The incident's service name |
+| CloudWatch | An alarm dimension named `ServiceName` |
+| Azure Monitor | A custom property named `service` |
+| New Relic | A `service` or `appName` tag |
+
+An alert with no such value still opens an incident, with no service.
+
+## Grafana
+
+Add a **Webhook** contact point.
+
+- **URL:** `https://<your-instance>/api/webhooks/grafana`
+- **Authorization header:** scheme `Bearer`, credentials `<token>`.
+
+Put the contact point in a notification policy. Firing instances open the
+incident; resolved ones close it.
+
+## Datadog
+
+In **Integrations → Webhooks**, add a webhook.
+
+- **URL:** `https://<your-instance>/api/webhooks/datadog`
+- **Custom Headers:** `{"Authorization": "Bearer <token>"}`
+- **Payload:**
+
+```json
+{
+  "alert_id": "$ALERT_ID",
+  "alert_title": "$ALERT_TITLE",
+  "alert_transition": "$ALERT_TRANSITION",
+  "alert_status": "$ALERT_STATUS",
+  "alert_type": "$ALERT_TYPE",
+  "alert_scope": "$ALERT_SCOPE",
+  "priority": "$PRIORITY",
+  "hostname": "$HOSTNAME",
+  "tags": "$TAGS",
+  "body": "$TEXT_ONLY_MSG",
+  "link": "$LINK"
+}
+```
+
+Then add `@webhook-<name>` to the monitor's message. Datadog sends whatever
+the template says, so keep the keys as written. A transition of `Recovered`
+resolves the alert. A `service:checkout` tag on the monitor names the service.
+
+## Sentry
+
+Sentry cannot send a bearer token. Set the integration's **client secret** as
+`PRISMALENS_SENTRY_WEBHOOK_SECRET` where `pl up` runs, and PrismaLens accepts a
+delivery on `https://<your-instance>/api/webhooks/sentry` whose
+`Sentry-Hook-Signature` matches. With it unset, the route takes the shared
+token like the others. Issues map by id, and a metric alert rule by its rule id.
+
+## PagerDuty
+
+Add a **v3 webhook subscription** with
+`https://<your-instance>/api/webhooks/pagerduty` and the incident events.
+PagerDuty cannot send a bearer token. Set the subscription's signing secret as
+`PRISMALENS_PAGERDUTY_WEBHOOK_SECRET`, and PrismaLens accepts a matching
+`X-PagerDuty-Signature`; unset, the route takes the shared token. Triggered,
+reopened, escalated and unacknowledged incidents fire; resolved ones close.
+Acknowledging and assigning change nothing.
+
+## AWS CloudWatch via SNS
+
+1. Point your alarm's actions (**In alarm** and **OK**) at an SNS topic.
+2. Subscribe an **HTTPS** endpoint to the topic with the token as the password
+   in the URL:
+   `https://pl:<token>@<your-instance>/api/webhooks/cloudwatch`
+3. PrismaLens answers SNS's subscription confirmation on its own. It follows
+   the confirmation link only when it is an `https://sns.<region>.amazonaws.com`
+   address.
+
+`ALARM` opens the incident and `OK` closes it.
+
+## Azure Monitor
+
+Add a **Webhook** action to an action group, with the **common alert schema**
+turned on:
+
+```text
+https://<your-instance>/api/webhooks/azure-monitor?token=<token>
+```
+
+<Aside type="caution" title="The token is in the URL">
+An Azure action group cannot set a header, so on this route alone the token
+may ride as `?token=`. Query strings reach access logs on every machine in the
+path. Rotate the token if it leaks, and put the URL only where Azure needs it.
+</Aside>
+
+## New Relic
+
+Add a **Webhook** destination and use it in a workflow.
+
+- **Endpoint:** `https://<your-instance>/api/webhooks/newrelic`
+- **Custom headers:** `Authorization` = `Bearer <token>`
+- **Payload template:** PrismaLens reads these fields. Check the variable
+  names against New Relic's message-template reference for your account.
+
+```json
+{
+  "issueId": {{ json issueId }},
+  "issueUrl": {{ json issuePageUrl }},
+  "title": {{ json annotations.title.[0] }},
+  "priority": {{ json priority }},
+  "state": {{ json state }},
+  "entitiesData": { "names": {{ json entitiesData.names }} },
+  "accumulations": {
+    "conditionName": {{ json accumulations.conditionName }},
+    "policyName": {{ json accumulations.policyName }},
+    "tag": {{ json accumulations.tag }}
+  }
+}
+```
+
+State `CLOSED` resolves the alert, and `ACKNOWLEDGED` changes nothing. A
+classic webhook channel works too, with its default body.
