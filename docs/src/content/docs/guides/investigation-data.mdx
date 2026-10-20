@@ -171,6 +171,6 @@ Some agents skip a server PrismaLens offers when your own config already has
 one with the same name. Rename yours if you see that message.
 
 Gemini CLI loads MCP servers only in a folder it trusts, so PrismaLens marks the
-run's throwaway copy as trusted. Before the run, the copy loses every `.gemini`
-folder and `GEMINI.md` (in any letter case), and Gemini CLI is started with
-`--ignore-env` so the copy's `.env` is not read.
+run's throwaway copy as trusted, and PrismaLens's server loads beside your own.
+Before the run, the copy loses every `.gemini` folder and `GEMINI.md` (in any
+letter case).
