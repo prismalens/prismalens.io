@@ -24,6 +24,13 @@ PrismaLens's CI: it started in the right folder, finished on its own and
 returned a valid report. A dash means no such run yet; the agent is still
 supported and selectable.
 
+**Settings → Agent** and the agent picker list only the agents that can run on
+this machine: the agent starts, and its last check, if one ran, answered. An
+agent you have not installed or signed in to stays out of the way rather than
+showing a warning. The agent you picked, or the one `PRISMALENS_HARNESS` names,
+stays listed with its reason even when it can't run. Every supported agent is
+one click away under **Add agent**, installed or not.
+
 Claude Code and Codex speak ACP through an adapter, `claude-agent-acp` and
 `codex-acp`. PrismaLens ships both at the tested versions above, so the agent
 itself is all you install: the shipped adapter drives the `claude` or `codex`
@@ -34,10 +41,25 @@ which adapter a run uses:
 
 ```text
 ✔ Harness: Claude Code: Claude Code found at /home/me/.local/bin/claude; runs through the claude-agent-acp PrismaLens ships
+✔ Agent ready: Claude Code ready
 ✔ Harness ACP handshake: Claude Code: answers ACP, @agentclientprotocol/claude-agent-acp 0.81.1; signed in
 ```
 
-If Claude Code is not signed in, the handshake line is a warning that says `not signed in`, and a run fails until it is.
+`pl doctor` names only the agents that can run. One that is missing, signed
+out or failing prints nothing, unless no agent can run at all:
+
+```text
+$ pl doctor
+✖ Agent ready: no agent can run. Set one up with Add agent in Settings → Agent, or install one: OpenCode: curl -fsSL https://opencode.ai/install | bash  (or: npm i -g opencode-ai); Claude Code: …; Codex: …; Gemini CLI: …; deepagents: …
+  Gemini CLI: answers ACP; not signed in: `gemini` sign-in, or `GEMINI_API_KEY` in env
+  deepagents: failed to start: dcode: command not found
+  Agents set up only in Settings (binary path, local agent) are checked there, not here.
+
+✖ No agent can run. `pl up` still starts, but Investigate stays disabled until one can.
+```
+
+`pl doctor` can't read Settings, so an agent you set up only there, by its
+binary path or as a local ACP command, is checked in **Settings → Agent**.
 
 **Continue a finished run** means a message typed under a finished
 investigation reopens the same agent session: the agent keeps its whole
@@ -73,8 +95,48 @@ Your own configuration for the agent is untouched either way. For Claude Code th
 2. Otherwise the agent chosen in **Settings → Agent**.
 3. Otherwise the first agent in the table above that is on your `PATH`.
 
-If none of these finds an agent, Settings says **No investigation agent is
-available on this machine**, and `pl doctor` lists the install commands above.
+Automatic choice skips an agent whose last check failed. If no agent can run,
+**Settings → Agent** says **No agent can run. Add one to start
+investigations.**, `pl up` says **No coding agent can run: investigations need
+one. Add one in Settings → Agent.**, and `pl doctor` lists the install
+commands above.
+
+## Add an agent
+
+**Add agent** sits at the top of the agent list in **Settings → Agent**, and
+at the foot of the agent picker's rail. It has three steps:
+
+1. **Agent.** Every supported agent, with a plain state word: **Ready**,
+   **Not installed**, **Sign-in needed**, **Not responding**, or **Windows
+   install, can't run in WSL**, plus **Local ACP command**. Picking a Ready
+   agent opens its page; there is nothing to set up.
+2. **Sign-in.** The check's verdict and the agent's own sign-in command, with
+   **Copy**, to run in a terminal on the machine running PrismaLens, then
+   **Check again**. For an agent that is not installed, its install command
+   instead, or set its binary path in the next step. PrismaLens never runs an
+   agent's login for you: each agent signs in its own way, and a login started
+   from a paired phone would open on the host's browser. Optionally, paste an
+   API key; see [Signing the agent in](#signing-the-agent-in).
+3. **Config.** The agent's binary path, config directory and environment
+   variables, the same fields as its page. **Check and add** saves them and
+   runs the check. When the agent answers, the dialog closes and the agent
+   joins the list. Otherwise the dialog shows the check's line; the settings
+   are kept, and the agent joins the list once it can run.
+
+### Local ACP command
+
+Any agent that speaks ACP on stdio can run as the **Local agent**: give the
+command as a full path and its arguments. Arguments are split like a shell
+would split them, quotes included, but no shell runs them, so `|`, `>` or `&&`
+are refused with **Arguments can't hold shell operators.** The local agent has
+no modes, so PrismaLens answers its asks by the run's permission level, and
+it can't reopen a finished run. There is one local agent; its label is fixed.
+
+An agent listed in the public ACP agent registry works this way once you have
+installed it yourself. PrismaLens does not install registry agents. For
+example, an agent installed at `/usr/local/bin/my-acp-agent` that starts its
+ACP server with `--acp` is added with Command `/usr/local/bin/my-acp-agent`
+and Arguments `--acp`.
 
 ## Signing the agent in
 
@@ -94,7 +156,19 @@ $ pl doctor
 is signed in: some agents only check that when the first investigation starts.
 The other results are `sign in needed`, `no answer in 10s` and
 `failed to start`, each with the agent's own message.
-**Settings → Agent → Check readiness** runs the same check from the app.
+**Settings → Agent → Check** runs the same check from the app.
+
+The **Sign-in** step of **Add agent** also takes one API key. It is saved as
+an environment variable for that agent only: `ANTHROPIC_API_KEY` for Claude
+Code, `OPENAI_API_KEY` for Codex, `GEMINI_API_KEY` for Gemini CLI; for
+OpenCode and deepagents you pick the key's name from the ones the agent reads.
+See [Binary path, config directory and environment](#binary-path-config-directory-and-environment).
+
+Only the PrismaLens session on the host itself can change what an agent runs:
+its binary path, config directory, environment variables and the local
+command. A paired phone or laptop sees these fields read only, with **Only
+this machine's own session can change what an agent runs.**, and the API
+refuses the change with `403`.
 
 The agent does not inherit your whole environment. See
 [Credentials](/trust/#credentials).
@@ -246,8 +320,22 @@ A second answer to the same ask gets `409`; see
 
 Each agent has its own default model. To use a different one, click the model
 next to the agent picker, under the composer or in **Settings → Agent**, and
-type an id in that agent's own format. It is sent exactly as typed, and it is
-kept per agent: a model you set for Claude Code never reaches OpenCode.
+pick it by name. It is kept per agent: a model you set for Claude Code never
+reaches OpenCode.
+
+The picker's first row is **Default**: the run sends no model, and the agent
+runs its own default. Its line names the model the agent reports, when it
+reports one. An agent's own "default" entry, such as Claude Code's **Default
+(recommended)**, is the same choice, so it is not listed twice.
+
+On an agent's page in **Settings → Agent**, the **Models** list sets what the
+picker shows:
+
+- A switch per model shows or hides it in the picker. **Hide all** and **Show
+  all** set every model at once. A model the agent adds later shows until you
+  hide it, and a hidden model you already picked stays in the picker, ticked.
+- The star puts a model first and in the picker's **Starred** tile.
+- The arrows move a model up or down; the picker keeps that order.
 
 The list under the field is a suggestion. Once you click **Check readiness** on
 an agent that offers its own list, that list is shown; otherwise PrismaLens
@@ -263,9 +351,10 @@ only **Clear model**.
 
 PrismaLens never probes your agent's endpoint, so the list shows only what the
 agent reports. To use a model your endpoint serves that the agent does not list,
-add its id in **Settings → Agent → Custom models** with **Add custom model**.
-Removing one asks for confirmation. Added ids show in the picker as "Added by
-you". A run on one that the endpoint does not serve fails.
+open the agent in **Settings → Agent**, and under **Models** type its id and
+click **Add custom model**. Removing one asks for confirmation. Added ids show
+in the list and the picker as "Added by you". A run on one that the endpoint
+does not serve fails.
 
 On Claude Code an added model reaches the agent through
 `ANTHROPIC_CUSTOM_MODEL_OPTION`, set when the agent starts. When your
@@ -301,6 +390,62 @@ With that file in `~/.prismalens`, the Claude Code suggestions show those two
 models, and Haiku is marked legacy. Delete the file to go back to the bundled
 catalogue. A release whose bundled catalogue is newer than your file wins
 without your deleting it.
+
+## Binary path, config directory and environment
+
+Each agent's page in **Settings → Agent** has a **Runtime** and an
+**Environment** section:
+
+- **Binary path**: where the agent's own program is, as a full path. Empty
+  uses `PATH`. Use it when PrismaLens starts outside your shell (the desktop
+  app, a service) and does not see the `PATH` your terminal does. For Claude
+  Code and Codex it is the `claude` or `codex` program; the adapter PrismaLens
+  ships drives it.
+- **Config directory**, for Claude Code (`CLAUDE_CONFIG_DIR`, default
+  `~/.claude`), Codex (`CODEX_HOME`, default `~/.codex`) and Gemini CLI
+  (`GEMINI_CLI_HOME`, default your home folder, which holds `.gemini`): run the
+  agent on another profile, with its own sign-in and settings.
+- **Environment**: variables passed to this agent only. Values are stored
+  encrypted and never shown again; to change one, add the same name again. Your
+  own environment still applies, and a name set here wins over it.
+
+A field saves when you press Enter or leave it, and changing one runs the
+agent's check again, so the list and the picker describe what the next run
+uses. Each run's record keeps the binary path, config directory and variable
+names it ran with, never the values.
+
+A run's environment is built in this order, each layer over the one before:
+the provider keys from the environment you started PrismaLens in, then the
+config directory, then the agent's Environment rows, then the variables
+PrismaLens sets for the run itself. A worked example for Claude Code:
+
+```text
+Settings → Agent → Claude Code
+  Binary path        /opt/claude/bin/claude
+  Config directory   ~/.claude-work
+  Environment        ANTHROPIC_BASE_URL = https://b.example
+
+Host environment (where `pl up` started)
+  ANTHROPIC_BASE_URL=https://a.example
+
+The agent's environment for the run
+  CLAUDE_CODE_EXECUTABLE=/opt/claude/bin/claude     binary path, set by PrismaLens for its adapter
+  CLAUDE_CONFIG_DIR=/home/me/.claude-work           config directory
+  ANTHROPIC_BASE_URL=https://b.example              the Environment row wins over the host
+```
+
+Names PrismaLens sets itself are refused in Environment, with the field's
+reason:
+
+```text
+CLAUDE_CODE_EXECUTABLE = /usr/bin/claude   [Add variable]
+Claude Code runs get CLAUDE_CODE_EXECUTABLE from PrismaLens; it can't be set here.
+```
+
+`CLAUDE_CONFIG_DIR` is refused there too, with **Set CLAUDE_CONFIG_DIR with
+Config directory above.** An `ANTHROPIC_BASE_URL` must be `https`, or `http`
+only to this machine, as for the host's own. An agent takes at most 50
+variables.
 
 ## Follow-ups on an older run
 
