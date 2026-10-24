@@ -34,12 +34,20 @@ The strip under it says where the run is and what it used:
   ci-bot` or `Code: public` (see [Git credentials](/guides/git-credentials/));
 - **Stop run** while it works, and the **Runs and questions** menu.
 
+- **Usage**, such as `182k tok (ctx 41%)`: the tokens the agent last reported
+  and how full its context is. An agent that reports none reads **usage not
+  reported**. That is not zero: PrismaLens shows only what the agent sent. The
+  Summary panel has the same **Usage** row.
+
 Below it, the brief and then the agent's text and its tool calls. Each tool
 call is a numbered step that says what it did, **Ran**, **Read**,
 **Searched**, **Edited** or **Failed**, with the command or file. Click a step
 to see the full command and its output. Steps in a row fold into one line,
 such as **Ran 8 commands**, until you open it. A link ending in `#step-4` opens that step
 and rings it.
+
+Once a run has its report, the steps fold behind one line, **Worked for 4m 12s
+· 23 steps**. Open the line, or cite a step from the report, and they unfold.
 
 When text in a step tried to give the agent an instruction, the step carries a
 red note with **See details**, which opens the flagged item in Run details.
@@ -112,6 +120,62 @@ The placeholder reads **Say what to change, or just continue**. A follow-up
 on a finished run rebuilds the run's copy of the repository at the commits it
 read. Investigate again runs live and ends in a new report on the overview;
 the old finding stands until then.
+
+### Continue in another agent
+
+A finished, stopped, failed, interrupted or limited run is never a
+dead end. On a finished run, the agent, model and effort chips in the box say
+where a follow-up goes. The permission level chip still opens a new draft,
+because a follow-up can never raise its own level.
+
+PrismaLens picks the route in this order:
+
+1. **The same agent kept a session it can reopen.** The follow-up reopens it,
+   as before: "Continues in Claude Code's own session."
+2. **Otherwise, a fresh session** in the agent you chose, started at the
+   commits the run recorded and seeded with a handoff: "Continues in a fresh
+   Codex session."
+
+The line under the box says which, before you send. This is a worked example:
+
+```text
+Run 2 · Claude Code                    Interrupted (PrismaLens restarted)
+
+  Continues in Claude Code's own session. PrismaLens restarted while the
+  previous session was working: its last command may or may not have completed.
+
+  [pick Codex on the model chip]
+
+  Continues in a fresh Codex session. Carries: alert, 3 messages, report,
+  2 refuted hypotheses, 9 cited calls; omits 31 tool calls (in the transcript
+  file). Permission: Auto (inherited).
+
+  [Codex is not installed]
+
+  Codex is not on this machine. Install: npm i -g @openai/codex
+  Install it, or pick another agent.        (Send is blocked)
+```
+
+A handoff always carries the alert, every message you sent (the ones that
+never arrived are marked), the report with every hypothesis status including
+**refuted**, the ruled-out causes, the permission level, and every denial you
+made. Within a budget of about 16k tokens it adds, newest first, the tool calls
+the report cites, then failed calls, then the agent's turns. The full
+transcript is written to `.prismalens-handoff/transcript.md` in your
+workspace, and the line names what was left out.
+
+- **Permission is inherited, never broadened.** A run from before permission
+  levels continues at **Ask always**.
+- **Checked before it sends.** The agent must be installed, signed in
+  (by its last readiness check) and accept the model. If not, the send is
+  blocked and says what to fix, for example `claude /login`.
+
+When the run ended without a report, the end reason replaces **Failed**:
+
+| Reads | Means | What to do |
+| --- | --- | --- |
+| **Interrupted (PrismaLens restarted)** | PrismaLens restarted while the run worked. Nothing is reclaimed on its own | **Continue**; the agent is told its last command may or may not have completed |
+| **Limited** | The agent hit its usage limit. PrismaLens recognises Claude Code's and Codex's limit errors | Continue in another agent. OpenCode and Gemini CLI limit errors are not recognised and read as **Failed** |
 
 ## Asking a question
 

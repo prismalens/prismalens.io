@@ -1,0 +1,39 @@
+---
+title: Alert sources
+description: Send alerts from Grafana, with what to paste where.
+---
+
+Each vendor has its own endpoint, so you paste a URL and a credential and
+change nothing else. A firing alert opens or joins an incident like any other
+(see [Sending alerts](/guides/alerts/)); a repeat of the same alert folds into
+the same incident, and the vendor's own **resolved** closes it.
+
+All URLs below are on your instance, `https://<your-instance>/api/webhooks/…`,
+which the vendor must be able to reach (see
+[Opening it from other devices](/guides/devices/)). `<token>` is the
+[webhook token](/guides/alerts/#the-webhook-token).
+
+| Vendor | Endpoint | Credential | What identifies an alert |
+| --- | --- | --- | --- |
+| Grafana (unified alerting) | `/grafana` | Token (Bearer, Basic or HMAC) | The alert `fingerprint` |
+
+A delivery without a credential gets `401`, and a wrong one `403`.
+
+The alert reaches a service through a `service` label, as for every alert (see
+[Sending alerts](/guides/alerts/)). Where that value comes from:
+
+| Vendor | `service` comes from |
+| --- | --- |
+| Grafana | The alert's `service` label |
+
+An alert with no such value still opens an incident, with no service.
+
+## Grafana
+
+Add a **Webhook** contact point.
+
+- **URL:** `https://<your-instance>/api/webhooks/grafana`
+- **Authorization header:** scheme `Bearer`, credentials `<token>`.
+
+Put the contact point in a notification policy. Firing instances open the
+incident; resolved ones close it.

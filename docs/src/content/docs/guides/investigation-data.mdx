@@ -1,0 +1,169 @@
+---
+title: How investigations reach your data
+description: The gateway an agent calls for your metrics, logs, runbooks, past investigations and connected MCP servers, what it can call, and why your credentials never reach the agent.
+---
+
+An investigation needs more than the code: the metrics around the alert, the
+logs, the runbooks, the incidents that looked like this one. PrismaLens gives
+the agent one doorway to all of it, a **gateway** that runs inside the app. The
+agent calls named tools on it. It never gets a URL or a password for your
+Prometheus, Alertmanager, Loki or MCP servers.
+
+## What the agent can call
+
+There are two kinds of tool on the gateway.
+
+**PrismaLens tools are read-only.** PrismaLens refuses to serve any of its own
+tools that is not, and the agent may call them at every
+[permission level](/coding-agents/#permission-levels-and-asks), alert-started
+runs included. One exception: an agent that asks before a call and names it
+only by an id it never announced gets the usual approval card, and in an
+alert-started run that ask is denied.
+
+| Tool | What it returns | Cap |
+| --- | --- | --- |
+| `sources_list` | Each category (metrics, logs, code, deploys, knowledge, MCP servers) as `connected`, `not-configured`, `unreachable` or `removed` | Never carries upstream error text |
+| `investigations_search` | Completed past runs matching `query`, optionally for one `service`. The agent's finding and the cause an operator recorded stay in separate fields | `limit` 1 to 20; never the calling run |
+| `runbooks_list`, `runbooks_read` | Runbooks in the repositories bound to services, at the commit the run saw | 32,000 characters per runbook |
+| `prometheus_query` | An instant query | 50 series, 200 points per series |
+| `prometheus_query_range` | A range query; the step defaults to about 200 points | 50 series, 200 points per series |
+| `prometheus_alerts` | The alerts Prometheus has firing | 100 alerts |
+| `alertmanager_alerts` | Active alerts by default; takes matchers | 100 alerts |
+| `loki_query_range` | Log lines across streams | `limit` 1 to 500 lines, each cut at 2,000 characters |
+
+Every query tool reads at most 4 MiB from the upstream and returns at most
+32,000 characters. When the upstream answers with an error, the agent gets the
+status and PrismaLens's own words, such as "the source answered HTTP 401",
+never the body the upstream sent.
+
+**MCP-server tools follow your permission level.** Each MCP server you connect
+under **Settings → Data sources** offers its tools as `<name>__<tool>`, for
+example `n8n_prod__list_workflows`. PrismaLens forwards them as the server
+lists them, so whether the agent may call one is your run's permission level,
+as for any other tool the agent has.
+
+## How a call travels
+
+```text
+agent ──MCP over HTTP──▶ gateway (in PrismaLens)
+                          1. run token: this run only, else 401
+                          2. PrismaLens tool?  read-only check ─▶ source ─▶ credential ─▶ Prometheus, Loki, …
+                             <name>__<tool>?   ─▶ your MCP server, with the credential PrismaLens holds
+                          3. scrub credential values, cap the size
+agent ◀──────────────────── result
+
+the agent's own tools (files, shell, its own MCP servers) never pass through the gateway
+```
+
+1. At the start of the run, PrismaLens gives the agent one MCP server named
+   `prismalens`, with a bearer token that works for that run only. deepagents
+   gets it as a config file for the run; every other agent gets it over ACP.
+2. The agent calls a tool. The gateway checks the token against the run in the
+   URL. A token for another run, a revoked token and a missing token all get
+   `401`. The first request with the right token tells PrismaLens the agent
+   loaded the tools.
+3. PrismaLens finds the **Connection** (the source you saved under
+   **Settings → Data sources**) and makes the request itself, to that
+   connection's own address only.
+4. The reply is trimmed to the caps above, with every credential value
+   removed, and goes back to the agent.
+
+## What `sources_list` returns
+
+From a run where Prometheus is connected, a Loki connection was deleted while
+the run was going, two n8n instances are connected and no log source is left:
+
+```json
+[
+ {
+  "category": "metrics",
+  "status": "connected",
+  "sources": [{ "id": "c1", "label": "prod prometheus", "kind": "prometheus", "status": "connected" }],
+  "tools": ["prometheus_query", "prometheus_query_range", "prometheus_alerts", "alertmanager_alerts"]
+ },
+ {
+  "category": "logs",
+  "status": "not-configured",
+  "sources": [{ "id": "c2", "label": "prod loki", "kind": "removed", "status": "removed",
+                "reason": "This connection was removed during the run." }],
+  "tools": ["loki_query_range"],
+  "howToConnect": "Connect one in PrismaLens under Settings, Data sources."
+ },
+ {
+  "category": "mcp",
+  "status": "connected",
+  "sources": [
+   { "id": "c3", "label": "n8n_prod", "kind": "mcp-server", "name": "n8n_prod",
+     "description": "production automations", "toolCount": 12, "status": "connected" },
+   { "id": "c4", "label": "n8n_staging", "kind": "mcp-server", "name": "n8n_staging",
+     "description": "staging automations", "toolCount": 12, "status": "connected" }
+  ],
+  "tools": []
+ }
+]
+```
+
+The categories for code, deploys and knowledge come in the same shape.
+
+## When a source changes during a run
+
+| What happens | What the agent sees |
+| --- | --- |
+| PrismaLens can't be reached when the run starts | The run goes on without PrismaLens tools |
+| A category has no connection | `not-configured`, with how to connect one; not an error |
+| You add a source (Prometheus, Loki, …) | The next call uses it |
+| You delete a source | The next call answers `not-configured`, and `sources_list` shows it `removed` |
+| A source stops answering | The call fails with a reason, and `sources_list` checks again each time |
+| You add an MCP server | Its tools arrive with the next run; `sources_list` says "available from the next run" |
+| You delete an MCP server | Its tools answer "This MCP connection was removed", and `sources_list` shows it `removed` |
+| An MCP server goes down | Its tools fail with a reason, and `sources_list` shows it `unreachable` |
+
+## Deploys
+
+Deploys reach investigations as events you send, not through a tool call. From
+the deploy job:
+
+```bash
+curl -X POST "$PRISMALENS_URL/api/webhooks/deploy" \
+  -H "Authorization: Bearer $PRISMALENS_WEBHOOK_SECRET" \
+  -H "Content-Type: application/json" \
+  -d "{\"service\":\"web\",\"version\":\"$(git rev-parse HEAD)\",\"environment\":\"production\"}"
+```
+
+[Record deploys](/guides/record-deploys/) has the rest of the fields.
+
+## What stays out of the agent's reach
+
+- **Credentials stay in PrismaLens.** They are stored encrypted and sent only
+  to the origin of their connection's own URL, on the first request and on
+  every redirect. A request or redirect to another host fails before anything
+  is sent there.
+- **Error bodies are never forwarded.** An upstream that answers with an error
+  may echo the credential, so the agent gets the status and PrismaLens's words.
+- **Scrubbed on the way out.** Credential values, including the base64 form of
+  basic auth, are removed from every result.
+- **The token dies with the run.** It is held in memory, ends when the run
+  ends, fails or is stopped, and a restart forgets every token.
+- **Only the run's token opens it.** A paired device or a session never opens
+  the gateway.
+
+What is not caught: an upstream that echoes a credential in a successful
+answer, in an encoded form, reaches the agent. Prefer read-only tokens where the
+service offers them.
+
+## Which agents take the tools
+
+All five supported agents take the gateway. PrismaLens counts the tools as
+loaded only once the agent's first request with the run's token arrives, within
+five seconds of the session starting. Until then the prompt has no tools line,
+and if that never happens the run's conversation says "The agent did not load
+PrismaLens tools; a server named `prismalens` in your agent config can hide
+them." The run goes on either way.
+
+Some agents skip a server PrismaLens offers when your own config already has
+one with the same name. Rename yours if you see that message.
+
+Gemini CLI loads MCP servers only in a folder it trusts, so PrismaLens marks the
+run's throwaway copy as trusted, and PrismaLens's server loads beside your own.
+Before the run, the copy loses every `.gemini` folder and `GEMINI.md` (in any
+letter case).

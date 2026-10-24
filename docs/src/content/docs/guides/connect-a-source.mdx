@@ -1,0 +1,125 @@
+---
+title: Connect a source
+description: Connect Prometheus, Alertmanager, Loki or GitHub from Settings or the terminal, what each step checks, and which sign-in methods a source takes.
+---
+
+A **source** is a system the agent reads during an investigation. Connecting
+one lets the agent call it through the
+[gateway](/guides/investigation-data/) without ever seeing its credential.
+
+## The flow
+
+Every source connects the same way, in **Settings → Data sources** or with
+`pl connect`:
+
+1. **Pick** a vendor. One row per category (metrics, logs, code, knowledge,
+   deploys) shows its state and what the agent cannot see without it. A vendor
+   PrismaLens found in its environment, such as `PROMETHEUS_URL` or
+   `GITHUB_TOKEN`, sorts first and reads **found**.
+2. **Sign in.** The form comes from the vendor: its address and the sign-in
+   methods it takes.
+3. **Test & discover.** PrismaLens runs read-only probes and shows a table. A
+   logs source also offers the label that names a service.
+4. **Confirm.** The dialog lists the read-only tools the agent gets and the
+   host the credential is bound to. Nothing is saved before this step.
+
+A source is saved only when every **required** probe passes. An optional probe
+that fails is shown and does not block.
+
+| Category | Vendors | Steps | Which steps |
+| --- | --- | --- | --- |
+| Metrics | Prometheus, Alertmanager | 3, found or not | Pick, sign in (or use the found one), confirm |
+| Logs | Loki | 4 | Pick, sign in, choose the service label, confirm |
+| Code | GitHub | 3 | Pick, token (or the found `GITHUB_TOKEN`), confirm |
+| Deploys | | | Not a form: see [Record deploys](/guides/record-deploys/) |
+
+A detected token's value never leaves PrismaLens, and it is sent only to the
+vendor's default host.
+
+### What the probes check
+
+```text
+$ pl connect metrics prometheus
+ℹ Using the detected http://127.0.0.1:19090
+capability         needed    result
+Run a query        required  PASS  answered
+Read label names   required  PASS  4 labels
+Read firing alerts optional  PASS  2 found
+service label: service
+sends the credential only to: 127.0.0.1:19090
+✔ Connected Prometheus (02f542c4-…).
+agent can call (read-only): prometheus_query prometheus_query_range prometheus_alerts
+```
+
+A required probe that fails stops the connect and saves nothing:
+
+```text
+$ pl connect logs loki --url http://127.0.0.1:13100
+Read labels        required  FAIL  401: the source wants a credential, or this one is wrong
+Query logs         required  FAIL  no service label to query by
+ ERROR  A required probe failed; nothing was saved.        (exit 1)
+```
+
+## How a source signs in
+
+The sign-in method is a **credential kind**. Prometheus, Alertmanager and Loki
+take all five of these.
+
+| Kind | Fields | Typical use |
+| --- | --- | --- |
+| `none` | | A source on a trusted network |
+| `bearer` | Bearer token | A gateway or proxy that takes a token |
+| `basic` | Username, password | Grafana Cloud, a proxy with basic auth |
+| `header` | One header name and value | A proxy service token, or tenancy such as `X-Scope-OrgID` |
+| `mtls` | Client certificate, client key, optional CA (PEM) | A source that checks client certificates. Needs `https` |
+
+These are known and refused for now, with `<name> credentials are not supported yet`:
+
+| Kind | Where you would want it |
+| --- | --- |
+| `aws-sigv4` | Amazon Managed Prometheus |
+| `gcp-workload-identity` | Google Cloud sources |
+| `azure-managed-identity` | Azure sources |
+| `oauth-client-credentials` | Gateways that issue short-lived tokens |
+| `github-app` | Code access as an app |
+
+Saving one of these is refused up front. If one is already stored, the tools
+and `sources_list` say so; nothing fails silently.
+
+PrismaLens makes the request itself. It sends the credential only to the
+origin of the source's own address, follows a redirect only within that origin,
+and requires `https` for `mtls`. A proxy that needs a person to sign in through
+a browser cannot be used unattended; a service token for it maps to `header`.
+
+## The same from the terminal
+
+Secrets come from environment variables or files, never from arguments.
+
+```text
+pl connect <category> [vendor] [--url <url>] [--auth-kind <kind>]
+           [--token-env <var>] [--username <name>] [--password-env <var>]
+           [--header-name <name>] [--header-value-env <var>]
+           [--cert <file>] [--key <file>] [--ca <file>]
+           [--service-label <label>] [--label <name>]
+           [--use-detected] [--test-only]
+pl sources [--ids]
+pl sources test [id]
+```
+
+- `pl connect` runs the same probes as the dialog and saves only if every
+  required one passes. `--test-only` stops after the table. `--use-detected`
+  takes the address and token PrismaLens found.
+- `pl sources` prints one line per category and exits `1` when a category is
+  unreachable. `--ids` adds the source ids.
+- `pl sources test` re-probes every source, or one by id.
+
+```text
+$ pl sources
+metrics    Prometheus 127.0.0.1:19090   connected
+logs       Loki 127.0.0.1:13100         connected
+scm        -                            not connected  Investigations cannot read the code.
+```
+
+`pl` and `prismalens` are the same binary. The command reaches your running
+instance as a device it pairs through the workspace, and keeps that device's
+token in `<workspace>/cli-device.token`.
