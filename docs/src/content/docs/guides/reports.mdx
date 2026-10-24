@@ -3,8 +3,6 @@ title: Reading the report
 description: What each part of an investigation report means, why hypotheses are ranked instead of scored, and how to check one quickly.
 ---
 
-import { Aside } from '@astrojs/starlight/components';
-
 When an investigation finishes, its report fills the incident's
 [overview](/guides/overview/): the summary in Situation, the likely cause and
 its evidence under **Why**, and its ways to stop the impact under **Stop the
@@ -102,10 +100,6 @@ with a command is always marked **inferred**, never verified.
 4. If the report is wrong, open the run's transcript to see where the reasoning went off. Every tool call is recorded.
 
 ## Opening the evidence at its revision
-
-<Aside type="caution" title="Coming in 0.5.2">
-This is built for 0.5.2 (prismalens#850). It is not in 0.5.1.
-</Aside>
 
 A line like `src/pool.ts:88` is only worth something if it is the line the
 agent read. The code moves on, so PrismaLens opens it at the commit the run

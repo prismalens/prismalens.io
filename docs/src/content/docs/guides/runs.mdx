@@ -34,12 +34,6 @@ The strip under it says where the run is and what it used:
   ci-bot` or `Code: public` (see [Git credentials](/guides/git-credentials/));
 - **Stop run** while it works, and the **Runs and questions** menu.
 
-<Aside type="caution" title="Coming in 0.5.2">
-Usage, the **Worked for** fold, continuing in another agent and **Interrupted**
-and **Limited** runs are built for 0.5.2 (prismalens#849 and prismalens#852).
-They are not in 0.5.1.
-</Aside>
-
 - **Usage**, such as `182k tok (ctx 41%)`: the tokens the agent last reported
   and how full its context is. An agent that reports none reads **usage not
   reported**. That is not zero: PrismaLens shows only what the agent sent. The
@@ -129,7 +123,7 @@ the old finding stands until then.
 
 ### Continue in another agent
 
-In 0.5.2 a finished, stopped, failed, interrupted or limited run is never a
+A finished, stopped, failed, interrupted or limited run is never a
 dead end. On a finished run, the agent, model and effort chips in the box say
 where a follow-up goes. The permission level chip still opens a new draft,
 because a follow-up can never raise its own level.
