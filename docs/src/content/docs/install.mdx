@@ -96,27 +96,31 @@ Linux the window's menu bar is hidden; press <kbd>Alt</kbd> to show it.
 
 ### Run the desktop app's PrismaLens inside WSL
 
-On Windows, the desktop app can run the `pl` you installed inside a WSL distro
-instead of its own copy. Install PrismaLens in the distro first (the Linux tab
-above), so `pl` is on its login shell's `PATH`. Then, from the tray icon's
-menu:
+On Windows, the desktop app can connect to a `pl` already running inside a WSL
+distro instead of running its own copy. The distro must have `bash`; a distro
+without `bash` is refused with the reason shown next to its name.
+
+Install PrismaLens in the distro first (the Linux tab above), so `pl` is on its
+login shell's `PATH`. Then, from the tray icon's menu:
 
 1. Pick the distro under **WSL distro**. **Default distro** is the one `wsl.exe`
    uses with no `-d`.
-2. Tick **Run in WSL**. The app restarts.
+2. Tick **Use PrismaLens in WSL**. The app restarts.
 
-The app then uses that distro's workspace (`~/.prismalens` inside it) and the
-agent sign-in you did there. It works through the same order as on Windows:
+The app never starts or stops anything in the distro: start `pl up` or install
+the service in the distro yourself. When WSL mode is on:
 
 | In the distro | The app |
 | --- | --- |
 | `pl up` or the service is already running | opens a window on it |
-| `pl service install` was run, but it is stopped | starts the service |
-| nothing is running | starts `pl up --no-open` and stops it when you quit |
+| nothing is running | shows a dialog asking to run `pl up` or the service |
+
+If the saved distro fails at launch, the app offers to run on Windows instead,
+retry, or quit.
 
 The window opens on `http://localhost:<port>`, the workspace's own port,
-through WSL's localhost forwarding. Untick **Run in WSL** to go back to the
-app's own copy. Only one runs at a time.
+through WSL's localhost forwarding. Untick **Use PrismaLens in WSL** to go back
+to the app's own copy. Only one runs at a time.
 
 ### Check a download yourself
 
