@@ -50,22 +50,68 @@ Each agent runs with its own behaviour and permissions, as it would in your
 terminal. PrismaLens drives it; it does not make it safe. See
 [Trust](/trust/) for what PrismaLens does and does not limit.
 
-## What an agent reads from the incident's repo
+## What a run inherits from your agent setup
 
-An investigation runs the agent in a copy of the incident's repo. A repo can
-carry configuration for coding agents: settings, hooks, MCP servers, context
-files. That repo is input to the investigation, not something you chose to
-trust, so PrismaLens turns off what each agent lets it:
+A run starts the agent as your terminal would, with everything you have
+already set up for it: its sign-in, global instructions, skills and plugins,
+hooks, MCP servers and permission rules. PrismaLens adds to that setup and
+removes nothing. What it adds is its brief, its own tools (one MCP server
+under a name your config can't already hold) and the run's permission level.
+If something you set up conflicts with the brief, the agent's model decides,
+as it would for any two instructions you gave it.
 
-| Agent | Repo configuration |
-| --- | --- |
-| Claude Code | Your own `~/.claude/settings.json` applies (`settingSources: ["user"]`). The repo's project settings, hooks and `CLAUDE.md` stay off. |
-| OpenCode | Not loaded. The repo's `opencode.json` is ignored. |
-| Gemini CLI | Not loaded. The repo is an untrusted folder (`GEMINI_CLI_TRUST_WORKSPACE=false`), so `.gemini/settings.json`, `.env` files and `GEMINI.md` are ignored. |
-| deepagents | MCP servers are not started (`--no-mcp`). |
-| Codex | Loaded as in your terminal. PrismaLens turns nothing off. |
+The incident's repo is loaded the way the agent loads any repo: its settings,
+hooks, MCP servers and instruction files apply, under the agent's own trust
+control. Those are the repo owner's, like the repo's code. PrismaLens doesn't
+strip them or force a trust setting either way.
 
-Your own configuration for the agent is untouched either way. For Claude Code that means your allow and deny rules, sandbox setting, hooks and `env` in `~/.claude/settings.json` apply, as they do in your terminal.
+| Agent | From your setup | From the repo | PrismaLens's brief goes in |
+| --- | --- | --- | --- |
+| Claude Code | `~/.claude` (or `CLAUDE_CONFIG_DIR`): settings, `CLAUDE.md`, plugins, skills, hooks, MCP servers | Project and local settings, hooks, `CLAUDE.md`, `.mcp.json` (`settingSources: ["user", "project", "local"]`) | An appended system prompt |
+| Codex | `~/.codex` (or `CODEX_HOME`): `config.toml`, `AGENTS.md`, MCP servers | `.codex/` and `AGENTS.md`, if your `config.toml` trusts the project | The first prompt |
+| Gemini CLI | `~/.gemini` (or `GEMINI_CLI_HOME`): settings, `GEMINI.md`, extensions, MCP servers | `.gemini/` and `GEMINI.md`, as your folder-trust setting decides | The first prompt |
+| OpenCode | `~/.config/opencode`: config, plugins, agents, MCP servers. The run's own `opencode.json` is added beside it | `opencode.json` and `.opencode/`, plugins included. OpenCode has no trust control of its own | The first prompt |
+| deepagents | Your own config and MCP servers, as in your terminal; PrismaLens's tools are added by `--mcp-config` | As deepagents loads it | The first prompt |
+
+A worktree of your local repo keeps the trust you already gave that repo in
+Claude Code and Codex. A repo added by URL is a fresh clone, so the agent
+treats it as a folder it has never seen.
+
+### The environment the agent gets
+
+The agent gets the environment you started `pl up` from, minus PrismaLens's
+own secrets:
+
+- every `PRISMALENS_*` variable, such as the encryption key and the auth and
+  webhook secrets, and their `_FILE` forms;
+- `PROMETHEUS_TOKEN`, `ALERTMANAGER_TOKEN` and `LOKI_TOKEN`, which PrismaLens
+  reads for its own data sources.
+
+They are removed last, after the variables you set for that agent in
+**Settings → Agent**, so a stored value can't bring one back. Everything else
+reaches the agent, GitHub tokens (`GH_TOKEN`, `GITHUB_TOKEN`) included, so
+the agent's own `gh` and `git` work as they do in your terminal. A git host
+token you add to PrismaLens in Settings is never passed on.
+
+With `AWS_PROFILE`, `GH_TOKEN` and `PROMETHEUS_TOKEN` set:
+
+| Variable | Default | **Only pass named variables** on |
+| --- | --- | --- |
+| `AWS_PROFILE` | Reaches the agent | Removed |
+| `GH_TOKEN` | Reaches the agent | Removed |
+| `ANTHROPIC_API_KEY` (a key that agent reads) | Reaches the agent | Reaches the agent |
+| A variable set for the agent in Settings | Reaches the agent | Reaches the agent |
+| `PROMETHEUS_TOKEN`, `PRISMALENS_*` | Removed | Removed |
+
+**Settings → Agent → Environment → Only pass named variables** is the strict
+mode. The agent then gets only the provider keys it reads, the variables you
+set for it in Settings, and a short list from your environment: `PATH`,
+`HOME`, `USER`, `LOGNAME`, `SHELL`, `PWD`, the locale (`LANG`, `LC_ALL`,
+`LC_CTYPE`), `TERM`, `TMPDIR`, `TZ`, the proxy and CA variables
+(`HTTP_PROXY`, `HTTPS_PROXY`, `NO_PROXY`, `SSL_CERT_FILE`, `SSL_CERT_DIR`,
+`NODE_EXTRA_CA_CERTS`, `REQUESTS_CA_BUNDLE`), and the agent config folders
+(`XDG_CONFIG_HOME`, `XDG_DATA_HOME`, `CLAUDE_CONFIG_DIR`, `CODEX_HOME`,
+`GEMINI_CLI_HOME`). Only the host's own browser can change it.
 
 ## How PrismaLens chooses
 
@@ -81,8 +127,8 @@ available on this machine**, and `pl doctor` lists the install commands above.
 The agent uses its own configuration and sign-in, as it would in your terminal:
 `claude /login`, `codex login`, `gemini` and `opencode auth login` carry over.
 Or put the provider key (`ANTHROPIC_API_KEY`, `OPENAI_API_KEY`,
-`GEMINI_API_KEY`) in the environment you start `pl up` from. PrismaLens passes
-only the variables that agent reads and does not read, copy or store the login.
+`GEMINI_API_KEY`) in the environment you start `pl up` from. PrismaLens does
+not read, copy or store the login.
 Your use of an agent is governed by your agreement with its provider. Then check:
 
 ```text
@@ -96,8 +142,8 @@ The other results are `sign in needed`, `no answer in 10s` and
 `failed to start`, each with the agent's own message.
 **Settings → Agent → Check readiness** runs the same check from the app.
 
-The agent does not inherit your whole environment. See
-[Credentials](/trust/#credentials).
+For which variables reach the agent, see
+[The environment the agent gets](#the-environment-the-agent-gets).
 
 ## Permission levels and asks
 

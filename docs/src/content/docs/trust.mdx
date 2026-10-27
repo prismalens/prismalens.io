@@ -10,7 +10,7 @@ agent can reach, what PrismaLens does to limit it, and where those limits stop.
 
 ## The short version
 
-- The agent works in a **copy** of your repository, never in your checkout.
+- The agent works in a **copy** of your repository, never in your checkout. It runs with your own agent setup and your environment, minus PrismaLens's own secrets.
 - Each run has a **permission level**. At **Ask always**, every ask the agent raises waits for your Approve. At the other levels PrismaLens approves what the level allows and logs it. What the agent does without asking is up to its own mode and your settings. Neither is a wall.
 - Fetching a URL or searching the web is a tool call like any other: it asks or runs by the level and the agent's own rules.
 - PrismaLens adds **no sandbox**. A lock on a level means the agent's readiness check saw the agent's own sandbox hold that mode; without one, nothing at the operating-system level blocks a write or a network call.
@@ -173,15 +173,17 @@ Every event sent when telemetry is enabled carries a common platform block, plus
 | Credential | What PrismaLens does |
 | --- | --- |
 | Your agent's login | Never reads, copies or stores it. |
-| Provider keys in your environment, such as `ANTHROPIC_API_KEY` | Passes the keys the chosen agent reads into its environment. Never stores them. |
+| Your environment, provider keys such as `ANTHROPIC_API_KEY` and GitHub tokens such as `GH_TOKEN` included | Passed to the agent as your terminal would, minus PrismaLens's own secrets. Never stored. |
 | A gateway for Claude Code | Set `ANTHROPIC_BASE_URL` and `ANTHROPIC_AUTH_TOKEN`; the model you set in Settings applies to every tier. The URL must be `https://` unless it is on this machine. |
 | Your git login | Asks your credential helper whether it has a login for a host, keeps only the user name to label the clone, and discards the rest. Git uses the login itself. |
 | A git host token you add in Settings | Stores it encrypted and sends it only to git, for its own host, over HTTPS, as a header set through git's environment and never in the URL. Your credential helpers are off for that call. |
-| PrismaLens's own secrets | Generated on first start, stored as owner-only files, never given to the agent. |
+| PrismaLens's own secrets: every `PRISMALENS_*` variable, plus `PROMETHEUS_TOKEN`, `ALERTMANAGER_TOKEN` and `LOKI_TOKEN` for its data sources | The generated ones are made on first start and stored as owner-only files. None is given to the agent: they are removed from its environment after every other layer, so a value set in Settings can't bring one back. |
 
-Apart from those provider keys, the agent gets only `PATH`, `HOME`, `USER`,
-`LOGNAME`, `SHELL`, `PWD`, `LANG`, `LC_ALL`, `LC_CTYPE`, `TERM`, `TMPDIR` and
-`TZ` from your environment.
+Because GitHub tokens reach the agent, it can push, comment or open pull
+requests with them, as it could from your terminal; its permission level and
+your own rules decide whether it asks first. To pass only a named list
+instead, turn on **Settings → Agent → Environment → Only pass named
+variables**. See [The environment the agent gets](/coding-agents/#the-environment-the-agent-gets).
 
 There are no accounts. A browser gets in only by opening a one-time pairing
 link that `pl up` or `pl pair` prints on the host; no address, `localhost`
