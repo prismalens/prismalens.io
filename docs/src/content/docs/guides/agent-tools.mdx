@@ -1,0 +1,108 @@
+---
+title: Tools an agent gets during a run
+description: The PrismaLens tools every run gives its agent, what each one answers, what happens when one fails, how the agent finds more tools, and what PrismaLens records about each call.
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+## Where the tools come from
+
+Every run gives the agent its own small set of PrismaLens tools. They come
+through a private MCP server that is valid only for that run.
+
+The agent's access to your data stays the agent's own setup: metrics, logs,
+cloud and `kubectl`. PrismaLens adds none of it.
+
+## The tools
+
+| Tool | What it answers | Level |
+| --- | --- | --- |
+| `incident_get` | The incident, its alerts, and the deploy and change events from the day before. Without a number, the run's own incident. | read |
+| `investigations_search` | Past investigations, by text. The agent's conclusion is shown apart from the cause the operator recorded, and the operator's wins. | read |
+| `runbooks_list` | The runbooks in the service's bound repos, read at the commit the run saw. | read |
+| `runbooks_read` | The markdown of one listed runbook. | read |
+| `evidence_record` | One observation with its source and a verbatim quote. | record |
+| `hypothesis_record` | A hypothesis with its status, the evidence ids it rests on, and an optional parent. | record |
+
+`evidence_record` looks the quote up itself, in tool output the run saw or in a
+file in the run's workspace. A quote it cannot find is kept as unanchored and
+never counts as verified.
+
+`hypothesis_record` takes one of four statuses: `confirmed`, `supported`,
+`speculative` or `refuted`. Calling it again with the same id updates that
+hypothesis.
+
+## Levels
+
+- A **read** tool only reads what PrismaLens already holds.
+- A **record** tool only adds to this run's own record. It never touches your
+  systems, so it works at every access level, including a run where every ask
+  is refused.
+
+Recorded items appear in the run as they form. The report uses them. A run
+whose agent records nothing still gets a report from its final answer.
+
+## When a tool fails
+
+The agent gets three fields:
+
+- `error`, one of `invalid_input`, `not_found`, `disabled`, `run_ended`,
+  `timeout` or `internal`.
+- `message`, what went wrong.
+- `next`, what to do: retry with a fix, use another tool, or stop.
+
+```json
+{"error":"not_found","message":"PrismaLens has no incident #99.","next":"Call incident_get without number for the incident this run investigates."}
+```
+
+## Finding more tools
+
+PrismaLens can list a small core and let the agent find the rest. The core is
+`incident_get`, `runbooks_read`, the two record tools, `tools_search` and
+`tools_call`.
+
+- `tools_search` takes words and returns the matching tools with their input
+  schemas.
+- `tools_call` runs a found tool by name.
+
+Only read tools are ever behind search. The agent never needs the server to
+announce new tools, so this works with every supported agent.
+
+```text
+agent  tools_search {"query":"past investigations"}
+tool   investigations_search  Past investigations, by text.  (input schema follows)
+
+agent  tools_call {"name":"investigations_search","arguments":{"query":"checkout timeouts"}}
+tool   the matching past investigations
+```
+
+<Aside type="note" title="Search is off for every agent today">
+It is turned on per agent only where it measures fewer tool tokens per run with
+no loss in PrismaLens's agent test suite. With today's six tools, listing them
+all costs about the same.
+</Aside>
+
+## What PrismaLens records about each call
+
+Every call is kept with the run:
+
+- the tool and its input,
+- the text the agent got back,
+- whether it failed,
+- how long it took,
+- which input shape it used.
+
+Recorded calls can be run again for checking.
+
+For example, the agent records one observation:
+
+```text
+agent  evidence_record
+         observation: "p99 rose at 14:02"
+         source:      "kubectl logs api"
+         quote:       "timeout after 30s"
+tool   {"id":"e1","anchor":{...}}
+```
+
+The run then shows the evidence `e1`, and the call is kept with the run as
+described above.
