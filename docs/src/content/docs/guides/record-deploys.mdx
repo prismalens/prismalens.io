@@ -76,7 +76,8 @@ record-deploy:
     - umask 077
     - HEADERS="$(mktemp)"
     - trap 'rm -f "$HEADERS"' EXIT
-    - printf 'Authorization: Bearer %s\n' "$PRISMALENS_WEBHOOK_SECRET" > "$HEADERS"
+    - |
+      printf 'Authorization: Bearer %s\n' "$PRISMALENS_WEBHOOK_SECRET" > "$HEADERS"
     - |
       curl --fail-with-body -X POST "$PRISMALENS_URL/api/webhooks/deploy" \
         -H @"$HEADERS" \
