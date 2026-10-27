@@ -1,15 +1,18 @@
 ---
 title: Run workspaces
-description: Where a run checks out a local repository, how, and what happens to that checkout when the run ends. Global settings, a per-service override field by field, the cleanup rules, and the guards that keep your changes.
+description: Where a run checks out the code, from a folder or a git URL, how, and what happens to that checkout when the run ends. Global settings, a per-service override field by field, the cleanup rules, and the guards that keep your changes.
 ---
 
 import { Aside } from '@astrojs/starlight/components';
 
-When a service's repository is a folder on this machine, a run does not work in
-that folder. It gets its own checkout of the committed code, a **run
-workspace**, so the agent's trust in your repository applies and your working
-copy is never touched. A git URL is always cloned into the run's own folder
-and removed when the run ends; this page is about local folders.
+A run never works in your own copy of the code. It gets its own checkout of the
+committed code, a **run workspace**:
+
+- for a folder on this machine, a checkout of that folder, so the agent's trust
+  in your repository applies and your working copy is never touched;
+- for a git URL, a checkout of the one copy PrismaLens keeps of it. The URL is
+  cloned once, the first time a run or a check needs it, and only fetched after
+  that; every run's checkout comes from that copy.
 
 You decide where run workspaces are made, how, and what happens to them after
 the run. Set it once under **Settings → Runs → Workspace**, and override any
@@ -32,10 +35,13 @@ field for one service in that service's **Workspace** section.
 Each workspace is a folder named `pl-<run id>`. A run over several local
 repositories gets one folder per repository inside it.
 
-- **Worktree** adds a `git worktree` of your repository, locked while the run
-  is going. **Clone** makes a separate clone from the folder.
+- **Worktree** adds a `git worktree` of your folder, or of a git URL's copy,
+  locked while the run is going. **Clone** makes a separate clone of either.
+  A run cannot push through the checkout's `origin`: a URL's copy has a push
+  address that refuses, and a clone of it refuses its local source.
 - **Files to copy in** are copied from your folder after the checkout. They are
-  usually ignored files the code needs, such as `.env`. A path that leaves the
+  usually ignored files the code needs, such as `.env`. A git URL has no folder
+  to copy from. A path that leaves the
   repository, or goes through a link that does, is refused.
 - **Setup** runs in the new workspace before the agent starts. It is cancelled
   after 5 minutes without any output. Its output is in the run's log either way.
@@ -43,7 +49,9 @@ repositories gets one folder per repository inside it.
   seconds and the removal goes ahead.
 - **Branch**: a run reads the code at one commit, so detached is the default. A
   named branch is created in your repository and stays there after the
-  workspace goes.
+  workspace goes. A worktree of a git URL's copy is always detached, because
+  the copy follows the remote's branches exactly; choose Clone to get a named
+  branch for a URL.
 
 Only the computer PrismaLens runs on can change these settings, because setup
 and teardown run commands on it. A paired phone or laptop sees them read-only.
