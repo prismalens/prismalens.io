@@ -14,8 +14,8 @@ editor does.
 | Agent | Command PrismaLens looks for | Install | Tested with | Continue a finished run |
 | --- | --- | --- | --- | --- |
 | OpenCode | `opencode` | `curl -fsSL https://opencode.ai/install \| bash` or `npm i -g opencode-ai` | 1.18.30 | Yes |
-| Claude Code | `claude` | `curl -fsSL https://claude.ai/install.sh \| bash` or `npm i -g @anthropic-ai/claude-code` | 0.81.1 on Claude Code 2.1.296 | Yes |
-| Codex | `codex` | `npm i -g @openai/codex` | 1.13.1 | Yes |
+| Claude Code | `claude` | `curl -fsSL https://claude.ai/install.sh \| bash` or `npm i -g @anthropic-ai/claude-code` | 0.81.1 on Claude Code 2.1.303 | Yes |
+| Codex | `codex` | `npm i -g @openai/codex` | 2.2.2 on Codex 0.156.1 | Yes |
 | Gemini CLI | `gemini` | `npm i -g @google/gemini-cli` | — | Yes |
 | deepagents | `dcode` | `uv tool install -U deepagents-code --with deepagents-acp` | 0.1.75 | Not yet |
 
@@ -29,15 +29,14 @@ Claude Code and Codex speak ACP through an adapter, `claude-agent-acp` and
 itself is all you install: the shipped adapter drives the `claude` or `codex`
 on your `PATH`, with your own sign-in and settings. An adapter you installed
 yourself, on your `PATH`, is used instead. **Settings → Agent** shows each
-agent's own version beside the one PrismaLens tested, and `pl doctor` says
-which adapter a run uses:
+agent's own version beside the one PrismaLens tested, and its **Check** button
+says which adapter a run uses:
 
 ```text
-✔ Harness: Claude Code: Claude Code found at /home/me/.local/bin/claude; runs through the claude-agent-acp PrismaLens ships
-✔ Harness ACP handshake: Claude Code: answers ACP, @agentclientprotocol/claude-agent-acp 0.81.1; signed in
+answers ACP through the adapter PrismaLens ships, @agentclientprotocol/claude-agent-acp 0.81.1
 ```
 
-If Claude Code is not signed in, the handshake line is a warning that says `not signed in`, and a run fails until it is.
+If Claude Code is not signed in, the check says `sign in needed`, and a run fails until it is.
 
 **Continue a finished run** means a message typed under a finished
 investigation reopens the same agent session: the agent keeps its whole
@@ -54,11 +53,12 @@ terminal. PrismaLens drives it; it does not make it safe. See
 
 A run starts the agent as your terminal would, with everything you have
 already set up for it: its sign-in, global instructions, skills and plugins,
-hooks, MCP servers and permission rules. PrismaLens adds to that setup and
-removes nothing. What it adds is its brief, its own tools (one MCP server
-under a name your config can't already hold) and the run's permission level.
-If something you set up conflicts with the brief, the agent's model decides,
-as it would for any two instructions you gave it.
+hooks, MCP servers and permission rules. PrismaLens adds to that setup. What it
+adds is its brief, its own tools (one MCP server under a name your config
+can't already hold) and the run's permission level. It also turns off Claude
+Code's plan-mode tools and nonessential network traffic, and OpenCode's
+session sharing. If something you set up conflicts with the brief, the agent's
+model decides, as it would for any two instructions you gave it.
 
 The incident's repo is loaded the way the agent loads any repo: its settings,
 hooks, MCP servers and instruction files apply, under the agent's own trust
@@ -69,8 +69,8 @@ strip them or set a trust level itself. One adapter does: Codex's, below.
 | --- | --- | --- | --- |
 | Claude Code | `~/.claude` (or `CLAUDE_CONFIG_DIR`): settings, `CLAUDE.md`, plugins, skills, hooks, MCP servers | The committed `.claude/` settings and hooks, `CLAUDE.md` and `.mcp.json` (`settingSources: ["user", "project", "local"]`) | An appended system prompt |
 | Codex | `~/.codex` (or `CODEX_HOME`): `config.toml`, `AGENTS.md`, MCP servers | `.codex/` and `AGENTS.md`. The Codex ACP adapter marks the run's folders trusted, so they load whatever your `config.toml` says about the project | The first prompt |
-| Gemini CLI | `~/.gemini` (or `GEMINI_CLI_HOME`): settings, `GEMINI.md`, extensions, MCP servers | `.gemini/` and `GEMINI.md`, as your folder-trust setting decides | The first prompt |
-| OpenCode | `~/.config/opencode`: config, plugins, agents, MCP servers. Your `OPENCODE_CONFIG_DIR` folder too. The run's own config is added last, through `OPENCODE_CONFIG_CONTENT`, merged over a value you set there | `opencode.json` and `.opencode/`, plugins included. OpenCode has no trust control of its own | The first prompt |
+| Gemini CLI | `.gemini` in your home folder (or in `GEMINI_CLI_HOME`): settings, `GEMINI.md`, extensions, MCP servers | `.gemini/` and `GEMINI.md`, as your folder-trust setting decides. With folder trust on, trust the folder runs work in for Gemini to load PrismaLens's tools | The first prompt |
+| OpenCode | `~/.config/opencode` (under `XDG_CONFIG_HOME`): config, plugins, agents, MCP servers. Your `OPENCODE_CONFIG_DIR` folder too. The run's own config is added last, through `OPENCODE_CONFIG_CONTENT`, merged over a value you set there, which must be a JSON object | `opencode.json` and `.opencode/`, plugins included. OpenCode has no trust control of its own | The first prompt |
 | deepagents | Your own config and MCP servers, as in your terminal; PrismaLens's tools are added by `--mcp-config` | As deepagents loads it | The first prompt |
 
 The copy holds the repo's committed files. A file you keep uncommitted in your
@@ -110,8 +110,8 @@ mode. The agent then gets only the provider keys it reads, the variables you
 set for it in Settings, and a short list from your environment: `PATH`,
 `HOME`, `USER`, `LOGNAME`, `SHELL`, `PWD`, the locale (`LANG`, `LC_ALL`,
 `LC_CTYPE`), `TERM`, `TMPDIR`, `TZ`, the proxy and CA variables
-(`HTTP_PROXY`, `HTTPS_PROXY`, `NO_PROXY`, `SSL_CERT_FILE`, `SSL_CERT_DIR`,
-`NODE_EXTRA_CA_CERTS`, `REQUESTS_CA_BUNDLE`), and the agent config folders
+(`HTTP_PROXY`, `HTTPS_PROXY`, `NO_PROXY` in either case, `SSL_CERT_FILE`,
+`SSL_CERT_DIR`, `NODE_EXTRA_CA_CERTS`, `REQUESTS_CA_BUNDLE`), and the agent config folders
 (`XDG_CONFIG_HOME`, `XDG_DATA_HOME`, `CLAUDE_CONFIG_DIR`, `CODEX_HOME`,
 `GEMINI_CLI_HOME`). Only the host's own browser can change it.
 
@@ -121,8 +121,9 @@ set for it in Settings, and a short list from your environment: `PATH`,
 2. Otherwise the agent chosen in **Settings → Agent**.
 3. Otherwise the first agent in the table above that is on your `PATH`.
 
-If none of these finds an agent, Settings says **No investigation agent is
-available on this machine**, and `pl doctor` lists the install commands above.
+If none of these finds an agent, a run is refused with "No coding agent on
+this machine" and the install commands above, and `pl up` prints "No coding
+agent can run" at start.
 
 ## Signing the agent in
 
@@ -131,18 +132,18 @@ The agent uses its own configuration and sign-in, as it would in your terminal:
 Or put the provider key (`ANTHROPIC_API_KEY`, `OPENAI_API_KEY`,
 `GEMINI_API_KEY`) in the environment you start `pl up` from. PrismaLens does
 not read, copy or store the login.
-Your use of an agent is governed by your agreement with its provider. Then check:
+Your use of an agent is governed by your agreement with its provider. Then
+check: **Settings → Agent → Check** on the agent shows, for OpenCode,
 
 ```text
-$ pl doctor
-✔ Harness ACP handshake: OpenCode: answers ACP
+answers ACP
 ```
 
 `answers ACP` means the agent started and replied. It does not prove the agent
 is signed in: some agents only check that when the first investigation starts.
 The other results are `sign in needed`, `no answer in 10s` and
-`failed to start`, each with the agent's own message.
-**Settings → Agent → Check readiness** runs the same check from the app.
+`failed to start`, each with the agent's own message. `pl doctor` checks
+PrismaLens's own setup, not agents.
 
 For which variables reach the agent, see
 [The environment the agent gets](#the-environment-the-agent-gets).
@@ -167,16 +168,20 @@ What each agent runs at each level:
 
 | Level | Claude Code | Codex | Gemini CLI | OpenCode |
 | --- | --- | --- | --- | --- |
-| Ask always | Manual (`default`) | Ask for approval (`read-only`) | Default (`default`) | its build agent; each tool's catch-all asks |
-| Auto-accept edits | Accept Edits (`acceptEdits`) | Workspace write (`workspace-write`) | Default, as Ask always | build; edits are allowed and other tools ask |
-| Auto | Auto (`auto`); with a model that has no Auto, Accept Edits | Approve for me (`agent`), its own reviewer | Default, as Ask always | build, keeping the Ask always rules: OpenCode has no reviewer of its own |
-| Full access | Bypass Permissions (`bypassPermissions`), or Accept Edits where your settings turn it off | Full access (`agent-full-access`), outside its sandbox | Default, as Ask always | build with each tool's catch-all allowed; your own deny rules stay |
+| Ask always | Manual (`default`) | Read-only (`read-only`) | Default (`default`) | its build agent; each tool's catch-all asks |
+| Auto-accept edits | Accept Edits (`acceptEdits`) | Workspace access (`workspace-write`) | Auto Edit (`autoEdit`) | build; edits are allowed and other tools ask |
+| Auto | Auto (`auto`); with a model that has no Auto, Accept Edits | Auto review (`agent`), its own reviewer | Default, as Ask always | build, keeping the Ask always rules: OpenCode has no reviewer of its own |
+| Full access | Bypass Permissions (`bypassPermissions`), or Accept Edits where your settings turn it off | Full access (`agent-full-access`), outside its sandbox | YOLO (`yolo`) | build with each tool's catch-all allowed; your own deny rules stay |
 
-- **Codex 1.13.1**, the tested version, has no Workspace write. There Ask
-  always and Auto-accept edits run the same mode, Ask for approval, and edits
-  inside the copy need no ask.
-- **Gemini CLI** runs the copy as an untrusted folder, which allows only its
-  Default mode, so every level runs as Ask always.
+- **Codex** is shown by the mode names the tested adapter, 2.2.2, reports;
+  Settings shows the names your agent's own check lists. A `codex-acp` older
+  than 2.0, one you installed yourself, has no Workspace access. There Ask
+  always and Auto-accept edits run the same mode, Read-only, and edits inside
+  the copy need no ask.
+- **Gemini CLI** has no reviewer of its own, so Auto runs its Default mode, as
+  Ask always does. PrismaLens sets no folder trust: Gemini's own folder trust
+  and settings apply, as in your terminal. A mode Gemini does not offer has no
+  fallback, so the run fails before its first prompt.
 - **OpenCode** has per-tool rules, not one mode. A level sets each tool's
   default rule; your other rules in `opencode.json` stay.
 - **deepagents** has no modes; PrismaLens answers its asks by the level.
@@ -197,9 +202,9 @@ setting of its own (see [Runs an alert starts](#runs-an-alert-starts)).
 
 | The run | Settings → Agent | The agent's own default | The level | The chip's tag |
 | --- | --- | --- | --- | --- |
-| You start it | Permission: Full access | any | Full access | From Settings |
-| You start it | Permission: Default | Claude Code `"defaultMode": "acceptEdits"` in `~/.claude/settings.json` | Auto-accept edits | Your default |
-| You start it | Permission: Default | none set | Ask always | PrismaLens default |
+| You start it | Permission: Full access | any | Full access | Set in Settings |
+| You start it | Permission: Default | Claude Code `"defaultMode": "acceptEdits"` in `~/.claude/settings.json` | Auto-accept edits | From your settings file |
+| You start it | Permission: Default | none set | Ask always | PrismaLens's pick |
 | An alert starts it | not read | not read | Auto; every ask beyond reading is refused | |
 
 The agent's own default is read from:
@@ -208,18 +213,18 @@ The agent's own default is read from:
 | --- | --- | --- |
 | Claude Code | `permissions.defaultMode` in `~/.claude/settings.json`, or a managed settings file | `default` (Manual) is Ask always, `acceptEdits` Auto-accept edits, `auto` Auto, `bypassPermissions` Full access |
 | Codex | `sandbox_mode` and `approval_policy` in `~/.codex/config.toml`, or its active profile | With `approval_policy` unset or `on-request`: `read-only` is Ask always, `workspace-write` Auto-accept edits, `danger-full-access` Full access |
-| Gemini CLI | `general.defaultApprovalMode` in `~/.gemini/settings.json` | `default` is Ask always; other values cannot apply to an untrusted folder |
+| Gemini CLI | `general.defaultApprovalMode` in `~/.gemini/settings.json` (under `GEMINI_CLI_HOME` when set), or on Linux `/etc/gemini-cli/settings.json` | `default` is Ask always, `auto_edit` Auto-accept edits, `yolo` Full access; `plan` has no level |
 | OpenCode, deepagents | not read | Ask always |
 
-The Permission row says which applies, for example `Your default: Auto-accept
-edits, from ~/.claude/settings.json ("acceptEdits").` or `Ask always,
-PrismaLens default. No default set in ~/.codex/config.toml.`
+The Permission row says which applies, for example `Auto-accept edits, from
+~/.claude/settings.json ("acceptEdits").` or `Ask always, PrismaLens's pick. No
+level set in ~/.codex/config.toml.`
 
 ### Runs an alert starts
 
 Nobody is watching a run an alert starts, so it never stops to wait for a
 person. The agent runs in its own Auto mode (Claude Code's Auto, Codex's
-Approve for me), reads run as usual, and anything else it would ask you is
+Auto review), reads run as usual, and anything else it would ask you is
 refused at once. The agent carries on without it, and the transcript keeps a
 line for each refusal, such as "Refused, nobody was there to approve: Write
 /tmp/pl-walk-write.txt". OpenCode, Gemini CLI and deepagents have no reviewer
