@@ -122,10 +122,10 @@ app's own copy. Only one runs at a time.
 
 ### Check a download yourself
 
-A release's `SHA256SUMS` lists the release files, and GitHub Actions makes one
-build-provenance attestation over that list. Releases after 0.5.2 list every file:
-the archives, the desktop zips, the two install scripts and the SBOM. 0.5.2 and
-earlier list only the `prismalens-*` archives. Download `SHA256SUMS` beside the
+A release's `SHA256SUMS` lists every file it ships (the archives, the desktop
+zips, the two install scripts and the SBOM) with a build-provenance attestation
+over that list; older releases list only the `prismalens-*` archives, so a file
+missing from the list there is expected. Download `SHA256SUMS` beside the
 file, then check both, here with the [GitHub CLI](https://cli.github.com):
 
 ```console
@@ -152,7 +152,7 @@ https://slsa.dev/provenance/v1
 looks up the packages bundled inside the tarball on the registry, where they are not
 published, and stops with a 404.
 
-Releases after 0.5.2 also carry `prismalens-<version>.cdx.json`, a CycloneDX SBOM of
+Releases also carry `prismalens-<version>.cdx.json`, a CycloneDX SBOM of
 the installed tree.
 
 ## Upgrade
