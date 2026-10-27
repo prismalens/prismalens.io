@@ -97,8 +97,9 @@ Linux the window's menu bar is hidden; press <kbd>Alt</kbd> to show it.
 ### Run the desktop app's PrismaLens inside WSL
 
 On Windows, the desktop app can connect to a `pl` already running inside a WSL
-distro instead of running its own copy. The distro must have `bash`; a distro
-without `bash` is refused with the reason shown next to its name.
+distro instead of running its own copy. The distro must have `bash`. The app
+checks a distro when you pick it: one that fails is not saved, and the reason,
+such as `no bash`, shows next to its name in the menu.
 
 Install PrismaLens in the distro first (the Linux tab above), so `pl` is on its
 login shell's `PATH`. Then, from the tray icon's menu:
@@ -113,7 +114,7 @@ the service in the distro yourself. When WSL mode is on:
 | In the distro | The app |
 | --- | --- |
 | `pl up` or the service is already running | opens a window on it |
-| nothing is running | shows a dialog asking to run `pl up` or the service |
+| nothing is running | shows a dialog: run `pl up` there, or `pl service install` once, then Retry |
 
 If the saved distro fails at launch, the app offers to run on Windows instead,
 retry, or quit.
