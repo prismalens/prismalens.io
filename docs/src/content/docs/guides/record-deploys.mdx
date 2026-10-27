@@ -1,60 +1,65 @@
 ---
 title: Record deploys
-description: Tell PrismaLens what shipped and when, from CI with one command or from GitHub Deployments, so an investigation can see the deploy next to the alert.
+description: Tell PrismaLens what shipped and when, from CI with one authenticated request or from GitHub Deployments, so an investigation can see the deploy next to the alert.
 ---
 
 A deploy is often the answer to "what changed". PrismaLens lists deploys with
 commits under what changed, newest first. There are two ways to get them in.
 
-## From CI: `prismalens deploy`
+## From CI: the deploy webhook
 
-Run it as the last step of a deploy job:
+Run one authenticated request as the last step of a deploy job. It is
+`POST /api/webhooks/deploy`, with the instance's
+[webhook token](/guides/alerts/#the-webhook-token) as `Authorization: Bearer`
+and a JSON body:
 
-```bash
-prismalens deploy --service web --version "$(git rev-parse HEAD)" --env production
-```
-
-| Flag | Default | What it does |
+| Field | Default | What it does |
 | --- | --- | --- |
-| `--service <name>` | required | The service's name, as listed under **Services** |
-| `--version <v>` | required | The commit sha or tag that was deployed |
-| `--env <name>` | `production` | The environment deployed to |
-| `--status <s>` | `succeeded` | `succeeded`, `failed` or `started` |
-| `--url <url>` | none | A link to the deploy run or release |
-| `--actor <who>` | none | Who or what deployed |
-| `--sha <sha>` | none | The commit sha, when `--version` is a tag |
-| `--server <url>` | `PRISMALENS_URL`, else `http://localhost:6473` | The instance to record on |
-| `--secret <secret>` | `PRISMALENS_WEBHOOK_SECRET` | The instance's [webhook token](/guides/alerts/#the-webhook-token) |
+| `service` | required | The service's name, as listed under **Services** |
+| `version` | required | The commit sha or tag that was deployed |
+| `environment` | `production` | The environment deployed to |
+| `status` | `succeeded` | `succeeded`, `failed` or `started` |
+| `url` | none | A link to the deploy run or release |
+| `actor` | none | Who or what deployed |
+| `sha` | none | The commit sha, when `version` is a tag |
+| `timestamp` | when received | When it happened, as an ISO 8601 date with offset |
 
-It prints `Recorded web <version>.`, or `Already recorded web <version>.` when
-that service, environment, version and status was recorded before, so a retried
-job adds nothing. An unknown service is an error that names it, and a wrong
-token says the instance refused the secret.
-
-### The endpoint
-
-The command posts JSON to `POST /api/webhooks/deploy`, with the webhook token
-as `Authorization: Bearer`. Any sender that can do that works without the CLI:
+The reply carries `created: false` when that service, environment, version and
+status was recorded before, so a retried job adds nothing. An unknown service
+is a 404 that names it, and a wrong token is refused.
 
 ```bash
-curl -X POST "$PRISMALENS_URL/api/webhooks/deploy" \
-  -H "Authorization: Bearer $PRISMALENS_WEBHOOK_SECRET" \
+umask 077
+HEADERS="$(mktemp)"
+trap 'rm -f "$HEADERS"' EXIT
+printf 'Authorization: Bearer %s\n' "$PRISMALENS_WEBHOOK_SECRET" > "$HEADERS"
+
+curl --fail-with-body -X POST "$PRISMALENS_URL/api/webhooks/deploy" \
+  -H @"$HEADERS" \
   -H "Content-Type: application/json" \
   -d "{\"service\":\"web\",\"version\":\"$(git rev-parse HEAD)\",\"environment\":\"production\"}"
 ```
 
-The reply carries `created: false` for a repeat. The body fields are `service`,
-`version`, `environment`, `status`, `url`, `actor` and `sha`, as the flags.
+`--fail-with-body` makes `curl` exit nonzero on an HTTP error and still print
+the reply, so a rejected deploy fails the job instead of passing silently. The
+token goes through a private file rather than the command line, where a
+process listing on a shared runner could show it. Both flags need a recent
+`curl` (`--fail-with-body` needs 7.76).
 
 ### GitHub Actions
 
 Store `PRISMALENS_URL` and `PRISMALENS_WEBHOOK_SECRET` as repository secrets.
 
 ```yaml
-- run: >
-    npx prismalens deploy --service web --version ${{ github.sha }}
-    --env production
-    --url ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+- run: |
+    umask 077
+    HEADERS="$(mktemp)"
+    trap 'rm -f "$HEADERS"' EXIT
+    printf 'Authorization: Bearer %s\n' "$PRISMALENS_WEBHOOK_SECRET" > "$HEADERS"
+    curl --fail-with-body -X POST "$PRISMALENS_URL/api/webhooks/deploy" \
+      -H @"$HEADERS" \
+      -H "Content-Type: application/json" \
+      -d "{\"service\":\"web\",\"version\":\"$GITHUB_SHA\",\"environment\":\"production\",\"url\":\"$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID\"}"
   env:
     PRISMALENS_URL: ${{ secrets.PRISMALENS_URL }}
     PRISMALENS_WEBHOOK_SECRET: ${{ secrets.PRISMALENS_WEBHOOK_SECRET }}
@@ -68,18 +73,21 @@ Set the same two as CI/CD variables.
 record-deploy:
   stage: deploy
   script:
-    - npx prismalens deploy --service web --version $CI_COMMIT_SHA --env production --url $CI_PIPELINE_URL
+    - umask 077
+    - HEADERS="$(mktemp)"
+    - trap 'rm -f "$HEADERS"' EXIT
+    - printf 'Authorization: Bearer %s\n' "$PRISMALENS_WEBHOOK_SECRET" > "$HEADERS"
+    - |
+      curl --fail-with-body -X POST "$PRISMALENS_URL/api/webhooks/deploy" \
+        -H @"$HEADERS" \
+        -H "Content-Type: application/json" \
+        -d "{\"service\":\"web\",\"version\":\"$CI_COMMIT_SHA\",\"environment\":\"production\",\"url\":\"$CI_PIPELINE_URL\"}"
 ```
 
 ### Any shell
 
-```bash
-PRISMALENS_URL=https://pl.example \
-PRISMALENS_WEBHOOK_SECRET=... \
-prismalens deploy --service web --version "$(git rev-parse HEAD)"
-```
-
-The instance must be reachable from where the job runs. See
+Run the `curl` block above with the two variables set. The instance must be
+reachable from where the job runs. See
 [Opening it from other devices](/guides/devices/).
 
 ## From GitHub Deployments
