@@ -120,11 +120,11 @@ app's own copy. Only one runs at a time.
 
 ### Check a download yourself
 
-Every file on a release, the archives, the desktop zips, the two install scripts
-and the SBOM, is listed in that release's `SHA256SUMS`. GitHub Actions builds them
-and makes one build-provenance attestation over that list. Download `SHA256SUMS`
-beside the file, then check both, here with the
-[GitHub CLI](https://cli.github.com):
+A release's `SHA256SUMS` lists the release files, and GitHub Actions makes one
+build-provenance attestation over that list. Releases after 0.5.2 list every file:
+the archives, the desktop zips, the two install scripts and the SBOM. 0.5.2 and
+earlier list only the `prismalens-*` archives. Download `SHA256SUMS` beside the
+file, then check both, here with the [GitHub CLI](https://cli.github.com):
 
 ```console
 $ sha256sum -c SHA256SUMS --ignore-missing
@@ -134,9 +134,12 @@ $ gh attestation verify prismalens-0.5.2-linux-x64.tar.gz --repo prismalens/pris
 https://slsa.dev/provenance/v1
 ```
 
-On macOS, `shasum -a 256 -c SHA256SUMS --ignore-missing` does the same as `sha256sum`.
+`--ignore-missing` skips a file it cannot find without saying so. Go on only when
+your file's name appears above with `OK`. On macOS, `shasum -a 256 -c SHA256SUMS
+--ignore-missing` does the same as `sha256sum`.
 
-The npm package is published with npm provenance:
+The npm package is published with npm provenance. This reads the registry's
+metadata and shows the attestation is there; it does not verify it:
 
 ```console
 $ npm view prismalens@0.5.2 dist.attestations.provenance.predicateType
@@ -147,8 +150,8 @@ https://slsa.dev/provenance/v1
 looks up the packages bundled inside the tarball on the registry, where they are not
 published, and stops with a 404.
 
-Each release also carries `prismalens-<version>.cdx.json`, a CycloneDX SBOM of the
-installed tree.
+Releases after 0.5.2 also carry `prismalens-<version>.cdx.json`, a CycloneDX SBOM of
+the installed tree.
 
 ## Upgrade
 
