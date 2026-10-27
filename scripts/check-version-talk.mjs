@@ -22,13 +22,21 @@ for (const file of files) {
 	readFileSync(file, 'utf8')
 		.split(/\r?\n/)
 		.forEach((line, i) => {
-			const open = line.match(/^\s*(`{3,}|~{3,})/);
+			const open = line.match(/^(\s*)(`{3,}|~{3,})(.*)$/);
 			if (fence) {
-				if (open && open[1][0] === fence[0] && open[1].length >= fence.length) fence = null;
+				// CommonMark closer: opener's marker, at least its length, at most 3 spaces deeper, only blanks after.
+				if (
+					open &&
+					open[2][0] === fence.marker[0] &&
+					open[2].length >= fence.marker.length &&
+					open[1].length <= fence.indent + 3 &&
+					/^[ \t]*$/.test(open[3])
+				)
+					fence = null;
 				return;
 			}
 			if (open) {
-				fence = open[1];
+				fence = { marker: open[2], indent: open[1].length };
 				return;
 			}
 			const prose = line.replace(/(`+)[^`]*?\1/g, '');
