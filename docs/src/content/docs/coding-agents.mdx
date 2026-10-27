@@ -70,7 +70,7 @@ strip them or set a trust level itself. One adapter does: Codex's, below.
 | Claude Code | `~/.claude` (or `CLAUDE_CONFIG_DIR`): settings, `CLAUDE.md`, plugins, skills, hooks, MCP servers | The committed `.claude/` settings and hooks, `CLAUDE.md` and `.mcp.json` (`settingSources: ["user", "project", "local"]`) | An appended system prompt |
 | Codex | `~/.codex` (or `CODEX_HOME`): `config.toml`, `AGENTS.md`, MCP servers | `.codex/` and `AGENTS.md`. The Codex ACP adapter marks the run's folders trusted, so they load whatever your `config.toml` says about the project | The first prompt |
 | Gemini CLI | `~/.gemini` (or `GEMINI_CLI_HOME`): settings, `GEMINI.md`, extensions, MCP servers | `.gemini/` and `GEMINI.md`, as your folder-trust setting decides | The first prompt |
-| OpenCode | `~/.config/opencode`: config, plugins, agents, MCP servers. The run's own `opencode.json` is added through `OPENCODE_CONFIG_DIR`, which replaces a folder you set there yourself | `opencode.json` and `.opencode/`, plugins included. OpenCode has no trust control of its own | The first prompt |
+| OpenCode | `~/.config/opencode`: config, plugins, agents, MCP servers. Your `OPENCODE_CONFIG_DIR` folder too. The run's own config is added last, through `OPENCODE_CONFIG_CONTENT`, merged over a value you set there | `opencode.json` and `.opencode/`, plugins included. OpenCode has no trust control of its own | The first prompt |
 | deepagents | Your own config and MCP servers, as in your terminal; PrismaLens's tools are added by `--mcp-config` | As deepagents loads it | The first prompt |
 
 The copy holds the repo's committed files. A file you keep uncommitted in your
