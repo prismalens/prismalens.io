@@ -67,15 +67,17 @@ strip them or force a trust setting either way.
 
 | Agent | From your setup | From the repo | PrismaLens's brief goes in |
 | --- | --- | --- | --- |
-| Claude Code | `~/.claude` (or `CLAUDE_CONFIG_DIR`): settings, `CLAUDE.md`, plugins, skills, hooks, MCP servers | Project and local settings, hooks, `CLAUDE.md`, `.mcp.json` (`settingSources: ["user", "project", "local"]`) | An appended system prompt |
-| Codex | `~/.codex` (or `CODEX_HOME`): `config.toml`, `AGENTS.md`, MCP servers | `.codex/` and `AGENTS.md`, if your `config.toml` trusts the project | The first prompt |
+| Claude Code | `~/.claude` (or `CLAUDE_CONFIG_DIR`): settings, `CLAUDE.md`, plugins, skills, hooks, MCP servers | The committed `.claude/` settings and hooks, `CLAUDE.md` and `.mcp.json` (`settingSources: ["user", "project", "local"]`) | An appended system prompt |
+| Codex | `~/.codex` (or `CODEX_HOME`): `config.toml`, `AGENTS.md`, MCP servers | `.codex/` and `AGENTS.md`. The Codex ACP adapter marks the run's folders trusted, so they load whatever your `config.toml` says about the project | The first prompt |
 | Gemini CLI | `~/.gemini` (or `GEMINI_CLI_HOME`): settings, `GEMINI.md`, extensions, MCP servers | `.gemini/` and `GEMINI.md`, as your folder-trust setting decides | The first prompt |
 | OpenCode | `~/.config/opencode`: config, plugins, agents, MCP servers. The run's own `opencode.json` is added beside it | `opencode.json` and `.opencode/`, plugins included. OpenCode has no trust control of its own | The first prompt |
 | deepagents | Your own config and MCP servers, as in your terminal; PrismaLens's tools are added by `--mcp-config` | As deepagents loads it | The first prompt |
 
-A worktree of your local repo keeps the trust you already gave that repo in
-Claude Code and Codex. A repo added by URL is a fresh clone, so the agent
-treats it as a folder it has never seen.
+The copy holds the repo's committed files. A file you keep uncommitted in your
+checkout, such as `.claude/settings.local.json`, is not in it. A worktree of
+your local repo keeps the trust you already gave that repo in Claude Code. A
+repo added by URL is a fresh clone, so the agent treats it as a folder it has
+never seen.
 
 ### The environment the agent gets
 
