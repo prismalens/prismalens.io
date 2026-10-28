@@ -11,13 +11,17 @@ editor does.
 
 ## Supported agents
 
-| Agent | Command PrismaLens looks for | Install | Tested with | Continue a finished run |
-| --- | --- | --- | --- | --- |
-| OpenCode | `opencode` | `curl -fsSL https://opencode.ai/install \| bash` or `npm i -g opencode-ai` | 1.18.30 | Yes |
-| Claude Code | `claude` | `curl -fsSL https://claude.ai/install.sh \| bash` or `npm i -g @anthropic-ai/claude-code` | 0.81.1 on Claude Code 2.1.296 | Yes |
-| Codex | `codex` | `npm i -g @openai/codex` | 1.13.1 | Yes |
-| Gemini CLI | `gemini` | `npm i -g @google/gemini-cli` | — | Yes |
-| deepagents | `dcode` | `uv tool install -U deepagents-code --with deepagents-acp` | 0.1.75 | Not yet |
+| Agent | Command PrismaLens looks for | Install | Tested with | Continue a finished run | Takes PrismaLens tools |
+| --- | --- | --- | --- | --- | --- |
+| OpenCode | `opencode` | `curl -fsSL https://opencode.ai/install \| bash` or `npm i -g opencode-ai` | 1.18.30 | Yes | Yes¹ |
+| Claude Code | `claude` | `curl -fsSL https://claude.ai/install.sh \| bash` or `npm i -g @anthropic-ai/claude-code` | 0.81.1 on Claude Code 2.1.296 | Yes | Yes¹ |
+| Codex | `codex` | `npm i -g @openai/codex` | 1.13.1 | Yes | Yes¹ |
+| Gemini CLI | `gemini` | `npm i -g @google/gemini-cli` | — | Yes | Yes¹ |
+| deepagents | `dcode` | `uv tool install -U deepagents-code --with deepagents-acp` | 0.1.75 | Not yet | Yes¹ |
+
+**Takes PrismaLens tools** is whether the agent is given the [gateway](/guides/investigation-data/#which-agents-take-the-tools): every agent is, deepagents through a config file for the run and the rest over ACP.
+
+¹ An agent can skip the server PrismaLens offers when your own agent config already has an MCP server named `prismalens`. The run then says the agent did not load PrismaLens tools; rename yours.
 
 **Tested with** is the version that completed an unattended investigation in
 PrismaLens's CI: it started in the right folder, finished on its own and
@@ -61,8 +65,8 @@ trust, so PrismaLens turns off what each agent lets it:
 | --- | --- |
 | Claude Code | Your own `~/.claude/settings.json` applies (`settingSources: ["user"]`). The repo's project settings, hooks and `CLAUDE.md` stay off. |
 | OpenCode | Not loaded. The repo's `opencode.json` is ignored. |
-| Gemini CLI | Not loaded. The repo is an untrusted folder (`GEMINI_CLI_TRUST_WORKSPACE=false`), so `.gemini/settings.json`, `.env` files and `GEMINI.md` are ignored. |
-| deepagents | MCP servers are not started (`--no-mcp`). |
+| Gemini CLI | The run's copy is trusted (`GEMINI_CLI_TRUST_WORKSPACE=true`) so PrismaLens's MCP servers load alongside your own, and, as when you run Gemini in the repo yourself, it reads the repo's `.env`. The repo's `.gemini` folders and `GEMINI.md` files are removed from the run's copy. |
+| deepagents | Your own MCP servers load as in your terminal; PrismaLens adds its own with `--mcp-config`. |
 | Codex | Loaded as in your terminal. PrismaLens turns nothing off. |
 
 Your own configuration for the agent is untouched either way. For Claude Code that means your allow and deny rules, sandbox setting, hooks and `env` in `~/.claude/settings.json` apply, as they do in your terminal.
@@ -272,8 +276,8 @@ On Claude Code an added model reaches the agent through
 environment names the model with `ANTHROPIC_MODEL`, the Agent default row reads
 "`<model>`, from your environment".
 
-Upgrading from 0.5.0 drops the single shared model setting. Enter the model
-again for each agent that needs one.
+There is no single shared model setting. Enter the model for each agent that
+needs one.
 
 ### Correcting the catalogue between releases
 

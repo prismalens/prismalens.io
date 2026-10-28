@@ -89,7 +89,9 @@ scoop install prismalens
 Download the zip for your OS from the
 [latest release](https://github.com/prismalens/prismalens/releases/latest). It
 is a preview and unsigned, so your OS warns before opening it. On Windows and
-Linux the window's menu bar is hidden; press <kbd>Alt</kbd> to show it.
+Linux the window's menu bar is hidden; press <kbd>Alt</kbd> to show it. While
+PrismaLens starts, a small window reads "Starting…". It closes when the app's
+window opens, or when PrismaLens fails to start.
 
 </TabItem>
 </Tabs>
@@ -125,12 +127,38 @@ to the app's own copy. Only one runs at a time.
 
 ### Check a download yourself
 
-Every archive is built in GitHub Actions and attested. With the
-[GitHub CLI](https://cli.github.com):
+A release's `SHA256SUMS` lists every file it ships (the archives, the desktop
+zips, the two install scripts and the SBOM) with a build-provenance attestation
+over that list; older releases list only the `prismalens-*` archives and carry
+no SBOM, so a file missing from the list there is expected. Download `SHA256SUMS` beside the
+file, then check both, here with the [GitHub CLI](https://cli.github.com):
 
-```bash
-gh attestation verify prismalens-0.5.1-darwin-arm64.tar.gz --repo prismalens/prismalens
+```console
+$ sha256sum -c SHA256SUMS --ignore-missing
+prismalens-0.5.2-linux-x64.tar.gz: OK
+
+$ gh attestation verify prismalens-0.5.2-linux-x64.tar.gz --repo prismalens/prismalens --format json --jq '.[0].verificationResult.statement.predicateType'
+https://slsa.dev/provenance/v1
 ```
+
+`--ignore-missing` skips a file it cannot find without saying so. Go on only when
+your file's name appears above with `OK`. On macOS, `shasum -a 256 -c SHA256SUMS
+--ignore-missing` does the same as `sha256sum`.
+
+The npm package is published with npm provenance. This reads the registry's
+metadata and shows the attestation is there; it does not verify it:
+
+```console
+$ npm view prismalens@0.5.2 dist.attestations.provenance.predicateType
+https://slsa.dev/provenance/v1
+```
+
+`npm audit signatures` does not work on a project that installed `prismalens`: it
+looks up the packages bundled inside the tarball on the registry, where they are not
+published, and stops with a 404.
+
+Current releases also carry `prismalens-<version>.cdx.json`, a CycloneDX SBOM of
+the installed tree; older ones do not.
 
 ## Upgrade
 

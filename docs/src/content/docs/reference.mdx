@@ -5,7 +5,8 @@ description: The pl commands, the environment variables worth knowing, the limit
 
 ## Commands
 
-PrismaLens has five commands: `up`, `pair`, `reset`, `doctor` and `upgrade`.
+PrismaLens has six commands: `up`, `pair`, `reset`, `doctor`, `upgrade` and
+`service`.
 `prismalens` and `pl` are the same binary.
 
 ### `pl up`
@@ -73,7 +74,22 @@ the same flags.
 
 Upgrades PrismaLens the way it was installed: npm, the installer, Homebrew or
 Scoop. `--check` only says whether a newer version exists; `--version <v>`
-installs that version. See [Upgrade](/install/#upgrade).
+installs that version. With a background service installed, the new version
+runs on trial and is rolled back, database included, if it doesn't come up;
+`--trial-seconds <n>` sets how long it has (default 120). See
+[Upgrade](/install/#upgrade).
+
+### `pl service`
+
+Runs PrismaLens in the background for your user: systemd on Linux, launchd on
+macOS. See [Background service](/guides/background-service/).
+
+| Subcommand | What it does |
+| --- | --- |
+| `pl service install` | Installs and starts the service. Takes `--port`, `--host`, `--workspace` and `--tailscale-serve`, as `pl up` does. Running it again replaces the service. |
+| `pl service status` | Says whether the service is installed and running. |
+| `pl service restart` | Restarts the service. |
+| `pl service uninstall` | Stops the service and removes it. The workspace and its data stay. |
 
 ## Environment variables
 
