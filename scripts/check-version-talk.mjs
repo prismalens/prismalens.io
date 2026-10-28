@@ -35,7 +35,8 @@ for (const file of files) {
 					fence = null;
 				return;
 			}
-			if (open) {
+			// CommonMark: a backtick fence's info string cannot contain a backtick.
+			if (open && !(open[2][0] === '`' && open[3].includes('`'))) {
 				fence = { marker: open[2], indent: open[1].length };
 				return;
 			}
