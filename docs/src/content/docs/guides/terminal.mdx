@@ -1,0 +1,80 @@
+---
+title: The terminal
+description: Where the terminal runs, who can open one, and how Run in terminal waits for you before anything runs.
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+The terminal is a shell on the machine PrismaLens runs on, in a panel at the
+bottom of the app. Commands the app shows you, such as a fix the agent
+suggests or `pl doctor`, also get a **Run in terminal** button beside
+**Copy**.
+
+## Where it runs
+
+Every terminal runs on the host: the machine running `pl up`, `pl service` or
+the desktop app's backend. It runs as the same user, in that user's home
+folder, with their usual shell: the login shell on macOS and Linux, PowerShell
+on Windows. It gets that user's environment, minus PrismaLens's own secrets
+(every `PRISMALENS_*` variable), the same environment an agent gets.
+
+A shell lasts as long as its tab. Closing the tab, reloading the page or
+revoking the device ends it.
+
+## Who can open one
+
+Only the host's own browser and the desktop app can open a terminal. A device
+paired over Tailscale reaches the same app, but a terminal there would be a
+shell on the host, so it gets **Copy** instead.
+
+| Where you open PrismaLens | Terminal | Commands |
+| --- | --- | --- |
+| The browser `pl up` opened, or one you opened with a link from `pl pair --operator` | Yes | Run in terminal and Copy |
+| The desktop app | Yes | Run in terminal and Copy |
+| Another browser on the host | No, the panel tells you to run `pl pair --operator` | Copy |
+| A laptop or second computer paired over Tailscale | No, the panel says the terminal opens only on the host | Copy |
+| A phone | No terminal panel | Copy |
+
+A browser on the host qualifies when all three of these hold:
+
+1. **It holds this machine's own session**, the one a link from `pl up` or
+   `pl pair --operator` gives. A link from `pl pair --tailscale` pairs a device
+   that can run investigations but never open a terminal.
+2. **It reaches PrismaLens directly**, at `localhost` or `127.0.0.1` on its
+   own port. A request that arrives through `tailscale serve` or another proxy
+   is refused, even with the host's session.
+3. **It has the terminal key.** PrismaLens hands the key to the browser that
+   opens the link on the host itself, and the browser keeps it for that
+   address only. The desktop app keeps its own.
+
+For example, with `pl up --tailscale-serve` running on a box:
+
+- On the box, the browser `pl up` opened gets a terminal.
+- On your laptop, `https://box.tail1234.ts.net` shows the same incidents, and
+  the terminal panel reads "The terminal opens only on the host".
+- On the box again, a second browser shows "This browser can't open the
+  terminal yet". Run `pl pair --operator` and open the link there.
+
+A browser that was paired before the terminal existed gets its key the next
+time it opens a link from `pl up` or `pl pair --operator`, without pairing
+again.
+
+## Run in terminal
+
+**Run in terminal** puts the command in a line under the shell. Nothing
+reaches the shell until you press <kbd>Enter</kbd> or select **Run**:
+
+```text
+PS C:\Users\you>
+Run in Terminal   kubectl -n prod rollout undo deployment/checkout-api   Enter runs it. Esc discards it.   [Run]
+```
+
+You can edit the command in that line first. <kbd>Esc</kbd> discards it. A
+command that contains a control character, such as a tab or a line break,
+only gets **Copy**: PrismaLens doesn't stage text whose effect in a shell can
+differ from what you read.
+
+<Aside>
+The terminal treats every account on the host as trusted, as local developer
+tools do. It is meant for a machine you run PrismaLens on for yourself.
+</Aside>
