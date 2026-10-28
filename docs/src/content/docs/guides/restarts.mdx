@@ -107,8 +107,7 @@ running PrismaLens can change it; a paired device shows it but can't switch it.
 | Agent | How the run carries on |
 | --- | --- |
 | Claude Code, Codex, OpenCode | The agent reopens the same session. Its own record shows the cut-off command as interrupted. |
-| Deep Agents (dcode) | The agent reloads the same session. History it sends back is not shown again. |
-| Gemini CLI | A fresh session, handed the run's conversation from PrismaLens's record. Tool output past the handoff's budget stays in `.prismalens-handoff/transcript.md` in the workspace. |
+| Gemini CLI, Deep Agents | A fresh session, handed the run's conversation from PrismaLens's record. Tool output past the handoff's budget stays in `.prismalens-handoff/transcript.md` in the workspace. |
 
 <Aside>
 The session lives with the agent, on the computer that runs PrismaLens. When
