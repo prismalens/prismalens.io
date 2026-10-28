@@ -1,16 +1,16 @@
 ---
 title: The run panel
-description: The panel beside a run, its Files and Changes tabs, how the comparison in Changes is chosen, and how the panel behaves on a narrow window and a phone.
+description: The panel beside a run, its Files, Changes and Browser tabs, how the comparison in Changes is chosen, and how the panel behaves on a narrow window and a phone.
 ---
 
 import { Aside } from '@astrojs/starlight/components';
 
 A run's page has a panel beside the transcript. The details icon in the
-header opens it, and its close button or **Esc** closes it. It holds five
-tabs: **Summary**, **Files**, **Changes**, **Steps** and **Context**.
-Summary, Steps and Context are described on
-[Runs and questions](/guides/runs/#run-details). This page covers Files and
-Changes, and the panel itself.
+header opens it, and its close button or **Esc** closes it. It holds six
+tabs: **Summary**, **Files**, **Changes**, **Steps**, **Context** and
+**Browser**. Summary, Steps and Context are described on
+[Runs and questions](/guides/runs/#run-details). This page covers Files,
+Changes and Browser, and the panel itself.
 
 Everything in the panel is read-only. It reads the code the run recorded:
 each repository at the commit the run started from, out of the folder or
@@ -78,6 +78,25 @@ to draw names its files only.
 A run started before this view existed recorded no pair, and Changes says
 so. Investigate again to get one.
 </Aside>
+
+## Browser
+
+**Browser** lists the pages the run's alerts and report link: an alert's
+page in the tool that sent it, a dashboard, a runbook, a release.
+
+In the desktop app, **Open here** loads a page beside the run, with back,
+forward, reload and an address bar. Any http or https address works,
+including `localhost` and addresses on your network. The button at the end
+of the address bar opens the page in your own browser.
+
+The page runs apart from PrismaLens. It is not signed in to PrismaLens, it
+cannot reach PrismaLens itself, and it keeps nothing after you close the
+app: no cookies, no history, no downloads. It is refused any permission it
+asks for, such as your location or camera. A link it tries to open in a new
+window opens in your own browser instead.
+
+In a web browser or on a phone, there is no built-in browser: each link
+opens in a new tab.
 
 ## Sizing the panel
 
