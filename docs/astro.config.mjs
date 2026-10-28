@@ -91,6 +91,7 @@ export default defineConfig({
 						{ label: 'Resolving and reopening', slug: 'guides/incident-lifecycle' },
 						{ label: 'Opening it from other devices', slug: 'guides/devices' },
 						{ label: 'Run in the background', slug: 'guides/background-service' },
+						{ label: 'When PrismaLens restarts', slug: 'guides/restarts' },
 						{ label: 'Reading the report', slug: 'guides/reports' },
 					],
 				},
