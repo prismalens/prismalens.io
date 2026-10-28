@@ -24,12 +24,14 @@ editor does.
 during a run: every agent does, deepagents through a config file for the run
 and the rest over ACP.
 
-**Tested with** is the version PrismaLens's CI installs and checks on every
-change: the real agent, at that version, runs every check in
+**Tested with** is the version PrismaLens last recorded as passing the checks in
 [the behaviour matrix](#what-ci-checks-on-every-agent) against a scripted model.
-The version changes only through a pull request that passes the same checks on
-the new one. A dash means no version has passed them yet; the agent is still
-supported and selectable.
+For OpenCode, Claude Code and Codex it is the version CI installs and runs on
+every change, and it changes only through a pull request that passes the same
+checks on the new one. deepagents's 0.1.75 is an earlier recorded run: CI now
+runs it, and Gemini CLI, on the versions pinned in the repository's
+`scripts/agent-pins.json`. A dash means no version has passed them yet; the
+agent is still supported and selectable.
 
 **Tier** is what a red check on that agent does to a release:
 
@@ -142,8 +144,8 @@ set for it in Settings, and a short list from your environment: `PATH`,
 
 ## What CI checks on every agent
 
-Every change to PrismaLens runs each supported agent, at its **Tested with**
-version, through one list of checks. The agent is real; its model is scripted,
+Every change to PrismaLens runs each supported agent, at the version CI pins,
+through one list of checks. The agent is real; its model is scripted,
 so every check gets the same answers each time and costs nothing. Each check
 runs three times and the three must agree. A check passes on what PrismaLens
 saw (its events, and the files and processes the run left), never on the
@@ -152,7 +154,7 @@ model's words.
 | Check | What PrismaLens must see | OpenCode | Claude Code | Codex | Gemini CLI | deepagents |
 | --- | --- | --- | --- | --- | --- | --- |
 | A run | The agent works in the repo copy, reads files, and returns a report that validates | Pass | Pass | Pass | Known failure¹ | Pass |
-| Continue a finished run | The session reopens, and its old history is not shown again as new | Pass | Pass | Pass | Known failure² | Pass |
+| Continue a finished run | The session reopens, and its old history is not shown again as new | Pass | Pass | Pass | Known failure² | Pass: it reopens here, but PrismaLens offers no follow-up on it yet |
 | Your model | Your own OpenCode model is the one used | Pass | n/a | n/a | n/a | n/a |
 | Continue after a broken report | The session reopens after a report that did not validate | n/a | Pass | n/a | n/a | n/a |
 | PrismaLens tools | The agent calls `incident_get` on the first turn and on a follow-up | Pass | Pass | Pass | Pass | Pass, first turn only |
@@ -188,8 +190,9 @@ model's words.
 5. Gemini CLI sends the request again after a malformed call, then ends the
    turn empty, and PrismaLens reports the error.
 
-**n/a** means the check can't be set up for that agent. deepagents can't
-reopen a finished run at all, so it has no follow-up to check.
+**n/a** means the check can't be set up for that agent. PrismaLens
+offers no follow-up on a finished deepagents run yet, so the checks that need
+one are n/a for it, and its tools check covers the first turn only.
 
 ## How PrismaLens chooses
 

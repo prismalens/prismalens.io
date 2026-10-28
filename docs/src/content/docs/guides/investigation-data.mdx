@@ -15,9 +15,9 @@ queries, it queries with the tools your own agent setup gives it.
 ```text
 incident ─▶ PrismaLens, before the run
              1. the incident, its alerts, and deploy and change events   (from PrismaLens's database)
-             2. the repository checkout                                  ┐
-                a telemetry snapshot: Prometheus, Alertmanager, Loki     ├ at the same time, each with its own deadline
-                the runbooks in the bound repositories                   ┘
+             2. the repository checkout                                  ┐ at the same time, each with its own deadline
+                a telemetry snapshot: Prometheus, Alertmanager, Loki     ┘
+                the runbooks in the bound repositories                     read once the checkout is done
              3. the snapshot is stored with the run and copied to
                 .prismalens/runs/<run id>/ in the run's working directory
           ─▶ the agent, during the run
@@ -65,8 +65,8 @@ of the incident: the incident's own service, then each alert's.
    `ALERTMANAGER_URL` or `LOKI_URL`, with `PROMETHEUS_TOKEN`,
    `ALERTMANAGER_TOKEN` or `LOKI_TOKEN` when set.
 
-With several connections of a kind and none mapped to the service, that kind
-is skipped with `2 prometheus connections, none mapped to checkout: map one on
+With several connections of a kind, none mapped to the service and no
+environment variable for it, that kind is skipped with `2 prometheus connections, none mapped to checkout: map one on
 the service`. With nothing at all, the report says `No Prometheus is set up for
 checkout.`
 
@@ -93,8 +93,8 @@ The run log, before the run:
 
 ```text
 pre-run: read prom-prod (prometheus) (mapped to checkout, priority 2, deployment prod named by the alert): 3 alerts firing in the window, 1 scrape targets down in the window
-pre-run: read LOKI_URL (loki) (env LOKI_URL; no connection is mapped to checkout): 0 error log lines from 0 streams for {service_name="checkout"} (the default selector)
 pre-run: skipped am-prod (alertmanager, set) (the only alertmanager connection; not mapped to a service): the source did not answer in time
+pre-run: read LOKI_URL (loki) (env LOKI_URL; no connection is mapped to checkout): 0 error log lines from 0 streams for {service_name="checkout"} (the default selector)
 ```
 
 Had the alert said `env="staging"`, the first line would name `prom-staging`.
@@ -107,8 +107,8 @@ The report's coverage reads **2 read, 1 skipped**, one row per source:
 | Source | Result | Credential |
 | --- | --- | --- |
 | prom-prod | Data found | Set in PrismaLens |
-| LOKI_URL | Nothing in the window | From environment |
 | am-prod | Skipped: the source did not answer in time | Set in PrismaLens |
+| LOKI_URL | Nothing in the window | From environment |
 
 ## Coverage: what the report tells apart
 
@@ -132,7 +132,7 @@ directory the agent starts in. For the example above:
 .prismalens/runs/
   .gitignore                       *  (the copies never show in git status)
   cmh3x9k2p0001/
-    index.json                     what was read, skipped and not set up, without the data
+    index.json                     what was read, skipped and not set up, with the start of each source's data
     telemetry-prometheus-1.json    the source, the window and its data
     telemetry-loki-1.json
     past-incidents.json
@@ -216,7 +216,8 @@ curl -X POST "$PRISMALENS_URL/api/webhooks/deploy" \
   -d "{\"service\":\"web\",\"version\":\"$(git rev-parse HEAD)\",\"environment\":\"production\"}"
 ```
 
-The `environment` field is what a connection's **Deployment tag** matches.
+The `environment` field is what a connection's **Deployment tag** matches when
+no alert label names a deployment.
 [Record deploys](/guides/record-deploys/) has the rest of the fields.
 
 ## What stays out of the agent's reach

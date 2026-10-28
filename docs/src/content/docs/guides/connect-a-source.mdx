@@ -3,10 +3,10 @@ title: Connect a source
 description: Connect Prometheus, Alertmanager, Loki or GitHub from Settings, what each step checks, and which sign-in methods a source takes.
 ---
 
-A **source** is a system PrismaLens reads for an investigation. Connecting one
-puts it in the snapshot PrismaLens reads
+A **source** is a system PrismaLens reads for an investigation. Connecting
+Prometheus, Alertmanager or Loki puts it in the snapshot PrismaLens reads
 [before each run](/guides/investigation-data/), and the agent never sees its
-credential.
+credential. A git host token is how a run clones your code instead.
 
 ## The flow
 
