@@ -24,8 +24,7 @@ field for one service in that service's **Workspace** section.
 | --- | --- | --- |
 | Method | Worktree of your repo, or Clone of your repo | Worktree |
 | Location | Any absolute folder | `worktrees` in the PrismaLens data folder |
-| After a run | Remove unless changed, Always remove, Keep for some days (1 to 365), Keep until the incident is resolved | Remove unless changed |
-| Kept per service | 1 to 100 | 10 |
+| After a run | Keep until the incident is resolved, Remove unless changed, Always remove, Keep for some days (1 to 365) | Keep until the incident is resolved |
 | Setup command | One for macOS and Linux, one for Windows | None |
 | Teardown command | One for macOS and Linux, one for Windows | None |
 | Files to copy in | Paths from the top of your repo, such as `.env` | None |
@@ -81,13 +80,12 @@ service sets two fields of its own.
 | Field | Global | `checkout` | A run of `checkout` gets |
 | --- | --- | --- | --- |
 | Location | default | `D:\runs` | `D:\runs` |
-| After a run | Remove unless changed | Keep for 3 days | Keep for 3 days |
-| Kept per service | 10 | From global settings | 10 |
+| After a run | Keep until the incident is resolved | Keep for 3 days | Keep for 3 days |
 | Setup command | None | From global settings | None |
 
 So the run's workspace is `D:\runs\pl-<run id>`. When the run ends it stays for
-3 days, and the hourly cleanup removes it after that. `checkout` keeps 10
-workspaces at most; past that the oldest goes first.
+3 days, and the hourly cleanup removes it after that, whether or not its
+incident is resolved.
 
 ## When workspaces are removed
 
@@ -95,7 +93,7 @@ Cleanup runs when a run ends, when PrismaLens starts, and every hour.
 
 | After a run | When the run ends | Later |
 | --- | --- | --- |
-| Remove unless changed | Removed, unless it holds changes | A changed one stays while it holds changes, until you remove it, or the cap removes it |
+| Remove unless changed | Removed, unless it holds changes | A changed one stays while it holds changes, until you remove it |
 | Always remove | Removed, changes and all | — |
 | Keep for some days | Kept | Removed N days after the run ended |
 | Keep until the incident is resolved | Kept | Removed once the incident is resolved or closed |
@@ -111,6 +109,8 @@ workspace, with whatever the agent left there.
 PrismaLens never removes:
 
 - a workspace whose run is still going;
+- the workspace of a run that a restart of PrismaLens cut off, until that run
+  is resumed;
 - a link, or a clone that other worktrees are attached to;
 - a workspace with a set-up checkout inside it that is not one of its own
   submodules;
@@ -124,7 +124,11 @@ A finished run whose workspace was kept shows it on the run's page, with why
 it was kept. On the computer PrismaLens runs on, **Open folder** opens it in your file
 manager, and **Remove** deletes it, changes and all, after you confirm.
 
-**Settings → Runs** lists the recent removals, and the workspaces kept when
+Nothing removes kept workspaces because there are many of them. When a service
+holds more than 10, **Settings → Runs** shows a warning naming the service and
+listing its kept workspaces, each with **Remove**.
+
+**Settings → Runs** also lists the recent removals, and the workspaces kept when
 their run ended, each with its reason, for example *Removed: its days were up*
 or *Kept: it holds changes*.
 
