@@ -11,13 +11,17 @@ editor does.
 
 ## Supported agents
 
-| Agent | Command PrismaLens looks for | Install | Tested with | Continue a finished run |
-| --- | --- | --- | --- | --- |
-| OpenCode | `opencode` | `curl -fsSL https://opencode.ai/install \| bash` or `npm i -g opencode-ai` | 1.18.30 | Yes |
-| Claude Code | `claude` | `curl -fsSL https://claude.ai/install.sh \| bash` or `npm i -g @anthropic-ai/claude-code` | 0.81.1 on Claude Code 2.1.303 | Yes |
-| Codex | `codex` | `npm i -g @openai/codex` | 2.2.2 on Codex 0.156.1 | Yes |
-| Gemini CLI | `gemini` | `npm i -g @google/gemini-cli` | — | Yes |
-| deepagents | `dcode` | `uv tool install -U deepagents-code --with deepagents-acp` | 0.1.75 | Not yet |
+| Agent | Command PrismaLens looks for | Install | Tested with | Continue a finished run | Takes PrismaLens tools |
+| --- | --- | --- | --- | --- | --- |
+| OpenCode | `opencode` | `curl -fsSL https://opencode.ai/install \| bash` or `npm i -g opencode-ai` | 1.18.30 | Yes | Yes¹ |
+| Claude Code | `claude` | `curl -fsSL https://claude.ai/install.sh \| bash` or `npm i -g @anthropic-ai/claude-code` | 0.81.1 on Claude Code 2.1.303 | Yes | Yes¹ |
+| Codex | `codex` | `npm i -g @openai/codex` | 2.2.2 on Codex 0.156.1 | Yes | Yes¹ |
+| Gemini CLI | `gemini` | `npm i -g @google/gemini-cli` | — | Yes | Yes¹ |
+| deepagents | `dcode` | `uv tool install -U deepagents-code --with deepagents-acp` | 0.1.75 | Not yet | Yes¹ |
+
+**Takes PrismaLens tools** is whether the agent is given the [gateway](/guides/investigation-data/#which-agents-take-the-tools): every agent is, deepagents through a config file for the run and the rest over ACP.
+
+¹ An agent can skip the server PrismaLens offers when your own agent config already has an MCP server named `prismalens`. The run then says the agent did not load PrismaLens tools; rename yours.
 
 **Tested with** is the version that completed an unattended investigation in
 PrismaLens's CI: it started in the right folder, finished on its own and
@@ -325,8 +329,8 @@ On Claude Code an added model reaches the agent through
 environment names the model with `ANTHROPIC_MODEL`, the Agent default row reads
 "`<model>`, from your environment".
 
-Upgrading from 0.5.0 drops the single shared model setting. Enter the model
-again for each agent that needs one.
+There is no single shared model setting. Enter the model for each agent that
+needs one.
 
 ### Correcting the catalogue between releases
 
