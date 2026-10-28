@@ -14,8 +14,8 @@ editor does.
 | Agent | Command PrismaLens looks for | Install | Tested with | Continue a finished run | Takes PrismaLens tools |
 | --- | --- | --- | --- | --- | --- |
 | OpenCode | `opencode` | `curl -fsSL https://opencode.ai/install \| bash` or `npm i -g opencode-ai` | 1.18.30 | Yes | Yes¹ |
-| Claude Code | `claude` | `curl -fsSL https://claude.ai/install.sh \| bash` or `npm i -g @anthropic-ai/claude-code` | 0.81.1 on Claude Code 2.1.296 | Yes | Yes¹ |
-| Codex | `codex` | `npm i -g @openai/codex` | 1.13.1 | Yes | Yes¹ |
+| Claude Code | `claude` | `curl -fsSL https://claude.ai/install.sh \| bash` or `npm i -g @anthropic-ai/claude-code` | 0.81.1 on Claude Code 2.1.303 | Yes | Yes¹ |
+| Codex | `codex` | `npm i -g @openai/codex` | 2.2.2 on Codex 0.156.1 | Yes | Yes¹ |
 | Gemini CLI | `gemini` | `npm i -g @google/gemini-cli` | — | Yes | Yes¹ |
 | deepagents | `dcode` | `uv tool install -U deepagents-code --with deepagents-acp` | 0.1.75 | Not yet | Yes¹ |
 
@@ -28,20 +28,28 @@ PrismaLens's CI: it started in the right folder, finished on its own and
 returned a valid report. A dash means no such run yet; the agent is still
 supported and selectable.
 
+**Settings → Agent** and the agent picker list only the agents that can run on
+this machine: the agent starts, and its last check, if one ran, answered. An
+agent you have not installed or signed in to stays out of the way rather than
+showing a warning. The agent you picked, or the one `PRISMALENS_HARNESS` names,
+stays listed with its reason even when it can't run. Every supported agent is
+one click away under **Add agent**, installed or not.
+
 Claude Code and Codex speak ACP through an adapter, `claude-agent-acp` and
 `codex-acp`. PrismaLens ships both at the tested versions above, so the agent
 itself is all you install: the shipped adapter drives the `claude` or `codex`
 on your `PATH`, with your own sign-in and settings. An adapter you installed
 yourself, on your `PATH`, is used instead. **Settings → Agent** shows each
-agent's own version beside the one PrismaLens tested, and `pl doctor` says
-which adapter a run uses:
+agent's own version beside the one PrismaLens tested, and the agent's **Check**
+line says which adapter a run uses:
 
 ```text
-✔ Harness: Claude Code: Claude Code found at /home/me/.local/bin/claude; runs through the claude-agent-acp PrismaLens ships
-✔ Harness ACP handshake: Claude Code: answers ACP, @agentclientprotocol/claude-agent-acp 0.81.1; signed in
+answers ACP through the adapter PrismaLens ships, @agentclientprotocol/claude-agent-acp 0.81.1
 ```
 
-If Claude Code is not signed in, the handshake line is a warning that says `not signed in`, and a run fails until it is.
+`pl doctor` checks PrismaLens's own setup, not coding agents, and prints one
+line pointing to **Settings → Agent**. If no agent can run, `pl up` still starts,
+and Investigate stays disabled until one can.
 
 **Continue a finished run** means a message typed under a finished
 investigation reopens the same agent session: the agent keeps its whole
@@ -58,16 +66,17 @@ terminal. PrismaLens drives it; it does not make it safe. See
 
 An investigation runs the agent in a copy of the incident's repo. A repo can
 carry configuration for coding agents: settings, hooks, MCP servers, context
-files. That repo is input to the investigation, not something you chose to
-trust, so PrismaLens turns off what each agent lets it:
+files. PrismaLens turns none of it off: each agent loads its own configuration
+as it would in your terminal, so the repo's own configuration loads with yours,
+and its owner is responsible for it.
 
 | Agent | Repo configuration |
 | --- | --- |
-| Claude Code | Your own `~/.claude/settings.json` applies (`settingSources: ["user"]`). The repo's project settings, hooks and `CLAUDE.md` stay off. |
-| OpenCode | Not loaded. The repo's `opencode.json` is ignored. |
-| Gemini CLI | The run's copy is trusted (`GEMINI_CLI_TRUST_WORKSPACE=true`) so PrismaLens's MCP servers load alongside your own, and, as when you run Gemini in the repo yourself, it reads the repo's `.env`. The repo's `.gemini` folders and `GEMINI.md` files are removed from the run's copy. |
-| deepagents | Your own MCP servers load as in your terminal; PrismaLens adds its own with `--mcp-config`. |
-| Codex | Loaded as in your terminal. PrismaLens turns nothing off. |
+| Claude Code | Your own `~/.claude/settings.json` and the repo's project and local settings all load (`settingSources: ["user", "project", "local"]`). |
+| OpenCode | The repo's own OpenCode config loads beside yours. |
+| Gemini CLI | Your own folder trust setting decides what loads; PrismaLens forces it neither way. |
+| deepagents | Your own MCP servers start, with PrismaLens's tools added beside them. |
+| Codex | Loaded as in your terminal. |
 
 Your own configuration for the agent is untouched either way. For Claude Code that means your allow and deny rules, sandbox setting, hooks and `env` in `~/.claude/settings.json` apply, as they do in your terminal.
 
@@ -77,8 +86,47 @@ Your own configuration for the agent is untouched either way. For Claude Code th
 2. Otherwise the agent chosen in **Settings → Agent**.
 3. Otherwise the first agent in the table above that is on your `PATH`.
 
-If none of these finds an agent, Settings says **No investigation agent is
-available on this machine**, and `pl doctor` lists the install commands above.
+Automatic choice skips an agent whose last check failed. If no agent can run,
+**Settings → Agent** says **No agent can run. Add one to start
+investigations.**, and `pl up` says **No coding agent can run: investigations
+need one. Add one in Settings → Agent.**
+
+## Add an agent
+
+**Add agent** sits at the top of the agent list in **Settings → Agent**, and
+at the foot of the agent picker's rail. It has three steps:
+
+1. **Agent.** Every supported agent, with a plain state word: **Ready**,
+   **Not installed**, **Sign-in needed**, **Not responding**, or **Windows
+   install, can't run in WSL**, plus **Local ACP command**. Picking a Ready
+   agent opens its page; there is nothing to set up.
+2. **Sign-in.** The check's verdict and the agent's own sign-in command, with
+   **Copy**, to run in a terminal on the machine running PrismaLens, then
+   **Check again**. For an agent that is not installed, its install command
+   instead, or set its binary path in the next step. PrismaLens never runs an
+   agent's login for you: each agent signs in its own way, and a login started
+   from a paired phone would open on the host's browser. Optionally, paste an
+   API key; see [Signing the agent in](#signing-the-agent-in).
+3. **Config.** The agent's binary path, config directory and environment
+   variables, the same fields as its page. **Check and add** saves them and
+   runs the check. When the agent answers, the dialog closes and the agent
+   joins the list. Otherwise the dialog shows the check's line; the settings
+   are kept, and the agent joins the list once it can run.
+
+### Local ACP command
+
+Any agent that speaks ACP on stdio can run as the **Local agent**: give the
+command as a full path and its arguments. Arguments are split like a shell
+would split them, quotes included, but no shell runs them, so `|`, `>` or `&&`
+are refused with **Arguments can't hold shell operators.** The local agent has
+no modes, so PrismaLens answers its asks by the run's permission level, and
+it can't reopen a finished run. There is one local agent; its label is fixed.
+
+An agent listed in the public ACP agent registry works this way once you have
+installed it yourself. PrismaLens does not install registry agents. For
+example, an agent installed at `/usr/local/bin/my-acp-agent` that starts its
+ACP server with `--acp` is added with Command `/usr/local/bin/my-acp-agent`
+and Arguments `--acp`.
 
 ## Signing the agent in
 
@@ -87,18 +135,28 @@ The agent uses its own configuration and sign-in, as it would in your terminal:
 Or put the provider key (`ANTHROPIC_API_KEY`, `OPENAI_API_KEY`,
 `GEMINI_API_KEY`) in the environment you start `pl up` from. PrismaLens passes
 only the variables that agent reads and does not read, copy or store the login.
-Your use of an agent is governed by your agreement with its provider. Then check:
+Your use of an agent is governed by your agreement with its provider. Then click **Check** on the agent's page in **Settings → Agent**:
 
 ```text
-$ pl doctor
-✔ Harness ACP handshake: OpenCode: answers ACP
+answers ACP
 ```
 
 `answers ACP` means the agent started and replied. It does not prove the agent
 is signed in: some agents only check that when the first investigation starts.
 The other results are `sign in needed`, `no answer in 10s` and
 `failed to start`, each with the agent's own message.
-**Settings → Agent → Check readiness** runs the same check from the app.
+
+The **Sign-in** step of **Add agent** also takes one API key. It is saved as
+an environment variable for that agent only: `ANTHROPIC_API_KEY` for Claude
+Code, `OPENAI_API_KEY` for Codex, `GEMINI_API_KEY` for Gemini CLI; for
+OpenCode and deepagents you pick the key's name from the ones the agent reads.
+See [Binary path, config directory and environment](#binary-path-config-directory-and-environment).
+
+Only the PrismaLens session on the host itself can change what an agent runs:
+its binary path, config directory, environment variables and the local
+command. A paired phone or laptop sees these fields read only, with **Only
+this machine's own session can change what an agent runs.**, and the API
+refuses the change with `403`.
 
 The agent does not inherit your whole environment. See
 [Credentials](/trust/#credentials).
@@ -123,16 +181,17 @@ What each agent runs at each level:
 
 | Level | Claude Code | Codex | Gemini CLI | OpenCode |
 | --- | --- | --- | --- | --- |
-| Ask always | Manual (`default`) | Ask for approval (`read-only`) | Default (`default`) | its build agent; each tool's catch-all asks |
-| Auto-accept edits | Accept Edits (`acceptEdits`) | Workspace write (`workspace-write`) | Default, as Ask always | build; edits are allowed and other tools ask |
-| Auto | Auto (`auto`); with a model that has no Auto, Accept Edits | Approve for me (`agent`), its own reviewer | Default, as Ask always | build, keeping the Ask always rules: OpenCode has no reviewer of its own |
-| Full access | Bypass Permissions (`bypassPermissions`), or Accept Edits where your settings turn it off | Full access (`agent-full-access`), outside its sandbox | Default, as Ask always | build with each tool's catch-all allowed; your own deny rules stay |
+| Ask always | Manual (`default`) | Read-only (`read-only`) | Default (`default`) | its build agent; each tool's catch-all asks |
+| Auto-accept edits | Accept Edits (`acceptEdits`) | Workspace access (`workspace-write`) | Auto Edit (`autoEdit`) | build; edits are allowed and other tools ask |
+| Auto | Auto (`auto`); with a model that has no Auto, Accept Edits | Auto review (`agent`), its own reviewer | Default, as Ask always: Gemini CLI has no reviewer of its own | build, keeping the Ask always rules: OpenCode has no reviewer of its own |
+| Full access | Bypass Permissions (`bypassPermissions`), or Accept Edits where your settings turn it off | Full access (`agent-full-access`), outside its sandbox | YOLO (`yolo`) | build with each tool's catch-all allowed; your own deny rules stay |
 
-- **Codex 1.13.1**, the tested version, has no Workspace write. There Ask
-  always and Auto-accept edits run the same mode, Ask for approval, and edits
-  inside the copy need no ask.
-- **Gemini CLI** runs the copy as an untrusted folder, which allows only its
-  Default mode, so every level runs as Ask always.
+- **Codex** names its modes itself; the names above are the tested adapter's.
+  A `codex-acp` older than 2.0 on your `PATH` has no Workspace access. There
+  Ask always and Auto-accept edits run the same mode, and edits inside the copy
+  need no ask.
+- **Gemini CLI** keeps your own folder trust setting; PrismaLens forces it
+  neither way.
 - **OpenCode** has per-tool rules, not one mode. A level sets each tool's
   default rule; your other rules in `opencode.json` stay.
 - **deepagents** has no modes; PrismaLens answers its asks by the level.
@@ -143,19 +202,21 @@ otherwise the run fails before its first prompt.
 
 ### Where a run's level comes from
 
-The permission chip under the box lists the four levels, the default first
-with a tag, each with what it means, what this agent runs at it, and its
+The permission chip under the box lists the four levels by name, the one a
+run takes when you pick none first, with a tag saying where it came from, each
+with what it means, what this agent runs at it, and its
 sandbox line. A lock shows only where the agent's readiness check saw its own
-sandbox hold that mode. **Settings → Agent → Permission** sets the default
-for the next run you start, per agent. How a run starts decides which rule
+sandbox hold that mode. **Settings → Agent → Permission** sets the level for
+the next run you start, per agent; it always shows a level by its name, never
+"Default". How a run starts decides which rule
 applies: a run an alert starts has nobody there to answer an ask, so it has no
 setting of its own (see [Runs an alert starts](#runs-an-alert-starts)).
 
 | The run | Settings → Agent | The agent's own default | The level | The chip's tag |
 | --- | --- | --- | --- | --- |
-| You start it | Permission: Full access | any | Full access | From Settings |
-| You start it | Permission: Default | Claude Code `"defaultMode": "acceptEdits"` in `~/.claude/settings.json` | Auto-accept edits | Your default |
-| You start it | Permission: Default | none set | Ask always | PrismaLens default |
+| You start it | Permission: Full access | any | Full access | Set in Settings |
+| You start it | never set | Claude Code `"defaultMode": "acceptEdits"` in `~/.claude/settings.json` | Auto-accept edits | From your settings file |
+| You start it | never set | none set | Ask always | PrismaLens's pick |
 | An alert starts it | not read | not read | Auto; every ask beyond reading is refused | |
 
 The agent's own default is read from:
@@ -164,18 +225,18 @@ The agent's own default is read from:
 | --- | --- | --- |
 | Claude Code | `permissions.defaultMode` in `~/.claude/settings.json`, or a managed settings file | `default` (Manual) is Ask always, `acceptEdits` Auto-accept edits, `auto` Auto, `bypassPermissions` Full access |
 | Codex | `sandbox_mode` and `approval_policy` in `~/.codex/config.toml`, or its active profile | With `approval_policy` unset or `on-request`: `read-only` is Ask always, `workspace-write` Auto-accept edits, `danger-full-access` Full access |
-| Gemini CLI | `general.defaultApprovalMode` in `~/.gemini/settings.json` | `default` is Ask always; other values cannot apply to an untrusted folder |
+| Gemini CLI | `general.defaultApprovalMode` in `~/.gemini/settings.json` | `default` is Ask always, `auto_edit` Auto-accept edits, `yolo` Full access |
 | OpenCode, deepagents | not read | Ask always |
 
-The Permission row says which applies, for example `Your default: Auto-accept
-edits, from ~/.claude/settings.json ("acceptEdits").` or `Ask always,
-PrismaLens default. No default set in ~/.codex/config.toml.`
+The Permission row says which applies, for example `Auto-accept edits, from
+~/.claude/settings.json ("acceptEdits").` or `Ask always, PrismaLens's pick. No
+level set in ~/.codex/config.toml.`
 
 ### Runs an alert starts
 
 Nobody is watching a run an alert starts, so it never stops to wait for a
 person. The agent runs in its own Auto mode (Claude Code's Auto, Codex's
-Approve for me), reads run as usual, and anything else it would ask you is
+Auto review), reads run as usual, and anything else it would ask you is
 refused at once. The agent carries on without it, and the transcript keeps a
 line for each refusal, such as "Refused, nobody was there to approve: Write
 /tmp/pl-walk-write.txt". OpenCode, Gemini CLI and deepagents have no reviewer
@@ -248,33 +309,61 @@ A second answer to the same ask gets `409`; see
 
 ## Choosing a model
 
-Each agent has its own default model. To use a different one, click the model
-next to the agent picker, under the composer or in **Settings → Agent**, and
-type an id in that agent's own format. It is sent exactly as typed, and it is
-kept per agent: a model you set for Claude Code never reaches OpenCode.
+Every model shows by its own name; nothing in the picker or in Settings is
+called "Default". A run uses the model picked for it. With none picked, it uses
+the agent's starred model, and with none starred it sends no model and the
+agent runs the one it reports as current, which the picker and Settings name.
+To pick one, click the model next to the agent picker, under the composer or in
+**Settings → Agent**. It is kept per agent: a model you set for Claude Code
+never reaches OpenCode.
 
-The list under the field is a suggestion. Once you click **Check readiness** on
-an agent that offers its own list, that list is shown; otherwise PrismaLens
-shows its bundled model catalogue. An id missing from the list is noted ("sent
-as typed"), never refused.
+An agent's own "default" entry, such as Claude Code's **Default
+(recommended)**, names no model of its own, so it is not listed; PrismaLens
+shows the model it runs instead. When an agent reports nothing, the chip names
+the first model in its list.
 
-Codex, Gemini CLI and deepagents take no model setting. A model stored for one
+```text
+Settings → Agent → Claude Code → Models
+  ★ Sonnet 5.5         claude-sonnet-5-5     the starred one: a run with no model picked uses it
+  ☆ Opus 5.5           claude-opus-5-5
+Nothing starred: "a run with no model picked uses Opus 5.5, the model Claude Code reports."
+```
+
+On an agent's page in **Settings → Agent**, the **Models** list sets what the
+picker shows:
+
+- A switch per model shows or hides it in the picker. **Hide all** and **Show
+  all** set every model at once. A model the agent adds later shows until you
+  hide it, and a hidden model you already picked stays in the picker, ticked.
+- The star marks the agent's model: one per agent, the one a run uses when
+  you pick none. The picker lists it first, and in its **Starred** tile with
+  each other agent's star. Starring another moves it; unstarring leaves none
+  starred.
+- The arrows move a model up or down; the picker keeps that order.
+
+The list is a suggestion. Once you click **Check** on an agent that offers its
+own list, that list is shown; otherwise PrismaLens shows its bundled model
+catalogue. A starred id the agent does not list is marked "Not confirmed for"
+that agent, never refused.
+
+Gemini CLI and deepagents take no model setting. A model stored for one
 of them stops the next run before it starts, with the reason in **Settings →
-Agent** and on the Investigate button. For those agents the model pill offers
-only **Clear model**.
+Agent** and on the Investigate button. For those agents the stored model is the
+picker's only row, starred; unstar it to clear it.
 
 ### Custom models
 
 PrismaLens never probes your agent's endpoint, so the list shows only what the
 agent reports. To use a model your endpoint serves that the agent does not list,
-add its id in **Settings → Agent → Custom models** with **Add custom model**.
-Removing one asks for confirmation. Added ids show in the picker as "Added by
-you". A run on one that the endpoint does not serve fails.
+open the agent in **Settings → Agent**, and under **Models** type its id and
+click **Add custom model**. Removing one asks for confirmation. Added ids show
+in the list and the picker as "Added by you". A run on one that the endpoint
+does not serve fails.
 
 On Claude Code an added model reaches the agent through
 `ANTHROPIC_CUSTOM_MODEL_OPTION`, set when the agent starts. When your
-environment names the model with `ANTHROPIC_MODEL`, the Agent default row reads
-"`<model>`, from your environment".
+environment names the model with `ANTHROPIC_MODEL` and nothing is starred, the
+chip names that model and the picker lists it as "From your environment".
 
 There is no single shared model setting. Enter the model for each agent that
 needs one.
@@ -305,6 +394,73 @@ With that file in `~/.prismalens`, the Claude Code suggestions show those two
 models, and Haiku is marked legacy. Delete the file to go back to the bundled
 catalogue. A release whose bundled catalogue is newer than your file wins
 without your deleting it.
+
+## Binary path, config directory and environment
+
+Each agent's page in **Settings → Agent** has a **Runtime** and an
+**Environment** section:
+
+- **Binary path**: where the agent's own program is, as a full path. Empty
+  uses `PATH`. Use it when PrismaLens starts outside your shell (the desktop
+  app, a service) and does not see the `PATH` your terminal does. For Claude
+  Code and Codex it is the `claude` or `codex` program; the adapter PrismaLens
+  ships drives it.
+- **Config directory**, for Claude Code (`CLAUDE_CONFIG_DIR`, default
+  `~/.claude`), Codex (`CODEX_HOME`, default `~/.codex`) and Gemini CLI
+  (`GEMINI_CLI_HOME`, default your home folder, which holds `.gemini`): run the
+  agent on another profile, with its own sign-in and settings.
+- **Environment**: variables passed to this agent only. Each variable the
+  agent reads, and each one you added, shows one of three states. A value set
+  here is stored encrypted and never shown again; to change one, add the same
+  name again.
+
+  | State | Means |
+  | --- | --- |
+  | **Not set** | Neither PrismaLens nor the environment it runs in has a value. **Set** fills the name in. |
+  | **Key set** | Stored in PrismaLens. It wins over the environment's. **Remove** drops it. |
+  | **From environment** | Present in the environment PrismaLens runs in, and not overridden here. |
+
+  `pl service` and the desktop app don't start from your shell, so a key in
+  `.bashrc` never reaches them; set it here instead. PrismaLens never takes over
+  an agent's sign-in: an OAuth login stays in the agent's own store.
+
+A field saves when you press Enter or leave it, and changing one runs the
+agent's check again, so the list and the picker describe what the next run
+uses. Each run's record keeps the binary path, config directory and variable
+names it ran with, never the values.
+
+A run's environment is built in this order, each layer over the one before:
+the provider keys from the environment you started PrismaLens in, then the
+config directory, then the agent's Environment rows, then the variables
+PrismaLens sets for the run itself. A worked example for Claude Code:
+
+```text
+Settings → Agent → Claude Code
+  Binary path        /opt/claude/bin/claude
+  Config directory   ~/.claude-work
+  Environment        ANTHROPIC_BASE_URL = https://b.example
+
+Host environment (where `pl up` started)
+  ANTHROPIC_BASE_URL=https://a.example
+
+The agent's environment for the run
+  CLAUDE_CODE_EXECUTABLE=/opt/claude/bin/claude     binary path, set by PrismaLens for its adapter
+  CLAUDE_CONFIG_DIR=/home/me/.claude-work           config directory
+  ANTHROPIC_BASE_URL=https://b.example              the Environment row wins over the host
+```
+
+Names PrismaLens sets itself are refused in Environment, with the field's
+reason:
+
+```text
+CLAUDE_CODE_EXECUTABLE = /usr/bin/claude   [Add variable]
+Claude Code runs get CLAUDE_CODE_EXECUTABLE from PrismaLens; it can't be set here.
+```
+
+`CLAUDE_CONFIG_DIR` is refused there too, with **Set CLAUDE_CONFIG_DIR with
+Config directory above.** An `ANTHROPIC_BASE_URL` must be `https`, or `http`
+only to this machine, as for the host's own. An agent takes at most 50
+variables.
 
 ## Follow-ups on an older run
 
