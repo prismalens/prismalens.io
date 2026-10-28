@@ -97,4 +97,7 @@ For a repository with a saved github.com token (see
 [Git credentials](/guides/git-credentials/)), PrismaLens also reads the
 repository's GitHub Deployments, each with its latest status, while it syncs
 what changed. This is read-only and writes the same kind of row, with source
-`github`. If the pull fails, it is logged and commits still show.
+`github`. For a private repository the fine-grained token needs
+**Deployments: read** as well as the **Contents: read** in
+[Git credentials](/guides/git-credentials/). Without it GitHub refuses the
+request, the deployments are skipped and logged, and commits still show.
