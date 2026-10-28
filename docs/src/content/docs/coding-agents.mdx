@@ -11,22 +11,32 @@ editor does.
 
 ## Supported agents
 
-| Agent | Command PrismaLens looks for | Install | Tested with | Continue a finished run | Takes PrismaLens tools |
-| --- | --- | --- | --- | --- | --- |
-| OpenCode | `opencode` | `curl -fsSL https://opencode.ai/install \| bash` or `npm i -g opencode-ai` | 1.18.30 | Yes | Yes¹ |
-| Claude Code | `claude` | `curl -fsSL https://claude.ai/install.sh \| bash` or `npm i -g @anthropic-ai/claude-code` | 0.81.1 on Claude Code 2.1.303 | Yes | Yes¹ |
-| Codex | `codex` | `npm i -g @openai/codex` | 2.2.2 on Codex 0.156.1 | Yes | Yes¹ |
-| Gemini CLI | `gemini` | `npm i -g @google/gemini-cli` | — | Yes | Yes¹ |
-| deepagents | `dcode` | `uv tool install -U deepagents-code --with deepagents-acp` | 0.1.75 | Not yet | Yes¹ |
+| Agent | Command PrismaLens looks for | Install | Tested with | Tier | Continue a finished run | Takes PrismaLens tools |
+| --- | --- | --- | --- | --- | --- | --- |
+| OpenCode | `opencode` | `curl -fsSL https://opencode.ai/install \| bash` or `npm i -g opencode-ai` | 1.18.30 | 1 | Yes | Yes |
+| Claude Code | `claude` | `curl -fsSL https://claude.ai/install.sh \| bash` or `npm i -g @anthropic-ai/claude-code` | 0.81.1 on Claude Code 2.1.303 | 1 | Yes | Yes |
+| Codex | `codex` | `npm i -g @openai/codex` | 2.2.2 on Codex 0.156.1 | 1 | Yes | Yes |
+| Gemini CLI | `gemini` | `npm i -g @google/gemini-cli` | — | 2 | Yes | Yes |
+| deepagents | `dcode` | `uv tool install -U deepagents-code --with deepagents-acp` | 0.1.75 | 2 | Not yet | Yes |
 
-**Takes PrismaLens tools** is whether the agent is given the [gateway](/guides/investigation-data/#which-agents-take-the-tools): every agent is, deepagents through a config file for the run and the rest over ACP.
+**Takes PrismaLens tools** is whether the agent gets PrismaLens's
+[read-only tools](/guides/investigation-data/#during-the-run-prismalenss-own-tools)
+during a run: every agent does, deepagents through a config file for the run
+and the rest over ACP.
 
-¹ An agent can skip the server PrismaLens offers when your own agent config already has an MCP server named `prismalens`. The run then says the agent did not load PrismaLens tools; rename yours.
-
-**Tested with** is the version that completed an unattended investigation in
-PrismaLens's CI: it started in the right folder, finished on its own and
-returned a valid report. A dash means no such run yet; the agent is still
+**Tested with** is the version PrismaLens's CI installs and checks on every
+change: the real agent, at that version, runs every check in
+[the behaviour matrix](#what-ci-checks-on-every-agent) against a scripted model.
+The version changes only through a pull request that passes the same checks on
+the new one. A dash means no version has passed them yet; the agent is still
 supported and selectable.
+
+**Tier** is what a red check on that agent does to a release:
+
+| Tier | Agents | A red check |
+| --- | --- | --- |
+| 1 | OpenCode, Claude Code, Codex | Stops the change from merging, so no release ships with it. |
+| 2 | Gemini CLI, deepagents | Runs on every change and is reported, but blocks nothing: a release can ship while it is red. The matrix below names each known failure. |
 
 **Settings → Agent** and the agent picker list only the agents that can run on
 this machine: the agent starts, and its last check, if one ran, answered. An
@@ -129,6 +139,57 @@ set for it in Settings, and a short list from your environment: `PATH`,
 `SSL_CERT_DIR`, `NODE_EXTRA_CA_CERTS`, `REQUESTS_CA_BUNDLE`), and the agent config folders
 (`XDG_CONFIG_HOME`, `XDG_DATA_HOME`, `CLAUDE_CONFIG_DIR`, `CODEX_HOME`,
 `GEMINI_CLI_HOME`). Only the host's own browser can change it.
+
+## What CI checks on every agent
+
+Every change to PrismaLens runs each supported agent, at its **Tested with**
+version, through one list of checks. The agent is real; its model is scripted,
+so every check gets the same answers each time and costs nothing. Each check
+runs three times and the three must agree. A check passes on what PrismaLens
+saw (its events, and the files and processes the run left), never on the
+model's words.
+
+| Check | What PrismaLens must see | OpenCode | Claude Code | Codex | Gemini CLI | deepagents |
+| --- | --- | --- | --- | --- | --- | --- |
+| A run | The agent works in the repo copy, reads files, and returns a report that validates | Pass | Pass | Pass | Known failure¹ | Pass |
+| Continue a finished run | The session reopens, and its old history is not shown again as new | Pass | Pass | Pass | Known failure² | Pass |
+| Your model | Your own OpenCode model is the one used | Pass | n/a | n/a | n/a | n/a |
+| Continue after a broken report | The session reopens after a report that did not validate | n/a | Pass | n/a | n/a | n/a |
+| PrismaLens tools | The agent calls `incident_get` on the first turn and on a follow-up | Pass | Pass | Pass | Pass | Pass, first turn only |
+| Report | A clean report | Pass | Pass | Pass | Pass | Pass |
+| Tool call | A command runs, then a report | Pass | Pass | Pass | Pass | Pass |
+| Ask approved | The file is written, then a report | Pass | Pass | Pass³ | Pass | Pass |
+| Ask declined | Nothing is written | Pass | Pass | Pass³ | Pass | Pass |
+| Stop | The run ends stopped, and the command it was running is gone | Pass | Pass | Pass | Pass | Known failure⁴ |
+| Not signed in | The run ends with an error | Pass | Pass | Pass | Pass | Pass |
+| Modes and models | The agent offers the modes and models PrismaLens expects of it | Pass | Pass | Pass | Pass | Pass: it offers none |
+| Bad tool arguments | The agent recovers and reports | Pass | Pass | Pass | Pass: ends with an error⁵ | Pass |
+| Unknown tool | The agent recovers and reports | Pass | Pass | Pass | Pass | Pass |
+| Empty answer | The run ends with an error, not an empty report | Pass | Pass | Pass | Pass | Pass |
+| Answer cut off at its length limit | An error | Pass | Pass | Pass | Pass | Pass |
+| Model refuses | An error | Pass | Pass | Pass | Pass | Pass |
+| Provider answers HTTP 500 | An error | Pass | Pass | Pass | Pass | Pass |
+| Provider rate-limits with `Retry-After` | The agent retries, then reports | Pass | Pass | Pass | Pass | Pass |
+| Stream dropped mid-answer | An error | Pass | Pass | Pass | Pass | Pass |
+| First token too slow | PrismaLens's time limit ends the turn | Pass | Pass | Pass | Pass | Pass |
+| Two tool calls at once | Both results, then a report | Pass | Pass | Pass | Pass | Pass |
+
+1. Gemini CLI sends no output for a command over ACP, so PrismaLens can't
+   confirm what the command printed
+   ([google-gemini/gemini-cli#29930](https://github.com/google-gemini/gemini-cli/issues/29930)).
+2. Gemini CLI answers before it has finished replaying the reopened session
+   ([google-gemini/gemini-cli#29707](https://github.com/google-gemini/gemini-cli/issues/29707));
+   PrismaLens works around it.
+3. Codex runs the command with escalated access: in its Ask-for-approval mode it
+   writes inside the workspace without asking.
+4. The run ends stopped, but deepagents leaves the command it was running
+   alive ([langchain-ai/deepagents#5907](https://github.com/langchain-ai/deepagents/issues/5907)).
+   The check turns red once deepagents fixes it, and the table changes with it.
+5. Gemini CLI sends the request again after a malformed call, then ends the
+   turn empty, and PrismaLens reports the error.
+
+**n/a** means the check can't be set up for that agent. deepagents can't
+reopen a finished run at all, so it has no follow-up to check.
 
 ## How PrismaLens chooses
 
