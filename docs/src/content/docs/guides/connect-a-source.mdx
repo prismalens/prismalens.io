@@ -1,0 +1,81 @@
+---
+title: Connect a source
+description: Connect Prometheus, Alertmanager, Loki or GitHub from Settings, what each step checks, and which sign-in methods a source takes.
+---
+
+A **source** is a system the agent reads during an investigation. Connecting
+one lets the agent call it through the
+[gateway](/guides/investigation-data/) without ever seeing its credential.
+
+## The flow
+
+Every source connects the same way. In **Settings → Sources**, choose **Add
+source**. The dialog has three steps:
+
+1. **Kind.** Prometheus, Alertmanager, Loki, GitHub, GitLab or Bitbucket.
+2. **Details.** An optional name, the address, and the sign-in. For GitHub,
+   GitLab and Bitbucket the sign-in is a token you paste. For the others you
+   pick a credential kind (see below).
+3. **Test and save.** **Test connection** makes one read-only request and shows
+   the result. **Save source** stores the credential encrypted on this machine.
+
+Nothing is saved before **Save source**. A source that answers saves as
+**Connected**. If the test fails, the failing check and why are shown and
+nothing is saved, unless you choose **Save, not tested yet**. That saves the
+source as **Not tested yet** without a request; a later passing test marks it
+connected.
+
+| Kind | What the test checks |
+| --- | --- |
+| Prometheus, Alertmanager, Loki | The address answers its ready endpoint with the credential |
+| GitHub, GitLab, Bitbucket | The token against the repositories your services name. With none saved yet, it reads **Not tested yet** |
+
+Deploy records are not a source you connect here: see
+[Record deploys](/guides/record-deploys/).
+
+PrismaLens sends the credential only to the host of the address you entered,
+and never through a redirect to another host.
+
+### What the test reports
+
+A telemetry source runs one check, **Answer at this address**, and reports what
+came back in PrismaLens's own words, such as `401: the source wants a
+credential, or this one is wrong`. It checks the address and the credential
+only: no service uses the source yet. A git token reports one line per
+repository it was tried against.
+
+## How a source signs in
+
+The sign-in method is a **credential kind**. Prometheus, Alertmanager and Loki
+take all five of these.
+
+| Kind | Fields | Typical use |
+| --- | --- | --- |
+| `none` | | A source on a trusted network |
+| `bearer` | Bearer token | A gateway or proxy that takes a token |
+| `basic` | Username, password | Grafana Cloud, a proxy with basic auth |
+| `header` | One header name and value | A proxy service token, or tenancy such as `X-Scope-OrgID` |
+| `mtls` | Client certificate, client key, optional CA (PEM) | A source that checks client certificates. Needs `https` |
+
+These are known and refused for now, with `<name> credentials are not supported yet`:
+
+| Kind | Where you would want it |
+| --- | --- |
+| `aws-sigv4` | Amazon Managed Prometheus |
+| `gcp-workload-identity` | Google Cloud sources |
+| `azure-managed-identity` | Azure sources |
+| `oauth-client-credentials` | Gateways that issue short-lived tokens |
+| `github-app` | Code access as an app |
+
+Saving one of these is refused up front. If one is already stored, the tools
+and `sources_list` say so; nothing fails silently.
+
+PrismaLens makes the request itself. It sends the credential only to the
+origin of the source's own address, follows a redirect only within that origin,
+and requires `https` for `mtls`. A proxy that needs a person to sign in through
+a browser cannot be used unattended; a service token for it maps to `header`.
+
+## Terminal support
+
+Source connection commands are not available. Connect a source in
+**Settings → Sources**.
