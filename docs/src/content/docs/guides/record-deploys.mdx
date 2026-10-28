@@ -1,0 +1,103 @@
+---
+title: Record deploys
+description: Tell PrismaLens what shipped and when, from CI with one authenticated request or from GitHub Deployments, so an investigation can see the deploy next to the alert.
+---
+
+A deploy is often the answer to "what changed". PrismaLens lists deploys with
+commits under what changed, newest first. There are two ways to get them in.
+
+## From CI: the deploy webhook
+
+Run one authenticated request as the last step of a deploy job. It is
+`POST /api/webhooks/deploy`, with the instance's
+[webhook token](/guides/alerts/#the-webhook-token) as `Authorization: Bearer`
+and a JSON body:
+
+| Field | Default | What it does |
+| --- | --- | --- |
+| `service` | required | The service's name, as listed under **Services** |
+| `version` | required | The commit sha or tag that was deployed |
+| `environment` | `production` | The environment deployed to |
+| `status` | `succeeded` | `succeeded`, `failed` or `started` |
+| `url` | none | A link to the deploy run or release |
+| `actor` | none | Who or what deployed |
+| `sha` | none | The commit sha, when `version` is a tag |
+| `timestamp` | when received | When it happened, as an ISO 8601 date with offset |
+
+The reply carries `created: false` when that service, environment, version and
+status was recorded before, so a retried job adds nothing. An unknown service
+is a 404 that names it, and a wrong token is refused.
+
+```bash
+umask 077
+HEADERS="$(mktemp)"
+trap 'rm -f "$HEADERS"' EXIT
+printf 'Authorization: Bearer %s\n' "$PRISMALENS_WEBHOOK_SECRET" > "$HEADERS"
+
+curl --fail-with-body -X POST "$PRISMALENS_URL/api/webhooks/deploy" \
+  -H @"$HEADERS" \
+  -H "Content-Type: application/json" \
+  -d "{\"service\":\"web\",\"version\":\"$(git rev-parse HEAD)\",\"environment\":\"production\"}"
+```
+
+`--fail-with-body` makes `curl` exit nonzero on an HTTP error and still print
+the reply, so a rejected deploy fails the job instead of passing silently. The
+token goes through a private file rather than the command line, where a
+process listing on a shared runner could show it. Both flags need a recent
+`curl` (`--fail-with-body` needs 7.76).
+
+### GitHub Actions
+
+Store `PRISMALENS_URL` and `PRISMALENS_WEBHOOK_SECRET` as repository secrets.
+
+```yaml
+- run: |
+    umask 077
+    HEADERS="$(mktemp)"
+    trap 'rm -f "$HEADERS"' EXIT
+    printf 'Authorization: Bearer %s\n' "$PRISMALENS_WEBHOOK_SECRET" > "$HEADERS"
+    curl --fail-with-body -X POST "$PRISMALENS_URL/api/webhooks/deploy" \
+      -H @"$HEADERS" \
+      -H "Content-Type: application/json" \
+      -d "{\"service\":\"web\",\"version\":\"$GITHUB_SHA\",\"environment\":\"production\",\"url\":\"$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID\"}"
+  env:
+    PRISMALENS_URL: ${{ secrets.PRISMALENS_URL }}
+    PRISMALENS_WEBHOOK_SECRET: ${{ secrets.PRISMALENS_WEBHOOK_SECRET }}
+```
+
+### GitLab CI
+
+Set the same two as CI/CD variables.
+
+```yaml
+record-deploy:
+  stage: deploy
+  script:
+    - umask 077
+    - HEADERS="$(mktemp)"
+    - trap 'rm -f "$HEADERS"' EXIT
+    - |
+      printf 'Authorization: Bearer %s\n' "$PRISMALENS_WEBHOOK_SECRET" > "$HEADERS"
+    - |
+      curl --fail-with-body -X POST "$PRISMALENS_URL/api/webhooks/deploy" \
+        -H @"$HEADERS" \
+        -H "Content-Type: application/json" \
+        -d "{\"service\":\"web\",\"version\":\"$CI_COMMIT_SHA\",\"environment\":\"production\",\"url\":\"$CI_PIPELINE_URL\"}"
+```
+
+### Any shell
+
+Run the `curl` block above with the two variables set. The instance must be
+reachable from where the job runs. See
+[Opening it from other devices](/guides/devices/).
+
+## From GitHub Deployments
+
+For a repository with a saved github.com token (see
+[Git credentials](/guides/git-credentials/)), PrismaLens also reads the
+repository's GitHub Deployments, each with its latest status, while it syncs
+what changed. This is read-only and writes the same kind of row, with source
+`github`. For a private repository the fine-grained token needs
+**Deployments: read** as well as the **Contents: read** in
+[Git credentials](/guides/git-credentials/). Without it GitHub refuses the
+request, the deployments are skipped and logged, and commits still show.
