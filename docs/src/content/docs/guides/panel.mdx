@@ -86,15 +86,20 @@ page in the tool that sent it, a dashboard, a runbook, a release.
 
 In the desktop app, **Open here** loads a page beside the run, with back,
 forward, reload and an address bar. Any http or https address works,
-including `localhost` and addresses on your network. The button at the end
+including `localhost:3000` and addresses on your network. A typed
+`localhost` or `127.0.0.1` address opens as http, any other as https. The button at the end
 of the address bar opens the page in your own browser.
 
 The page runs apart from PrismaLens. It shares nothing with it: it is not
 signed in, so opening PrismaLens's own address there shows the pairing page,
 and it keeps nothing after you close the app: no cookies, no history, no
 downloads. It is refused any permission it
-asks for, such as your location or camera. A link it tries to open in a new
-window opens in your own browser instead.
+asks for, such as your location or camera. A link that would open a new
+window opens in the same place. A page that needs a client certificate or
+the browser's own login box cannot sign in there; open it in your browser
+with the button at the end of the address bar.
+
+Leaving the run, or opening another, closes the page.
 
 In a web browser or on a phone, there is no built-in browser: each link
 opens in a new tab.
