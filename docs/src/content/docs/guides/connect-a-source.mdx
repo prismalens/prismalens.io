@@ -9,39 +9,40 @@ one lets the agent call it through the
 
 ## The flow
 
-Every source connects the same way, in **Settings → Data sources**:
+Every source connects the same way. In **Settings → Sources**, choose **Add
+source**. The dialog has three steps:
 
-1. **Pick** a vendor. One row per category (metrics, logs, code, knowledge,
-   deploys) shows its state and what the agent cannot see without it. A vendor
-   PrismaLens found in its environment, such as `PROMETHEUS_URL` or
-   `GITHUB_TOKEN`, sorts first and reads **found**.
-2. **Sign in.** The form comes from the vendor: its address and the sign-in
-   methods it takes.
-3. **Test & discover.** PrismaLens runs read-only probes and shows a table. A
-   logs source also offers the label that names a service.
-4. **Confirm.** The dialog lists the read-only tools the agent gets and the
-   host the credential is bound to. Nothing is saved before this step.
+1. **Kind.** Prometheus, Alertmanager, Loki, GitHub, GitLab or Bitbucket.
+2. **Details.** An optional name, the address, and the sign-in. For GitHub,
+   GitLab and Bitbucket the sign-in is a token you paste. For the others you
+   pick a credential kind (see below).
+3. **Test and save.** **Test connection** makes one read-only request and shows
+   the result. **Save source** stores the credential encrypted on this machine.
 
-A source is saved only when every **required** probe passes. An optional probe
-that fails is shown and does not block.
+Nothing is saved before **Save source**. A source that answers saves as
+**Connected**. If the test fails, the failing check and why are shown and
+nothing is saved, unless you choose **Save, not tested yet**. That saves the
+source as **Not tested yet** without a request; a later passing test marks it
+connected.
 
-| Category | Vendors | Steps | Which steps |
-| --- | --- | --- | --- |
-| Metrics | Prometheus, Alertmanager | 3, found or not | Pick, sign in (or use the found one), confirm |
-| Logs | Loki | 4 | Pick, sign in, choose the service label, confirm |
-| Code | GitHub | 3 | Pick, token (or the found `GITHUB_TOKEN`), confirm |
-| Deploys | | | Not a form: see [Record deploys](/guides/record-deploys/) |
+| Kind | What the test checks |
+| --- | --- |
+| Prometheus, Alertmanager, Loki | The address answers its ready endpoint with the credential |
+| GitHub, GitLab, Bitbucket | The token against the repositories your services name. With none saved yet, it reads **Not tested yet** |
 
-A detected token's value is never shown to the agent. PrismaLens sends it only
-to the vendor's default host.
+Deploy records are not a source you connect here: see
+[Record deploys](/guides/record-deploys/).
 
-### What the probes check
+PrismaLens sends the credential only to the host of the address you entered,
+and never through a redirect to another host.
 
-Each vendor runs its own read-only probes, for example Prometheus runs a query,
-reads label names and reads firing alerts. Each shows **required** or
-**optional**, and a required probe that fails stops the connect and saves
-nothing. The table names the failing probe and why, such as `401: the source
-wants a credential, or this one is wrong`.
+### What the test reports
+
+A telemetry source runs one check, **Answer at this address**, and reports what
+came back in PrismaLens's own words, such as `401: the source wants a
+credential, or this one is wrong`. It checks the address and the credential
+only: no service uses the source yet. A git token reports one line per
+repository it was tried against.
 
 ## How a source signs in
 
@@ -77,4 +78,4 @@ a browser cannot be used unattended; a service token for it maps to `header`.
 ## Terminal support
 
 Source connection commands are not available. Connect a source in
-**Settings → Data sources**.
+**Settings → Sources**.

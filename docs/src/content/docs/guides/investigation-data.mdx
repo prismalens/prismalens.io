@@ -63,7 +63,7 @@ the agent's own tools (files, shell, its own MCP servers) never pass through the
    `401`. The first request with the right token tells PrismaLens the agent
    loaded the tools.
 3. PrismaLens finds the **Connection** (the source you saved under
-   **Settings → Data sources**) and makes the request itself, to that
+   **Settings → Sources**) and makes the request itself, to that
    connection's own address only.
 4. The reply is trimmed to the caps above, with every credential value
    removed, and goes back to the agent.
