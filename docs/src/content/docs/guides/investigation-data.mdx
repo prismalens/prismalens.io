@@ -1,127 +1,213 @@
 ---
 title: How investigations reach your data
-description: The gateway an agent calls for your metrics, logs, runbooks, past investigations and connected MCP servers, what it can call, and why your credentials never reach the agent.
+description: What PrismaLens reads before a run starts, which connection and credential it picks for each source, what the report says it covered, and the read-only tools an agent gets during the run.
 ---
 
-An investigation needs more than the code: the metrics around the alert, the
-logs, the runbooks, the incidents that looked like this one. PrismaLens gives
-the agent one doorway to all of it, a **gateway** that runs inside the app. The
-agent calls named tools on it. It never gets a URL or a password for your
-Prometheus, Alertmanager, Loki or MCP servers.
+An investigation needs more than the code: the alerts and deploys around the
+incident, the metrics and logs over its window, the runbooks, the incidents
+that looked like this one. PrismaLens reads that **before the run starts** and
+hands it to the agent as files and a few lines of the prompt. During the run,
+the agent gets a handful of read-only PrismaLens tools; anything else it
+queries, it queries with the tools your own agent setup gives it.
 
-## What the agent can call
+## The order of a run
 
-There are two kinds of tool on the gateway.
+```text
+incident ─▶ PrismaLens, before the run
+             1. the incident, its alerts, and deploy and change events   (from PrismaLens's database)
+             2. the repository checkout                                  ┐ at the same time, each with its own deadline
+                a telemetry snapshot: Prometheus, Alertmanager, Loki     ┘
+                the runbooks in the bound repositories                     read once the checkout is done
+             3. the snapshot is stored with the run and copied to
+                .prismalens/runs/<run id>/ in the run's working directory
+          ─▶ the agent, during the run
+             reads the copies and the code; calls PrismaLens's read-only tools on a server named for this run;
+             uses its own tools and its own MCP servers for anything else
+          ─▶ the report, with what was read, what was empty and what was skipped
+```
 
-**PrismaLens tools are read-only.** PrismaLens refuses to serve any of its own
-tools that is not, and the agent may call them at every
-[permission level](/coding-agents/#permission-levels-and-asks), alert-started
-runs included. One exception: an agent that asks before a call and names it
-only by an id it never announced gets the usual approval card, and in an
-alert-started run that ask is denied.
+Nothing before the run can fail an investigation. A source that is down, slow,
+missing its credential or over a limit is skipped, written to the run log, and
+named in the report; the run starts without it.
+
+## What PrismaLens reads before the run
+
+| What | Where from | Limit |
+| --- | --- | --- |
+| The incident, its alerts, and deploy and change events for its services from a day before it started | PrismaLens's own database | Each read gives up after 10 seconds |
+| The code at the commit the run reads | The service's repository; see [Services and their code](/guides/services/) | All checkouts share 10 minutes, at most 3 at a time; what is unfinished then is skipped |
+| Prometheus: alerts firing and scrape targets down over the window | The connection picked for the service | 10 seconds per source, 15 seconds for the whole snapshot, at most 6 sources |
+| Alertmanager: active alerts over the window | as above | as above, 100 alerts |
+| Loki: error, exception, fatal and panic lines over the window | as above | as above, 200 lines, each cut at 2,000 characters |
+| Runbooks | Markdown under `runbooks/` and `docs/runbooks/`, `RUNBOOK*.md`, and runbook links in `catalog-info.yaml`, in the bound repositories at the commit the run reads | 10 seconds; a link is listed, never fetched |
+| Similar past incidents | PrismaLens's own database | |
+
+The **window** runs from half an hour before the first alert to now, at most
+six hours back and at least fifteen minutes. Loki is read with the selector set
+on the service's mapping, or `{service_name="<service>"}` when there is none.
+Each source's part of the snapshot is cut at 256 KiB, oldest log lines first.
+
+## Which connection and credential a source uses
+
+For each kind (Prometheus, Alertmanager, Loki), PrismaLens picks per service
+of the incident: the incident's own service, then each alert's.
+
+1. **A connection mapped to the service.** Map one in the service's
+   **Connections** section; with several, higher rows win. A mapping can carry
+   a **Deployment tag**. When the incident names a deployment, the mapping
+   tagged with it wins; then an untagged one; then one with another tag. The
+   deployment comes from the first alert label among
+   `deployment_environment`, `deployment.environment.name`,
+   `deployment.environment`, `environment` and `env`, and otherwise from the
+   `environment` of the service's latest deploy event.
+2. **The only connection of that kind**, when none is mapped to the service.
+3. **The environment PrismaLens started in**: `PROMETHEUS_URL`,
+   `ALERTMANAGER_URL` or `LOKI_URL`, with `PROMETHEUS_TOKEN`,
+   `ALERTMANAGER_TOKEN` or `LOKI_TOKEN` when set.
+
+With several connections of a kind, none mapped to the service and no
+environment variable for it, that kind is skipped with `2 prometheus connections, none mapped to checkout: map one on
+the service`. With nothing at all, the report says `No Prometheus is set up for
+checkout.`
+
+Inside a picked connection, a credential saved in PrismaLens wins over the
+environment. A `PROMETHEUS_TOKEN` (and the others) fills in only for a
+connection with no saved credential, and only when `PROMETHEUS_URL` has the
+same origin as the connection. When a saved credential overrides one in the
+environment, the report says which, for example **Over** `PROMETHEUS_TOKEN`.
+
+Code is read with a token saved for the repository's host, then a token from the
+environment, then this machine's own git login; see
+[Git credentials](/guides/git-credentials/) for the order and where each is
+shown.
+
+### Worked example: prod and staging
+
+The service `checkout` has two Prometheus connections mapped, `prom-prod`
+tagged `prod` and `prom-staging` tagged `staging`. No Loki connection is
+saved, and PrismaLens was started with `LOKI_URL` and `LOKI_TOKEN`. The only
+Alertmanager connection, `am-prod`, is not mapped to any service, and it does
+not answer. An alert arrives with the label `env="prod"`.
+
+The run log, before the run:
+
+```text
+pre-run: read prom-prod (prometheus) (mapped to checkout, priority 2, deployment prod named by the alert): 3 alerts firing in the window, 1 scrape targets down in the window
+pre-run: skipped am-prod (alertmanager, set) (the only alertmanager connection; not mapped to a service): the source did not answer in time
+pre-run: read LOKI_URL (loki) (env LOKI_URL; no connection is mapped to checkout): 0 error log lines from 0 streams for {service_name="checkout"} (the default selector)
+```
+
+Had the alert said `env="staging"`, the first line would name `prom-staging`.
+Had it named no deployment and the latest deploy event said
+`"environment":"staging"`, the line would end `deployment staging named by the
+latest deploy event`.
+
+The report's coverage reads **2 read, 1 skipped**, one row per source:
+
+| Source | Result | Credential |
+| --- | --- | --- |
+| prom-prod | Data found | Set in PrismaLens |
+| am-prod | Skipped: the source did not answer in time | Set in PrismaLens |
+| LOKI_URL | Nothing in the window | From environment |
+
+## Coverage: what the report tells apart
+
+| Result | Means |
+| --- | --- |
+| **Data found** | Queried, and the window had something. |
+| **Nothing in the window** | Queried, and the source answered with nothing for the window. |
+| **Skipped** | Not read, with the reason: did not answer in time, could not connect, the credential could not be used, or the request would leave the source's origin. |
+| **Not read** | Past the 6-source limit; never tried. |
+
+A kind with no source at all is listed under the coverage as not set up. A
+runbook scan or a whole telemetry snapshot that misses its deadline is named
+the same way.
+
+## The snapshot folder
+
+The snapshot is stored with the run, and a read copy goes into each working
+directory the agent starts in. For the example above:
+
+```text
+.prismalens/runs/
+  .gitignore                       *  (the copies never show in git status)
+  cmh3x9k2p0001/
+    index.json                     what was read, skipped and not set up, with the start of each source's data
+    telemetry-prometheus-1.json    the source, the window and its data
+    telemetry-loki-1.json
+    past-incidents.json
+    runbooks.md
+```
+
+The prompt names the folder and each file, and the agent reads them like any
+other file:
+
+```text
+PRE-RUN CONTEXT
+  PrismaLens read this before the run, at 2026-10-28T14:02:11.000Z.
+  Read copies are in .prismalens/runs/cmh3x9k2p0001/ in your working directory (read-only):
+  - telemetry-prometheus-1.json  prom-prod (prometheus): 3 alerts firing in the window, 1 scrape targets down in the window
+  - telemetry-loki-1.json  LOKI_URL (loki): 0 error log lines from 0 streams for {service_name="checkout"} (the default selector)
+  - past-incidents.json  2 similar past incidents
+  - runbooks.md  2 runbooks from the bound repos
+  Read: prom-prod (prometheus): 3 alerts firing in the window, 1 scrape targets down in the window.
+  Queried, nothing for the window: LOKI_URL (loki): 0 error log lines from 0 streams for {service_name="checkout"} (the default selector).
+  Skipped before the run: am-prod (alertmanager): the source did not answer in time.
+```
+
+A follow-up on the run reads the same stored snapshot again; a new
+investigation fetches a fresh one. When the snapshot could not be saved, the
+run says so, and a follow-up on it starts with **No snapshot for this run**. A
+repository that already tracks `.prismalens`, or has its own
+`.prismalens/runs/.gitignore`, gets no copy; the snapshot is still stored and
+in the prompt.
+
+## During the run: PrismaLens's own tools
+
+Every agent gets one MCP server from PrismaLens with four tools, all
+read-only:
 
 | Tool | What it returns | Cap |
 | --- | --- | --- |
-| `sources_list` | Each category (metrics, logs, code, deploys, knowledge, MCP servers) as `connected`, `not-configured`, `unreachable` or `removed` | Never carries upstream error text |
-| `investigations_search` | Completed past runs matching `query`, optionally for one `service`. The agent's finding and the cause an operator recorded stay in separate fields | `limit` 1 to 20; never the calling run |
-| `runbooks_list`, `runbooks_read` | Runbooks in the repositories bound to services, at the commit the run saw | 32,000 characters per runbook |
-| `prometheus_query` | An instant query | 50 series, 200 points per series |
-| `prometheus_query_range` | A range query; the step defaults to about 200 points | 50 series, 200 points per series |
-| `prometheus_alerts` | The alerts Prometheus has firing | 100 alerts |
-| `alertmanager_alerts` | Active alerts by default; takes matchers | 100 alerts |
-| `loki_query_range` | Log lines across streams | `limit` 1 to 500 lines, each cut at 2,000 characters |
+| `incident_get` | An incident PrismaLens recorded, by number, or the run's own: its title, status, severity and service, its alerts, and the deploy and change events for its services from a day before it started | |
+| `investigations_search` | Past investigations matching `query`, optionally for one `service`, newest first. What the agent concluded and the cause an operator recorded stay in separate fields | `limit` 1 to 20; never the calling run |
+| `runbooks_list` | The runbooks in the bound repositories, at the commit the run read | |
+| `runbooks_read` | One runbook's markdown | 32,000 characters |
 
-Every query tool reads at most 4 MiB from the upstream and returns at most
-32,000 characters. When the upstream answers with an error, the agent gets the
-status and PrismaLens's own words, such as "the source answered HTTP 401",
-never the body the upstream sent.
-
-**MCP-server tools follow your permission level.** Each MCP server you connect
-under **Settings → Data sources** offers its tools as `<name>__<tool>`, for
-example `n8n_prod__list_workflows`. PrismaLens forwards them as the server
-lists them, so whether the agent may call one is your run's permission level,
-as for any other tool the agent has.
-
-## How a call travels
+The server's name is `prismalens-` and ten random characters, new for each
+run, so it never collides with a server in your own agent config. Its token
+works for that run only: another run's token, a missing one and one from a run
+that has ended all get `401`. The prompt tells the agent:
 
 ```text
-agent ──MCP over HTTP──▶ gateway (in PrismaLens)
-                          1. run token: this run only, else 401
-                          2. PrismaLens tool?  read-only check ─▶ source ─▶ credential ─▶ Prometheus, Loki, …
-                             <name>__<tool>?   ─▶ your MCP server, with the credential PrismaLens holds
-                          3. scrub credential values, cap the size
-agent ◀──────────────────── result
-
-the agent's own tools (files, shell, its own MCP servers) never pass through the gateway
+PrismaLens tools (MCP server `prismalens-k3vq7x2mfa`, read-only): `incident_get`, `investigations_search`, `runbooks_list`, `runbooks_read`.
+For metrics, logs and other live data, use the tools your own setup gives you.
 ```
 
-1. At the start of the run, PrismaLens gives the agent one MCP server named
-   `prismalens`, with a bearer token that works for that run only. deepagents
-   gets it as a config file for the run; every other agent gets it over ACP.
-2. The agent calls a tool. The gateway checks the token against the run in the
-   URL. A token for another run, a revoked token and a missing token all get
-   `401`. The first request with the right token tells PrismaLens the agent
-   loaded the tools.
-3. PrismaLens finds the **Connection** (the source you saved under
-   **Settings → Sources**) and makes the request itself, to that
-   connection's own address only.
-4. The reply is trimmed to the caps above, with every credential value
-   removed, and goes back to the agent.
+deepagents gets the server as a config file for the run; every other agent gets
+it over ACP. The tools line goes into the prompt only once the agent's first
+request with the run's token arrives, within five seconds of the session
+starting. **Run details → PrismaLens tools** shows whether they reached the
+model: **Reached the model (first call 14:02:31)**, **Connected, not yet
+called**, or **Did not reach the model**, with each turn's calls. Gemini CLI
+loads MCP servers only in a folder its trust setting allows, and PrismaLens
+does not change that setting; if you use folder trust, trust the runs folder
+shown there.
 
-## What `sources_list` returns
+## Your own tools and MCP servers
 
-From a run where Prometheus is connected, a Loki connection was deleted while
-the run was going, two n8n instances are connected and no log source is left:
-
-```json
-[
- {
-  "category": "metrics",
-  "status": "connected",
-  "sources": [{ "id": "c1", "label": "prod prometheus", "kind": "prometheus", "status": "connected" }],
-  "tools": ["prometheus_query", "prometheus_query_range", "prometheus_alerts", "alertmanager_alerts"]
- },
- {
-  "category": "logs",
-  "status": "not-configured",
-  "sources": [{ "id": "c2", "label": "prod loki", "kind": "removed", "status": "removed",
-                "reason": "This connection was removed during the run." }],
-  "tools": ["loki_query_range"],
-  "howToConnect": "Connect one in PrismaLens under Settings, Data sources."
- },
- {
-  "category": "mcp",
-  "status": "connected",
-  "sources": [
-   { "id": "c3", "label": "n8n_prod", "kind": "mcp-server", "name": "n8n_prod",
-     "description": "production automations", "toolCount": 12, "status": "connected" },
-   { "id": "c4", "label": "n8n_staging", "kind": "mcp-server", "name": "n8n_staging",
-     "description": "staging automations", "toolCount": 12, "status": "connected" }
-  ],
-  "tools": []
- }
-]
-```
-
-The categories for code, deploys and knowledge come in the same shape.
-
-## When a source changes during a run
-
-| What happens | What the agent sees |
-| --- | --- |
-| PrismaLens can't be reached when the run starts | The run goes on without PrismaLens tools |
-| A category has no connection | `not-configured`, with how to connect one; not an error |
-| You add a source (Prometheus, Loki, …) | The next call uses it |
-| You delete a source | The next call answers `not-configured`, and `sources_list` shows it `removed` |
-| A source stops answering | The call fails with a reason, and `sources_list` checks again each time |
-| You add an MCP server | Its tools arrive with the next run; `sources_list` says "available from the next run" |
-| You delete an MCP server | Its tools answer "This MCP connection was removed", and `sources_list` shows it `removed` |
-| An MCP server goes down | Its tools fail with a reason, and `sources_list` shows it `unreachable` |
+PrismaLens ships, installs and forwards no data-access tool. The MCP servers
+your agent loads in your terminal load in the run too, from your own agent
+setup; see [What a run inherits from your agent
+setup](/coding-agents/#what-a-run-inherits-from-your-agent-setup). Whatever
+the agent queries live, it queries with those, under your agent's own
+permissions and the run's [permission
+level](/coding-agents/#permission-levels-and-asks).
 
 ## Deploys
 
-Deploys reach investigations as events you send, not through a tool call. From
-the deploy job:
+Deploys reach investigations as events you send, then through the incident's
+context and `incident_get`. From the deploy job:
 
 ```bash
 curl -X POST "$PRISMALENS_URL/api/webhooks/deploy" \
@@ -130,40 +216,27 @@ curl -X POST "$PRISMALENS_URL/api/webhooks/deploy" \
   -d "{\"service\":\"web\",\"version\":\"$(git rev-parse HEAD)\",\"environment\":\"production\"}"
 ```
 
+The `environment` field is what a connection's **Deployment tag** matches when
+no alert label names a deployment.
 [Record deploys](/guides/record-deploys/) has the rest of the fields.
 
 ## What stays out of the agent's reach
 
-- **Credentials stay in PrismaLens.** They are stored encrypted and sent only
-  to the origin of their connection's own URL, on the first request and on
-  every redirect. A request or redirect to another host fails before anything
-  is sent there.
-- **Error bodies are never forwarded.** An upstream that answers with an error
-  may echo the credential, so the agent gets the status and PrismaLens's words.
-- **Scrubbed on the way out.** Credential values, including the base64 form of
-  basic auth, are removed from every result.
-- **The token dies with the run.** It is held in memory, ends when the run
-  ends, fails or is stopped, and a restart forgets every token.
-- **Only the run's token opens it.** A paired device or a session never opens
-  the gateway.
+- **Source credentials stay in PrismaLens.** PrismaLens makes the requests
+  itself. A saved credential is sent only to the origin of its connection's
+  own address; a request or redirect to another host fails before anything is
+  sent there.
+- **The snapshot is scrubbed.** Every credential value, including the base64
+  form of basic auth, is removed from the snapshot, the run log and the report
+  before they are written. A credential shorter than 4 characters cannot be
+  scrubbed, so that source is skipped.
+- **PrismaLens's own variables are withheld.** The agent inherits your
+  environment without any `PRISMALENS_*` variable and without
+  `PROMETHEUS_TOKEN`, `ALERTMANAGER_TOKEN` and `LOKI_TOKEN`; see [The
+  environment the agent gets](/coding-agents/#the-environment-the-agent-gets).
+- **The tool token dies with the run.** It ends when the run ends, fails or is
+  stopped, and a restart forgets every token.
 
 What is not caught: an upstream that echoes a credential in a successful
-answer, in an encoded form, reaches the agent. Prefer read-only tokens where the
-service offers them.
-
-## Which agents take the tools
-
-All five supported agents take the gateway. PrismaLens counts the tools as
-loaded only once the agent's first request with the run's token arrives, within
-five seconds of the session starting. Until then the prompt has no tools line,
-and if that never happens the run's conversation says "The agent did not load
-PrismaLens tools; a server named `prismalens` in your agent config can hide
-them." The run goes on either way.
-
-Some agents skip a server PrismaLens offers when your own config already has
-one with the same name. Rename yours if you see that message.
-
-Gemini CLI loads MCP servers only in a folder it trusts, so PrismaLens marks the
-run's throwaway copy as trusted, and PrismaLens's server loads beside your own.
-Before the run, the copy loses every `.gemini` folder and `GEMINI.md` (in any
-letter case).
+answer, in an encoded form, reaches the snapshot. Prefer read-only tokens where
+the service offers them.
