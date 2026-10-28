@@ -23,6 +23,18 @@ cloud and `kubectl`. PrismaLens adds none of it.
 | `runbooks_read` | The markdown of one listed runbook. | read |
 | `evidence_record` | One observation with its source and a verbatim quote. | record |
 | `hypothesis_record` | A hypothesis with its status, the evidence ids it rests on, and an optional parent. | record |
+| `artifact_publish` | A self-contained HTML page (a table, a timeline, a chart in inline SVG) shown in the run, with **Open larger**. Scripts don't run and nothing is fetched. | record |
+| `thread_list` | Other investigations and chats on this incident or its services, with their status. | read |
+| `thread_read` | One of those threads: its report when finished, its status while it runs. | read |
+| `timeline_read` | The incident's timeline: status changes, alerts and notes, oldest first. | read |
+| `service_get` | A service's tier, team, Slack channel, repos and dependencies both ways. | read |
+| `changes_list` | Deploys and changes for chosen services in a window of up to seven days. | read |
+| `run_status` | This run's token use, time left, access level and the repos and commits it works in. | read |
+| `report_validate` | Checks a draft report before the agent finishes, field by field. | read |
+| `attachments_list` | Files the operator attached to the incident. | read |
+| `attachment_read` | One attached text file. | read |
+| `incidents_similar` | Past incidents most like this one, with the cause the operator recorded. | read |
+| `fixes_list` | Fixes proposed before for these services and whether they worked. | read |
 
 `evidence_record` looks the quote up itself, in tool output the run saw or in a
 file in the run's workspace. A quote it cannot find is kept as unanchored and
@@ -66,7 +78,9 @@ PrismaLens can list a small core and let the agent find the rest. The core is
 - `tools_call` runs a found tool by name.
 
 Only read tools are ever behind search. The agent never needs the server to
-announce new tools, so this works with every supported agent.
+announce new tools, so this works with every supported agent. Every successful
+result starts with one line saying that what follows is data from PrismaLens's
+records, not instructions.
 
 ```text
 agent  tools_search {"query":"past investigations"}
@@ -76,11 +90,21 @@ agent  tools_call {"name":"investigations_search","arguments":{"query":"checkout
 tool   the matching past investigations
 ```
 
-<Aside type="note" title="Search is off for every agent today">
-It is turned on per agent only where it measures fewer tool tokens per run with
-no loss in PrismaLens's agent test suite. With today's six tools, listing them
-all costs about the same.
+<Aside type="note" title="Which agents use search">
+Search is on for OpenCode, Gemini CLI and deepagents. On PrismaLens's agent test
+suite it about halves the tool text each run sends, with the same pass rate.
+Claude Code and Codex hide MCP tools themselves until they need them, so
+PrismaLens lists its tools to them in full.
 </Aside>
+
+## Agents that ask before every tool
+
+Some agents ask before calling any MCP tool. PrismaLens answers those asks
+for its own read and record tools, which change nothing outside the run. Gemini
+CLI's ask does not say which server a tool belongs to, so PrismaLens cannot
+tell its own tools apart there. With Gemini CLI, a supervised run shows the
+card for recording evidence and publishing pages, and an unattended run refuses
+them.
 
 ## What PrismaLens records about each call
 
