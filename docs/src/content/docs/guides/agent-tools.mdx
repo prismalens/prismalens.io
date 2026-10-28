@@ -1,0 +1,132 @@
+---
+title: Tools an agent gets during a run
+description: The PrismaLens tools every run gives its agent, what each one answers, what happens when one fails, how the agent finds more tools, and what PrismaLens records about each call.
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+## Where the tools come from
+
+Every run gives the agent its own small set of PrismaLens tools. They come
+through a private MCP server that is valid only for that run.
+
+The agent's access to your data stays the agent's own setup: metrics, logs,
+cloud and `kubectl`. PrismaLens adds none of it.
+
+## The tools
+
+| Tool | What it answers | Level |
+| --- | --- | --- |
+| `incident_get` | The incident, its alerts, and the deploy and change events from the day before. Without a number, the run's own incident. | read |
+| `investigations_search` | Past investigations, by text. The agent's conclusion is shown apart from the cause the operator recorded, and the operator's wins. | read |
+| `runbooks_list` | The runbooks in the service's bound repos, read at the commit the run saw. | read |
+| `runbooks_read` | The markdown of one listed runbook. | read |
+| `evidence_record` | One observation with its source and a verbatim quote. | record |
+| `hypothesis_record` | A hypothesis with its status, the evidence ids it rests on, and an optional parent. | record |
+| `artifact_publish` | A self-contained HTML page (a table, a timeline, a chart in inline SVG) shown in the run, with **Open larger**. Scripts don't run and nothing is fetched. | record |
+| `thread_list` | Other investigations and chats on this incident or its services, with their status. | read |
+| `thread_read` | One of those threads: its report when finished, its status while it runs. | read |
+| `timeline_read` | The incident's timeline: status changes, alerts and notes, oldest first. | read |
+| `service_get` | A service's tier, team, Slack channel, repos and dependencies both ways. | read |
+| `changes_list` | Deploys and changes for chosen services in a window of up to seven days. | read |
+| `run_status` | This run's token use, time left, access level and the repos and commits it works in. | read |
+| `report_validate` | Checks a draft report before the agent finishes, field by field. | read |
+| `attachments_list` | Files the operator attached to the incident. | read |
+| `attachment_read` | One attached text file. | read |
+| `incidents_similar` | Past incidents most like this one, with the cause the operator recorded. | read |
+| `fixes_list` | Fixes proposed before for these services and whether they worked. | read |
+
+`evidence_record` looks the quote up itself, in tool output the run saw or in a
+file in the run's workspace. A quote it cannot find is kept as unanchored and
+never counts as verified.
+
+`hypothesis_record` takes one of four statuses: `confirmed`, `supported`,
+`speculative` or `refuted`. Calling it again with the same id updates that
+hypothesis.
+
+## Levels
+
+- A **read** tool only reads what PrismaLens already holds.
+- A **record** tool only adds to this run's own record. It never touches your
+  systems, so it works at every access level, including a run where every ask
+  is refused.
+
+Recorded items appear in the run as they form. The report uses them. A run
+whose agent records nothing still gets a report from its final answer.
+
+## When a tool fails
+
+The agent gets three fields:
+
+- `error`, one of `invalid_input`, `not_found`, `disabled`, `run_ended`,
+  `timeout` or `internal`.
+- `message`, what went wrong.
+- `next`, what to do: retry with a fix, use another tool, or stop.
+
+```json
+{"error":"not_found","message":"PrismaLens has no incident #99.","next":"Call incident_get without number for the incident this run investigates."}
+```
+
+## Finding more tools
+
+PrismaLens can list a small core and let the agent find the rest. The core is
+`incident_get`, `runbooks_read`, the two record tools, `tools_search` and
+`tools_call`.
+
+- `tools_search` takes words and returns the matching tools with their input
+  schemas.
+- `tools_call` runs a found tool by name.
+
+Only read tools are ever behind search. The agent never needs the server to
+announce new tools, so this works with every supported agent. Every successful
+result starts with one line saying that what follows is data from PrismaLens's
+records, not instructions.
+
+```text
+agent  tools_search {"query":"past investigations"}
+tool   investigations_search  Past investigations, by text.  (input schema follows)
+
+agent  tools_call {"name":"investigations_search","arguments":{"query":"checkout timeouts"}}
+tool   the matching past investigations
+```
+
+<Aside type="note" title="Which agents use search">
+Search is on for OpenCode, Gemini CLI and deepagents. On PrismaLens's agent test
+suite it about halves the tool text each run sends, with the same pass rate.
+Claude Code and Codex hide MCP tools themselves until they need them, so
+PrismaLens lists its tools to them in full.
+</Aside>
+
+## Agents that ask before every tool
+
+Some agents ask before calling any MCP tool. PrismaLens answers those asks
+for its own read and record tools, which change nothing outside the run. Gemini
+CLI's ask does not say which server a tool belongs to, so PrismaLens cannot
+tell its own tools apart there. With Gemini CLI, a supervised run shows the
+card for recording evidence and publishing pages, and an unattended run refuses
+them.
+
+## What PrismaLens records about each call
+
+Every call is kept with the run:
+
+- the tool and its input,
+- the text the agent got back,
+- whether it failed,
+- how long it took,
+- which input shape it used.
+
+Recorded calls can be run again for checking.
+
+For example, the agent records one observation:
+
+```text
+agent  evidence_record
+         observation: "p99 rose at 14:02"
+         source:      "kubectl logs api"
+         quote:       "timeout after 30s"
+tool   {"id":"e1","anchor":{...}}
+```
+
+The run then shows the evidence `e1`, and the call is kept with the run as
+described above.

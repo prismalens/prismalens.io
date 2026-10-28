@@ -88,6 +88,7 @@ export default defineConfig({
 						{ label: 'Incidents and the Inbox', slug: 'guides/incidents' },
 						{ label: 'The incident overview', slug: 'guides/overview' },
 						{ label: 'Runs and questions', slug: 'guides/runs' },
+						{ label: 'Tools an agent gets during a run', slug: 'guides/agent-tools' },
 						{ label: 'Resolving and reopening', slug: 'guides/incident-lifecycle' },
 						{ label: 'Opening it from other devices', slug: 'guides/devices' },
 						{ label: 'Run in the background', slug: 'guides/background-service' },
