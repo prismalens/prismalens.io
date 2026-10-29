@@ -1,0 +1,130 @@
+---
+title: Scheduled checks
+description: Have the agent check a service at set times, what happens to a check missed while the computer slept or PrismaLens was off, what happens when one overlaps the last, and who can change a schedule.
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+A schedule has your agent check a service at the times you pick. A morning
+check of `checkout-api` on weekdays at 09:00 is one example. Following a
+runbook from the service's repository every six hours is another. PrismaLens
+runs each check the way it runs an investigation: in a fresh copy of the
+service's code, with the brief you wrote.
+
+Schedules live on the computer that runs PrismaLens, and only that computer
+runs them. Every device you paired sees the same list and the same history.
+
+## Making one
+
+Open **Schedules** in the sidebar and choose **New schedule**. Each schedule
+has these parts:
+
+| Part | What you set |
+| --- | --- |
+| What it runs | The service to check, an optional runbook path in its repository, and the brief for the agent. |
+| When | Every day, weekdays, chosen days of the week, every few hours, or a cron expression, plus a time zone. It starts on this computer's zone. |
+| Agent | The agent and model, picked by name. A check never switches to another agent. |
+| If missed | **Run once when it is back** (the default), or **Skip it**. |
+
+The preview under **When** says it in words, for example *Every weekday at
+09:00, Asia/Kolkata time. Next on Mon 2 Nov at 09:00, then Tue 3 Nov.* When a
+clock change falls in the next 30 days, the preview says what it does to the
+schedule.
+
+Runs are at least 15 minutes apart, and PrismaLens keeps up to 50 schedules.
+
+## What a check may do
+
+Nobody is watching when a check runs, so it follows the same rule as a run an
+alert starts:
+
+- It runs with **Auto** access. The agent may run commands and edit files that
+  its own Auto mode allows without asking.
+- When the agent asks for permission, PrismaLens declines, and the report says
+  what the agent could not do.
+
+A scheduled check is not read-only. Write the brief for what you want looked
+at, and pick an agent whose Auto mode you trust on that service.
+
+## What a check finds
+
+A check opens an incident only on evidence. The report needs a confirmed or
+supported hypothesis, with at least one piece of evidence the agent saw
+directly that supports it. When it has one:
+
+- If the service already has an open incident, the check is added to it.
+- Otherwise PrismaLens opens a new incident on the service, with the report.
+
+Without such a hypothesis, the check stays in the schedule's history, with its
+summary and report.
+
+Alerts still group into incidents by their fingerprint, as they always do.
+An alert that fires after a check opened an incident can open an incident of
+its own.
+
+## When the computer slept or PrismaLens was off
+
+PrismaLens notices a missed time when it is running again, whether the
+computer woke from sleep or PrismaLens started up. It never runs one schedule
+twice at once, and never catches up on more than one missed time.
+
+| What happened | **Run once when it is back** | **Skip it** |
+| --- | --- | --- |
+| The time came while PrismaLens was running | Runs on time | Runs on time |
+| One time missed, back within 6 hours | Runs once, late. History: *Ran late at 20:04 after sleep* | Recorded as missed |
+| Three times missed, back within 6 hours of the last one | Runs once for the latest. History counts the other two as missed | Recorded as missed |
+| Back more than 6 hours after the last missed time | Recorded as missed. The next run is at its usual time | Recorded as missed |
+| The last check is still running | Skipped. History: *the previous run was still going* | Skipped |
+| The agent can't run (not installed, signed out) | Skipped, with the reason | Skipped, with the reason |
+| Other runs fill every slot until the deadline | Not started. History: *PrismaLens was busy with other runs* | Same, with a 15-minute deadline |
+| The service's repositories or notes changed since you saved it | Skipped, and the schedule pauses until you open and save it again | Same |
+| Three checks in a row failed | The schedule pauses with that reason | Same |
+
+### A worked example
+
+A weekday 09:00 check, set to **Run once when it is back**. The laptop sleeps
+from Friday evening until Monday 10:30.
+
+1. PrismaLens wakes at 10:30 Monday. The only slot inside the window is Monday
+   09:00, since the weekend has none.
+2. Monday 09:00 is 90 minutes late and inside the 6-hour window, so the check
+   runs once, now.
+3. The history row reads *Ran late at 10:30 after sleep*, and the next run is
+   Tuesday 09:00.
+
+Had the laptop slept until 16:00, Monday 09:00 would have been 7 hours late.
+It is recorded as *Missed: this computer was asleep*, and nothing runs until
+Tuesday.
+
+## Clock changes
+
+A schedule keeps its time in its own time zone. 09:00 New York time stays
+09:00 in New York when the clocks change, and the preview shows what that is
+on your clock.
+
+| Schedule | Clocks go forward | Clocks go back |
+| --- | --- | --- |
+| One fixed time (`30 2 * * *`) | 02:30 does not exist that day, so it runs at 03:00 | 01:30 happens twice, and it runs once, the first time |
+| A list, range or step (`30 1,3 * * *`, `*/30 * * * *`) | Times inside the skipped hour don't run | Times in the repeated hour run in both passes |
+| Every few hours | Counts real hours, so the change makes no difference | Same |
+
+## When PrismaLens restarts during a check
+
+The check stops, as any run does. A time PrismaLens already decided on is
+never run again. If PrismaLens resumes interrupted runs, a scheduled check
+comes back with the same agent, model and access it started with.
+
+## Who can change a schedule
+
+Only PrismaLens on the computer that runs it can create, edit, pause, resume,
+run now or delete a schedule. A phone or browser you paired sees every
+schedule and its history, with a note naming the computer to use instead.
+
+Every change is recorded with the device that made it. Each check records
+the schedule's version and the agent, model and access it ran with.
+
+<Aside>
+Housekeeping that PrismaLens runs itself also shows on the Schedules page:
+removing finished run workspaces and pulling alerts when it starts. You can't
+edit these.
+</Aside>
