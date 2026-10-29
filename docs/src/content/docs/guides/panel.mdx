@@ -1,0 +1,118 @@
+---
+title: The run panel
+description: The panel beside a run, its Files, Changes and Browser tabs, how the comparison in Changes is chosen, and how the panel behaves on a narrow window and a phone.
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+A run's page has a panel beside the transcript. The details icon in the
+header opens it, and its close button or **Esc** closes it. It holds six
+tabs: **Summary**, **Files**, **Changes**, **Steps**, **Context** and
+**Browser**. Summary, Steps and Context are described on
+[Runs and questions](/guides/runs/#run-details). This page covers Files,
+Changes and Browser, and the panel itself.
+
+Everything in the panel is read-only. It reads the code the run recorded:
+each repository at the commit the run started from, out of the folder or
+mirror PrismaLens cloned it from. The run's own working copy is gone when the
+run ends, so what you see is what the agent was given, not what the folder
+holds now.
+
+## Files
+
+**Files** lists what the run touched, as a tree. Each file carries a mark:
+
+| Mark | Meaning |
+| --- | --- |
+| **Cited** | The report cites it as evidence. |
+| **Edited**, **Wrote** | A step changed it in the run's copy. |
+| **Read** | A step read it. |
+
+A file the run both read and cited shows **Cited**. The count on the tab is
+the number of files.
+
+**All files** switches to the whole repository at the recorded commit. A
+folder's contents load when you open it.
+
+Pick a file to read it at that commit. A file opened from a citation or a
+**Read** step has the cited lines selected and scrolled into view, and lists
+the steps that read it. **Open on code host** opens the same file at the same
+commit on GitHub, GitLab or Bitbucket, when the code came from one.
+
+When the panel is wide enough, the tree stays beside the file. When it is
+narrow, the file takes the tree's place, and **Back** returns to it and to
+the citation or step that opened it.
+
+The open file and the tab are in the page's address, so a link to it opens
+the same file, and the browser's back and forward buttons move between the
+files you opened.
+
+## Changes
+
+**Changes** shows one comparison the run recorded when it started: two commits
+of the run's repository and the diff between them. Its title names each end
+for what it is, and how many commits lie between them.
+
+PrismaLens picks the pair before the agent starts, in this order:
+
+| PrismaLens knows | The pair | The title reads |
+| --- | --- | --- |
+| Two deployment events for the service whose commits are in the run's history | The newest of them, and the one before it | `Deployment v2.14.0 against deployment v2.13.2, 3 commits` |
+| A tag on the commit the run started from, and an earlier tag | That tag, and the tag before it | `Tag v2.14.0 against tag v2.13.2, 3 commits` |
+| Neither | The commit the run started from, and its parent | `Commit a1b2c3d against its parent` |
+
+Deployment events are the deploys PrismaLens stored for the service, the same
+ones the overview lists under [What changed and when](/guides/overview/#what-changed-and-when).
+A deployment whose commit is not in the history the run started from is
+skipped, and the title never calls a tag a deployment.
+
+A run over several repositories records one pair for each, and a picker
+chooses between them.
+
+Pick a file in the list to see its diff. **Split** puts the two sides next to
+each other and **Unified** interleaves them. A narrow panel always shows
+unified. A binary file is listed without line counts, and a change too large
+to draw names its files only.
+
+<Aside>
+A run started before this view existed recorded no pair, and Changes says
+so. Investigate again to get one.
+</Aside>
+
+## Browser
+
+**Browser** lists the pages the run's alerts and report link: an alert's
+page in the tool that sent it, a dashboard, a runbook, a release.
+
+In the desktop app, **Open here** loads a page beside the run, with back,
+forward, reload and an address bar. Any http or https address works,
+including `localhost:3000` and addresses on your network. A typed
+`localhost` or `127.0.0.1` address opens as http, any other as https. The button at the end
+of the address bar opens the page in your own browser.
+
+The page runs apart from PrismaLens. It shares nothing with it: it is not
+signed in, so opening PrismaLens's own address there shows the pairing page,
+and it keeps nothing after you close the app: no cookies, no history, no
+downloads. It is refused any permission it
+asks for, such as your location or camera. A page that tries to open a new
+window is stopped, and the panel names the address with **Open here**. A
+page cannot sign in there with the browser's own login box (the panel says
+so) or with a client certificate (none is ever sent); open it in your
+browser with the button at the end of the address bar.
+
+Leaving the run, or opening another, closes the page.
+
+In a web browser or on a phone, there is no built-in browser: each link
+opens in a new tab.
+
+## Sizing the panel
+
+Drag the panel's edge to resize it, or focus the edge and use the arrow keys.
+Double-click the edge to return it to its default width. The width and
+whether the panel is open are kept for the next time you open a run.
+
+| Window | The panel |
+| --- | --- |
+| 1024 px and wider | Beside the transcript, resizable |
+| 768 to 1023 px | Floats over the transcript; **Esc** closes it and returns you to the icon |
+| A phone | Fills the screen; the close button returns to the run |

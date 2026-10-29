@@ -92,6 +92,7 @@ export default defineConfig({
 						{ label: 'Incidents and the Inbox', slug: 'guides/incidents' },
 						{ label: 'The incident overview', slug: 'guides/overview' },
 						{ label: 'Runs and questions', slug: 'guides/runs' },
+						{ label: 'The run panel', slug: 'guides/panel' },
 						{ label: 'Resolving and reopening', slug: 'guides/incident-lifecycle' },
 						{ label: 'Opening it from other devices', slug: 'guides/devices' },
 						{ label: 'Run in the background', slug: 'guides/background-service' },

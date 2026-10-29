@@ -200,6 +200,19 @@ read it with, and a `problem` with a `message` and an `action`
 failed. The request waits up to 10 seconds for a read, then answers with what
 is stored.
 
+## A run's files and comparison
+
+The [run panel](/guides/panel/) reads two endpoints. Both answer only for
+commits the run recorded and paths inside its repositories; anything else is
+refused with `400`.
+
+| Endpoint | Answers |
+| --- | --- |
+| `GET /api/investigations/{id}/tree?sha=&prefix=` | One folder of a recorded commit: each entry's `name`, `path` and `type` (`file`, `dir`, `symlink` or `submodule`), at most 2000 with `truncated` set past that. |
+| `GET /api/investigations/{id}/diff?pair=&path=` | The diff of the run's recorded comparison at index `pair`: the `comparison` (each end's commit, kind and name, and the commits between), per-file line counts, and the patch, or `omitted: "too-large"` past 2 MiB. `path` narrows it to one file. |
+
+A source that is gone answers `state: "unavailable"` with a `reason`.
+
 ## A service's Impact metric
 
 A service's own PromQL for the Impact chart (see
