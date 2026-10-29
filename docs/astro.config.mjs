@@ -94,6 +94,7 @@ export default defineConfig({
 						{ label: 'Runs and questions', slug: 'guides/runs' },
 						{ label: 'Resolving and reopening', slug: 'guides/incident-lifecycle' },
 						{ label: 'Opening it from other devices', slug: 'guides/devices' },
+						{ label: 'The terminal', slug: 'guides/terminal' },
 						{ label: 'Run in the background', slug: 'guides/background-service' },
 						{ label: 'Reading the report', slug: 'guides/reports' },
 					],
