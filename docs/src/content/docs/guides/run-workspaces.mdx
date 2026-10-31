@@ -1,0 +1,142 @@
+---
+title: Run workspaces
+description: Where a run checks out the code, from a folder or a git URL, how, and what happens to that checkout when the run ends. Global settings, a per-service override field by field, the cleanup rules, and the guards that keep your changes.
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+A run never works in your own copy of the code. It gets its own checkout of the
+committed code, a **run workspace**:
+
+- for a folder on this machine, a checkout of that folder, so the agent's trust
+  in your repository applies and your working copy is never touched;
+- for a git URL, a checkout of the one copy PrismaLens keeps of it. The URL is
+  cloned once, the first time a run or a check needs it, and only fetched after
+  that; every run's checkout comes from that copy.
+
+You decide where run workspaces are made, how, and what happens to them after
+the run. Set it once under **Settings → Runs → Workspace**, and override any
+field for one service in that service's **Workspace** section.
+
+## The settings and their defaults
+
+| Setting | Choices | Default |
+| --- | --- | --- |
+| Method | Worktree of your repo, or Clone of your repo | Worktree |
+| Location | Any absolute folder | `worktrees` in the PrismaLens data folder |
+| After a run | Keep until the incident is resolved, Remove unless changed, Always remove, Keep for some days (1 to 365) | Keep until the incident is resolved |
+| Setup command | One for macOS and Linux, one for Windows | None |
+| Teardown command | One for macOS and Linux, one for Windows | None |
+| Files to copy in | Paths from the top of your repo, such as `.env` | None |
+| Submodules | Skip, Top level, Recursive | Skip |
+| Branch | Detached, or named `prismalens/<incident>-<run>` | Detached |
+
+Each workspace is a folder named `pl-<run id>`. A run over several
+repositories gets one folder per repository inside it.
+
+- **Worktree** adds a `git worktree` of your folder, or of a git URL's copy,
+  locked while the run is going. **Clone** makes a separate clone of either.
+  For a git URL, a run cannot push through the checkout's `origin`: the copy
+  has a push address that refuses, and a clone of it refuses its local source.
+- **Files to copy in** are copied from your folder after the checkout. They are
+  usually ignored files the code needs, such as `.env`. A git URL has no folder
+  to copy from. A path that leaves the repository, or goes through a link that
+  does, is refused.
+- **Setup** runs in the new workspace before the agent starts. It is cancelled
+  after 5 minutes without any output. Its output is in the run's log either way.
+- **Teardown** runs before a workspace is removed. It is stopped after 60
+  seconds and the removal goes ahead.
+- **Branch**: a run reads the code at one commit, so detached is the default. A
+  named branch of a worktree is created in your repository and stays there
+  after the workspace goes; a Clone's branch is in the clone and goes with it.
+  A worktree of a git URL's copy is always detached, because
+  the copy follows the remote's branches exactly; choose Clone to get a named
+  branch for a URL.
+
+Only the computer PrismaLens runs on can change these settings, because setup
+and teardown run commands on it. A paired phone or laptop sees them read-only.
+
+## Where a git URL is cloned
+
+**Settings → Runs → Git URLs → Cloned copies** is the folder each git URL is
+cloned into, once. It is a global setting only, because one copy serves every
+service, and only the computer PrismaLens runs on can change it. It defaults to
+`repos` in the PrismaLens data folder.
+
+Changing it clones each URL again on its next run. The old copies are used until
+no kept workspace needs them, and the hourly cleanup then removes them. Only
+copies PrismaLens cloned there are ever removed.
+
+## A service's own settings
+
+A service's **Workspace** section lists the same fields. Each one reads
+**From global settings** with the global value until you choose **Set for this
+service**. **Use global** hands the field back. A run uses the settings of its
+incident's service.
+
+Worked example: the global settings keep the defaults, and the `checkout`
+service sets two fields of its own.
+
+| Field | Global | `checkout` | A run of `checkout` gets |
+| --- | --- | --- | --- |
+| Location | default | `D:\runs` | `D:\runs` |
+| After a run | Keep until the incident is resolved | Keep for 3 days | Keep for 3 days |
+| Setup command | None | From global settings | None |
+
+So the run's workspace is `D:\runs\pl-<run id>`. When the run ends it stays for
+3 days, and the hourly cleanup removes it after that, whether or not its
+incident is resolved.
+
+## When workspaces are removed
+
+Cleanup runs when a run ends, when PrismaLens starts, and every hour.
+
+| After a run | When the run ends | Later |
+| --- | --- | --- |
+| Remove unless changed | Removed, unless it holds changes | A changed one stays while it holds changes, until you remove it |
+| Always remove | Removed, changes and all | — |
+| Keep for some days | Kept | Removed N days after the run ended, changes and all |
+| Keep until the incident is resolved | Kept | Removed once the incident is resolved or closed, changes and all |
+
+**Changed** means uncommitted edits to tracked files, or new files that are not
+ignored. Ignored files, such as build output or a copied-in `.env`, never count
+as changes, and they are removed with the workspace. Only Remove unless changed
+checks for changes, and it checks again after a teardown, before anything is
+removed. The other rules remove uncommitted changes too.
+
+A follow-up question on a run whose workspace was kept carries on in that
+workspace, with whatever the agent left there.
+
+PrismaLens never removes:
+
+- a workspace whose run is still going;
+- the workspace of a run that a restart of PrismaLens cut off, until that run
+  is resumed;
+- a link, or a clone that other worktrees are attached to;
+- a workspace with a set-up checkout inside it that is not one of its own
+  submodules;
+- a worktree locked by another program;
+- a folder whose name does not start with `pl-`: only `pl-*` folders are ever
+  looked at, so your own worktrees under other names are safe. A `pl-*` folder
+  is taken to be PrismaLens's own unless another program has locked it, so do
+  not give your own worktrees that name.
+
+## Kept workspaces and the history
+
+A finished run whose workspace was kept shows it on the run's page, with why
+it was kept. On the computer PrismaLens runs on, **Open folder** opens it in your file
+manager, and **Remove** deletes it, changes and all, after you confirm.
+
+Nothing removes kept workspaces because there are many of them. When a service
+holds more than 10, **Settings → Runs** shows a warning naming the service and
+listing its kept workspaces, each with **Remove**.
+
+**Settings → Runs** also lists the recent removals, and the workspaces kept when
+their run ended, each with its reason, for example *Removed: its days were up*
+or *Kept: it holds changes*.
+
+<Aside>
+Changing the location does not move existing workspaces. PrismaLens remembers
+every location a setting has named, so workspaces left in an old one are still
+listed, cleaned up, and used by a follow-up question.
+</Aside>
