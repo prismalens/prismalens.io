@@ -95,13 +95,14 @@ Cleanup runs when a run ends, when PrismaLens starts, and every hour.
 | --- | --- | --- |
 | Remove unless changed | Removed, unless it holds changes | A changed one stays while it holds changes, until you remove it |
 | Always remove | Removed, changes and all | — |
-| Keep for some days | Kept | Removed N days after the run ended |
-| Keep until the incident is resolved | Kept | Removed once the incident is resolved or closed |
+| Keep for some days | Kept | Removed N days after the run ended, changes and all |
+| Keep until the incident is resolved | Kept | Removed once the incident is resolved or closed, changes and all |
 
 **Changed** means uncommitted edits to tracked files, or new files that are not
 ignored. Ignored files, such as build output or a copied-in `.env`, never count
-as changes, and they are removed with the workspace. After a teardown, changes
-are checked again before anything is removed.
+as changes, and they are removed with the workspace. Only Remove unless changed
+checks for changes, and it checks again after a teardown, before anything is
+removed. The other rules remove uncommitted changes too.
 
 A follow-up question on a run whose workspace was kept carries on in that
 workspace, with whatever the agent left there.
@@ -115,8 +116,10 @@ PrismaLens never removes:
 - a workspace with a set-up checkout inside it that is not one of its own
   submodules;
 - a worktree locked by another program;
-- anything it did not create: only `pl-*` folders are ever looked at, so your
-  own worktrees in the same folder are safe.
+- a folder whose name does not start with `pl-`: only `pl-*` folders are ever
+  looked at, so your own worktrees under other names are safe. A `pl-*` folder
+  is taken to be PrismaLens's own unless another program has locked it, so do
+  not give your own worktrees that name.
 
 ## Kept workspaces and the history
 
