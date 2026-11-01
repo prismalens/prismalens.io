@@ -54,12 +54,11 @@ folder that has no `prismalens.db`. `--workspace <dir>` picks another workspace.
 ### `pl doctor`
 
 Checks the machine `pl up` will run on and exits non-zero if a hard check
-fails. It checks the Node version, that the workspace folder is writable,
-which coding agents are on `PATH`, which one would be picked, whether each
-installed agent answers, where the webhook token file is, and the host and
-port. `pl doctor` prints the webhook URL Alertmanager should use and whether
-other machines can reach it (loopback bind = only this machine). For each agent
-it prints the path the binary was found at, or the `PATH` it searched. It never
+fails. It checks the Node version (a patched release of Node 24 or 26), that the
+workspace folder is writable, where the webhook token file is, and the host and
+port. It does not check coding agents: it prints one line pointing to
+**Settings → Agent**. `pl doctor` prints the webhook URL Alertmanager should use and whether
+other machines can reach it (loopback bind = only this machine). It never
 prints the token. It also prints the version and how it was installed, and
 lists every `pl` on `PATH`. The **Git** check is required: it prints git's
 version and the credential helpers this shell would use, per host, and fails
@@ -229,22 +228,21 @@ with `:port`) and the **Token**.
 
 Logs are in `~/.prismalens/logs/`. Start with `pl doctor`.
 
-**`Harness available` fails.** No known coding agent is on `PATH`. Install one
-from [Coding agents](/coding-agents/), open a new terminal so `PATH` updates,
-and run `pl doctor` again.
+**No agent can run.** `pl up` still starts, and **Settings → Agent** says so.
+Install one from [Coding agents](/coding-agents/), open a new terminal so
+`PATH` updates, and check it under **Settings → Agent**.
 
 **An agent is on `PATH` but not picked.** With nothing pinned, PrismaLens picks
 the first agent on `PATH` in this order: OpenCode, Claude Code, Codex, Gemini
 CLI, deepagents. Pin another with `PRISMALENS_HARNESS=<id>` or in
 **Settings → Agent**.
 
-**`Harness ACP handshake` is not `answers ACP`.** The line shows the agent's own
-error. Usually it is not signed in: set its provider key and restart `pl up` so
-the key is in the agent's environment.
+**An agent's Check on Settings → Agent fails.** The line shows the agent's
+own error. Usually it is not signed in: set its provider key and restart `pl up`
+so the key is in the agent's environment.
 
-**Doctor said `answers ACP` but the run failed "not signed in".** Some agents
-only check sign-in when the first investigation starts. Set the provider key
-and run again.
+**Check passed but the run failed "not signed in".** Some agents only check
+sign-in when the first investigation starts. Set the provider key and run again.
 
 **The service shows a git error.** The message says what failed and what to
 do; [Git credentials](/guides/git-credentials/#when-git-fails) lists them.

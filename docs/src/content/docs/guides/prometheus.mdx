@@ -12,8 +12,9 @@ from the server each time; it stores no metric values.
 
 ## Connect Prometheus
 
-Add the server under **Settings → Alert sources → Add a source**: kind
-**Prometheus**, its URL and a name. The server must be reachable from this
+Add the server under **Settings → Sources → Add source**: kind
+**Prometheus**, its URL and a name (see
+[Connect a source](/guides/connect-a-source/)). The server must be reachable from this
 machine without credentials. The same source also catches up alerts that
 fired while PrismaLens was off (see [Sending alerts](/guides/alerts/#alert-sources)),
 and a run's brief tells the agent to query it.
@@ -79,7 +80,7 @@ The reasons the query is not known:
 | Reason | What it means |
 | --- | --- |
 | The alert's sender gave no expression. | The alert carried no link with an expression. |
-| The alert came from a Prometheus that is not connected. | A caught-up alert names a server that is not under Alert sources. |
+| The alert came from a Prometheus that is not connected. | A caught-up alert names a server that is not under Sources. |
 | Prometheus did not list its rules. | The rules lookup failed. |
 | The rule is no longer loaded. | No loaded rule has this alert's name and labels. |
 | 3 rules share this name. | More than one loaded rule fits, so none is picked. |

@@ -14,7 +14,7 @@ to install it and stick to it: every copy on a machine shares one workspace,
 <Tabs syncKey="channel">
 <TabItem label="npm">
 
-Needs Node.js 24 or newer.
+Needs Node.js 24.22.1 or newer, or 26.12.1 or newer. `pl doctor` fails an older patch release.
 
 ```bash
 npm install -g prismalens
@@ -283,7 +283,7 @@ switching back doesn't need a download.
 
 Uninstalling removes the program and leaves your workspace
 (`~/.prismalens`: database, secrets, logs). To delete the workspace as well,
-run `pl reset` first. **Settings → Danger zone** shows the uninstall command
+run `pl reset` first. **Settings → About**, under **Danger zone**, shows the uninstall command
 for the way this copy was installed.
 
 | Installed with | Uninstall |

@@ -11,7 +11,7 @@ have run one investigation against real code and read its report.
 ## Before you start
 
 - **macOS, Linux or WSL2.** Native Windows is a preview.
-- **git**, and **Node.js 24** if you install with npm. The installer and Homebrew bring their own Node.
+- **git**, and **Node.js 24.22.1 or 26.12.1** (or newer) if you install with npm. The installer and Homebrew bring their own Node.
 - **A coding agent** on your `PATH`, signed in. OpenCode is the one PrismaLens picks automatically: `npm i -g opencode-ai`, then sign it in. See [Coding agents](/coding-agents/) for the others.
 - **A git repository** on this machine, or a git URL you can clone.
 
@@ -40,17 +40,14 @@ have run one investigation against real code and read its report.
    pl doctor
    ```
 
-   Every hard check must pass. The lines that matter most:
+   Every hard check must pass. It ends with:
 
    ```text
-   ✔ Harness available: at least one harness is installed
-   ✔ Auto-selected harness: opencode (auto)
-   ✔ Harness ACP handshake: OpenCode: answers ACP
    ✔ All required checks passed.
    ```
 
-   If no agent is found, `doctor` prints the install command for each one it
-   knows.
+   `pl doctor` does not check coding agents. **Settings → Agent** in the app
+   lists the ones that can run, and **Add agent** sets one up.
 
 3. **Start PrismaLens**
 
@@ -132,8 +129,8 @@ have run one investigation against real code and read its report.
 The incident shows **Investigation failed**, the error, the agent's
 last events, and the path of the raw transcript, such as
 `~/.prismalens/runs/<id>/transcript.jsonl`. The most common causes are an agent
-that is not signed in and a repository git could not clone. `pl doctor` and the
-service page show both.
+that is not signed in and a repository git could not clone. The
+service page shows both.
 </Aside>
 
 ## Next

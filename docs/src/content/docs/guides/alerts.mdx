@@ -40,15 +40,19 @@ What happens then:
 
 ## Alert sources
 
-**Settings → Alert sources** is where alerts come from. It has two groups.
+**Settings → Alert intake** is what starts an investigation. It has three groups.
 
-**Webhook** shows the URL Alertmanager posts to, the token with **Show** and
-**Copy**, and the **Last delivery**: when it arrived, how many alerts it
-carried and how many were accepted. The token shows only in a browser on the
-machine PrismaLens runs on.
+**Webhooks** shows the Alertmanager receiver URL and the generic webhook URL,
+the token with **Show** and **Copy**, and the **Last delivery**: when it
+arrived, how many alerts it carried and how many were accepted. The token
+shows only in a browser on the machine PrismaLens runs on.
 
-**Pulled from** lists the Alertmanager and Prometheus servers PrismaLens reads
-by URL. **Add a source** takes a kind, a URL and a name, then checks that the
+**Deploy events** shows the URL that records deploys (see
+[Record deploys](/guides/record-deploys/)).
+
+**Pulled by URL** lists the Alertmanager and Prometheus servers PrismaLens reads
+by URL. They are also sources: the same server shows under **Settings →
+Sources**. **Add a source** takes a kind, a URL and a name, then checks that the
 server answers. The server must be reachable from this machine without
 credentials. Each row shows **reachable** or **unreachable** with the last
 error, and has **Test** and **Pull now**. A Prometheus source also draws the
@@ -82,7 +86,7 @@ starts no investigation. Only an alert that arrives by webhook starts one on its
 
 Alertmanager sends **resolved** once. If PrismaLens was off or asleep at that
 moment, it never gets it. With an Alertmanager source (**Settings → Alert
-sources**), PrismaLens asks Alertmanager which alerts it still holds each
+intake**), PrismaLens asks Alertmanager which alerts it still holds each
 time it starts and after each webhook. An alert that a connected Alertmanager
 listed before and no connected Alertmanager lists now is cleared. Its incident
 reads **Alerts cleared** once nothing on it is still firing, and you then

@@ -34,8 +34,7 @@ pl service install --tailscale-serve
 
 A new workspace serves on port 6473. The port lives in `<workspace>/instance.json`;
 `--port` or `PRISMALENS_PORT` overrides it for one run. It uses the `PATH` of
-the shell you installed it from, so it finds the same coding agents `pl doctor`
-finds. Settings you have exported (`PRISMALENS_ALLOWED_HOSTS`,
+the shell you installed it from, so it finds the same coding agents your shell does. Settings you have exported (`PRISMALENS_ALLOWED_HOSTS`,
 `PRISMALENS_PUBLIC_URL`, `PRISMALENS_TELEMETRY`, `PRISMALENS_UPDATE_CHECK`) go
 into the service too. Secrets never do.
 
@@ -79,7 +78,7 @@ PrismaLens stops.
 
 Uninstalling PrismaLens with the installer (`install.sh --uninstall`) removes
 the service first. With npm, Homebrew or Scoop, run `pl service uninstall`
-before you uninstall. Settings → Danger zone shows the combined command.
+before you uninstall. **Settings → About** shows the combined command under **Danger zone**.
 
 ## Where it doesn't run
 
