@@ -230,7 +230,9 @@ Logs are in `~/.prismalens/logs/`. Start with `pl doctor`.
 
 **No agent can run.** `pl up` still starts, and **Settings → Agent** says so.
 Install one from [Coding agents](/coding-agents/), open a new terminal so
-`PATH` updates, and check it under **Settings → Agent**.
+`PATH` updates. Restart `pl up` from that terminal, or rerun
+`pl service install` for a background service, before checking it under
+**Settings → Agent**.
 
 **An agent is on `PATH` but not picked.** With nothing pinned, PrismaLens picks
 the first agent on `PATH` in this order: OpenCode, Claude Code, Codex, Gemini
@@ -238,11 +240,13 @@ CLI, deepagents. Pin another with `PRISMALENS_HARNESS=<id>` or in
 **Settings → Agent**.
 
 **An agent's Check on Settings → Agent fails.** The line shows the agent's
-own error. Usually it is not signed in: set its provider key and restart `pl up`
-so the key is in the agent's environment.
+own error. Usually it is not signed in. For a background service, set the
+provider key in **Settings → Agent → the agent → Environment**. For foreground
+use, set the key in the shell and restart `pl up`.
 
 **Check passed but the run failed "not signed in".** Some agents only check
-sign-in when the first investigation starts. Set the provider key and run again.
+sign-in when the first investigation starts. Set the provider key the same
+way, then run again.
 
 **The service shows a git error.** The message says what failed and what to
 do; [Git credentials](/guides/git-credentials/#when-git-fails) lists them.

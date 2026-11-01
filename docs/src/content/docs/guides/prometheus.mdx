@@ -14,8 +14,7 @@ from the server each time; it stores no metric values.
 
 Add the server under **Settings → Sources → Add source**: kind
 **Prometheus**, its URL and a name (see
-[Connect a source](/guides/connect-a-source/)). The server must be reachable from this
-machine without credentials. The same source also catches up alerts that
+[Connect a source](/guides/connect-a-source/)). Set its credential there if it needs one. The same source also catches up alerts that
 fired while PrismaLens was off (see [Sending alerts](/guides/alerts/#alert-sources)),
 and a run's brief tells the agent to query it.
 
