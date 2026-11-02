@@ -1,0 +1,133 @@
+---
+import { installCommand } from '../lib/links'
+
+interface Props {
+  class?: string
+}
+const { class: className } = Astro.props
+---
+
+<!-- analytics.ts counts copies on `.expressive-code .copy button` and reads the command from the <pre>. -->
+<div class:list={['install', 'expressive-code', className]}>
+  <pre><span class="p" aria-hidden="true">$</span>{installCommand}</pre>
+  <div class="copy">
+    <button class="copy-btn" type="button" data-copy={installCommand} aria-label="Copy install command">
+      <span class="idle">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="5" y="5" width="8.5" height="8.5" rx="1.5"></rect><path d="M10.5 5V3.5A1.5 1.5 0 009 2H3.5A1.5 1.5 0 002 3.5V9A1.5 1.5 0 003.5 10.5H5"></path></svg>
+        <span class="lbl">Copy</span>
+      </span>
+      <span class="done">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 8.5l3 3 7-7"></path></svg>
+        <span class="lbl">Copied</span>
+      </span>
+    </button>
+  </div>
+</div>
+
+<script>
+  const copyText = async (s: string) => {
+    try {
+      await navigator.clipboard.writeText(s)
+      return true
+    } catch {
+      const ta = Object.assign(document.createElement('textarea'), { value: s })
+      ta.style.cssText = 'position:fixed;opacity:0'
+      document.body.appendChild(ta)
+      ta.select()
+      const ok = document.execCommand('copy')
+      ta.remove()
+      return ok
+    }
+  }
+  const timers = new WeakMap<HTMLElement, number>()
+  document.querySelectorAll<HTMLButtonElement>('.install .copy-btn').forEach((b) =>
+    b.addEventListener('click', async () => {
+      const ok = await copyText(b.dataset.copy ?? '')
+      const status = document.getElementById('copyStatus')
+      if (status) status.textContent = ok ? 'Copied' : 'Copy failed'
+      b.classList.add('copied')
+      clearTimeout(timers.get(b))
+      timers.set(b, window.setTimeout(() => b.classList.remove('copied'), 1800))
+    }),
+  )
+</script>
+
+<style>
+  .install {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    max-width: 520px;
+    padding: 7px 7px 7px 16px;
+    border-radius: 12px;
+    border: 1px solid oklch(1 0 0 / 0.12);
+    background: color-mix(in oklch, var(--bg-deep) 85%, transparent);
+    box-shadow: 0 20px 50px -28px oklch(0 0 0 / 0.9), 0 0 0 1px oklch(0 0 0 / 0.4);
+  }
+  pre {
+    margin: 0;
+    flex: 1;
+    min-width: 0;
+    overflow-x: auto;
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--foreground);
+    white-space: pre;
+    scrollbar-width: none;
+  }
+  pre::-webkit-scrollbar {
+    display: none;
+  }
+  .p {
+    color: var(--link);
+    user-select: none;
+    margin-right: 10px;
+  }
+  .copy {
+    flex: none;
+  }
+  .copy-btn {
+    display: inline-flex;
+    align-items: center;
+    height: 32px;
+    padding: 0 11px;
+    border-radius: 8px;
+    border: 1px solid oklch(1 0 0 / 0.12);
+    background: oklch(1 0 0 / 0.05);
+    color: var(--muted-foreground);
+    font: 500 12px/1 var(--font-sans);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .copy-btn:hover {
+    color: var(--foreground);
+    background: oklch(1 0 0 / 0.09);
+  }
+  .copy-btn svg {
+    width: 14px;
+    height: 14px;
+  }
+  .idle,
+  .copied .done {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .done,
+  .copied .idle {
+    display: none;
+  }
+  .copy-btn.copied {
+    color: color-mix(in oklch, var(--run-done) 80%, white);
+    border-color: color-mix(in oklch, var(--run-done) 50%, transparent);
+    background: color-mix(in oklch, var(--run-done) 10%, transparent);
+  }
+  @media (max-width: 420px) {
+    .lbl {
+      display: none;
+    }
+    .copy-btn {
+      padding: 0 9px;
+    }
+  }
+</style>

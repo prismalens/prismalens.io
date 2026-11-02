@@ -1,51 +1,96 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro'
+import { githubUrl } from '../lib/links'
+
+const rules = [
+  { title: 'Evidence over scores', line: 'Ranked findings, each with its evidence. Never a percentage.' },
+  { title: 'Your agent, your login', line: 'It never calls a model. No account, nothing to pay.' },
+  { title: 'Limits, said plainly', line: 'It adds no sandbox, and the docs say so.' },
+  { title: 'Yours to run', line: 'Apache-2.0, on your machine. It sends nothing to us.' },
+]
 ---
 
 <BaseLayout title="About" description="Why PrismaLens exists and the rules it is built on.">
-  <article class="mx-auto max-w-2xl px-4 py-16 leading-relaxed sm:px-6 sm:py-24">
-    <h1 class="text-4xl font-semibold tracking-tight">About PrismaLens</h1>
-
-    <p class="mt-8 text-lg">
-      When an alert fires, the answer is usually already somewhere in your dashboards and your
-      code. Finding it is the slow part: which deploy, which change, which line. Coding agents
-      have become good at reading a codebase and following that kind of trail, and most engineers
-      already have one installed and signed in.
-    </p>
-
-    <p class="mt-5 text-muted-foreground">
-      PrismaLens puts that agent on the incident. It opens the incident from the alert, gives the
-      agent a copy of the service's code at a permission level you choose, and keeps the
-      whole run: the report, the evidence and every command the agent ran.
-    </p>
-
-    <h2 class="mt-14 text-2xl font-semibold tracking-tight">The rules it follows</h2>
-
-    <p class="mt-5 text-muted-foreground">
-      <strong class="text-foreground">Evidence over scores.</strong> A report ranks the causes and
-      shows what each one rests on. It never prints a confidence percentage. A number you cannot
-      check is worse than no number.
-    </p>
-
-    <p class="mt-5 text-muted-foreground">
-      <strong class="text-foreground">Your agent, your login.</strong> PrismaLens never calls a model
-      and never reads your agent's credentials. There is no PrismaLens account and nothing to pay us.
-    </p>
-
-    <p class="mt-5 text-muted-foreground">
-      <strong class="text-foreground">Say where the limits are.</strong> Permission levels decide
-      what the agent may do without asking, PrismaLens adds no sandbox, and the docs say so.
-    </p>
-
-    <p class="mt-5 text-muted-foreground">
-      <strong class="text-foreground">Yours to run.</strong> PrismaLens is Apache-2.0 and runs on your
-      machine. Everything it keeps is in <code>~/.prismalens</code>, and it sends nothing to us.
-    </p>
-
-    <p class="mt-14">
-      Feedback and bug reports go to
-      <a href="https://github.com/prismalens/prismalens/issues" class="underline underline-offset-4">GitHub issues</a>.
-      Code contributions open up a little later.
-    </p>
-  </article>
+  <section class="page">
+    <div class="glow" aria-hidden="true"></div>
+    <div class="wrap">
+      <h1 class="reveal">About PrismaLens</h1>
+      <p class="lede reveal" style="--d:.06s">Your agent already reads code. Point it at signals.</p>
+      <ul class="rules">
+        {rules.map((r, i) => (
+          <li class="card reveal" style={`--d:${0.1 + i * 0.06}s`}>
+            <h2>{r.title}</h2>
+            <p>{r.line}</p>
+          </li>
+        ))}
+      </ul>
+      <a class="btn btn-ghost reveal" href={`${githubUrl}/issues`}>Feedback on GitHub</a>
+    </div>
+  </section>
 </BaseLayout>
+
+<style>
+  .page {
+    position: relative;
+    padding: 96px 0 120px;
+    isolation: isolate;
+    overflow: hidden;
+  }
+  .glow {
+    position: absolute;
+    z-index: -1;
+    left: 50%;
+    top: 0;
+    width: 900px;
+    height: 420px;
+    transform: translate(-50%, -40%);
+    background: radial-gradient(closest-side, color-mix(in oklch, var(--primary) 28%, transparent), transparent);
+    filter: blur(40px);
+  }
+  h1 {
+    font-size: clamp(36px, 5vw, 56px);
+    line-height: 1.05;
+    letter-spacing: -0.035em;
+    margin: 0 0 16px;
+    font-weight: 650;
+  }
+  .lede {
+    font-size: 19px;
+    line-height: 1.5;
+    color: var(--muted-foreground);
+    margin: 0 0 48px;
+  }
+  .rules {
+    list-style: none;
+    margin: 0 0 40px;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+  }
+  .card {
+    border-radius: 16px;
+    border: 1px solid oklch(1 0 0 / 0.08);
+    background: linear-gradient(180deg, oklch(0.18 0.006 285.9), oklch(0.15 0.006 285.9));
+    padding: 22px 22px 24px;
+    transition: border-color 0.3s;
+  }
+  .card:hover {
+    border-color: oklch(1 0 0 / 0.16);
+  }
+  h2 {
+    font-size: 19px;
+    margin: 0 0 4px;
+    letter-spacing: -0.02em;
+    font-weight: 620;
+  }
+  p {
+    margin: 0;
+    color: var(--muted-foreground);
+  }
+  @media (max-width: 720px) {
+    .rules {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

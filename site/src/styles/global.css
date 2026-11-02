@@ -9,14 +9,40 @@
 @import "../../../design-tokens/tokens.css";
 @import "../../../design-tokens/tailwind-preset.css";
 
-/* The theme toggle sets a `.dark` class on <html>; stock `dark:` follows the OS instead */
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* Site-only tints from the approved mockup (design/landing.html); brand colours stay in the tokens. */
+.dark {
+  --bg-deep: oklch(0.115 0.006 285.8);
+  --link: oklch(0.8 0.11 277);
+  --indigo-soft: color-mix(in oklch, var(--primary) 16%, transparent);
+  --hairline: oklch(1 0 0 / 0.07);
+  --ease-out-soft: cubic-bezier(0.2, 0.7, 0.2, 1);
+  color-scheme: dark;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
 body {
-  background-color: var(--background);
+  background-color: var(--bg-deep);
   color: var(--foreground);
+  font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 1.6;
   font-feature-settings: "calt" 1;
   -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+a {
+  color: var(--link);
+  text-decoration: none;
+}
+a:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 code, pre, kbd {
@@ -26,11 +52,92 @@ code, pre, kbd {
 :focus-visible {
   outline: 2px solid var(--ring);
   outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.wrap {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.skip {
+  position: absolute;
+  left: 12px;
+  top: -60px;
+  z-index: 100;
+  background: var(--primary);
+  color: var(--primary-foreground);
+  padding: 8px 12px;
+  border-radius: var(--radius);
+}
+.skip:focus {
+  top: 12px;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 38px;
+  padding: 0 16px;
+  border-radius: 999px;
+  font: 500 14px/1 var(--font-sans);
+  border: 1px solid transparent;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: transform 0.2s var(--ease-out-soft), background 0.2s, border-color 0.2s;
+}
+.btn:hover {
+  text-decoration: none;
+}
+.btn svg {
+  width: 16px;
+  height: 16px;
+}
+.btn-primary {
+  background: var(--primary);
+  color: var(--primary-foreground);
+  box-shadow: 0 0 0 1px oklch(1 0 0 / 0.12) inset, 0 8px 24px -8px color-mix(in oklch, var(--primary) 70%, transparent);
+}
+.btn-primary:hover {
+  background: color-mix(in oklch, var(--primary) 88%, white);
+  transform: translateY(-1px);
+}
+.btn-ghost {
+  background: oklch(1 0 0 / 0.04);
+  color: var(--foreground);
+  border-color: oklch(1 0 0 / 0.1);
+}
+.btn-ghost:hover {
+  background: oklch(1 0 0 / 0.08);
+  border-color: oklch(1 0 0 / 0.18);
+}
+
+/* Scroll reveals hide content only once JS has run, so no-JS readers still see everything. */
+.js .reveal {
+  opacity: 0;
+  transform: translateY(22px);
+  transition: opacity 0.8s var(--ease-out-soft), transform 0.8s var(--ease-out-soft);
+  transition-delay: var(--d, 0s);
+}
+.js .reveal.in {
+  opacity: 1;
+  transform: none;
 }
 
 @media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
   *, *::before, *::after {
-    animation: none !important;
-    transition: none !important;
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    transition-delay: 0s !important;
+  }
+  .js .reveal {
+    opacity: 1;
+    transform: none;
   }
 }

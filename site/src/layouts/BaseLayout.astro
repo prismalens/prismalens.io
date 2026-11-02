@@ -14,7 +14,7 @@ interface Props {
 
 const {
   title,
-  description = 'An open-source app that investigates an incident with the coding agent you already use, and keeps the evidence.',
+  description = 'Signals in. Your agent digs in. Evidence out.',
   ogImage = '/og-default.png',
   ogImageWidth = 1200,
   ogImageHeight = 630,
@@ -25,14 +25,9 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site)
 ---
 
 <!doctype html>
-<html lang="en" class="dark scroll-smooth">
+<html lang="en" class="dark">
   <head>
-    <script is:inline>
-      (function () {
-        var t = localStorage.getItem('prismalens-theme');
-        if (t === 'light') document.documentElement.classList.remove('dark');
-      })();
-    </script>
+    <script is:inline>document.documentElement.classList.add('js')</script>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
@@ -54,14 +49,18 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site)
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:image" content={new URL(ogImage, Astro.site)} />
   </head>
-  <body class="min-h-screen bg-background text-foreground antialiased font-sans">
+  <body>
+    <a class="skip" href="#main">Skip to content</a>
     <Header />
-    <main class="overflow-x-clip">
+    <main id="main">
       <slot />
     </main>
     <Footer />
+    <p class="sr-only" id="copyStatus" role="status" aria-live="polite"></p>
     <script>
       import { initAnalytics } from '../scripts/analytics'
+      import { initReveals } from '../scripts/reveal'
+      initReveals()
       initAnalytics().catch(() => {})
     </script>
   </body>

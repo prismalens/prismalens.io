@@ -1,25 +1,53 @@
 ---
 import Mark from './Mark.astro'
-
-const links = [
-  { href: import.meta.env.DEV ? 'http://localhost:4322' : 'https://docs.prismalens.io', label: 'Docs' },
-  { href: '/about', label: 'About' },
-  { href: 'https://github.com/prismalens/prismalens', label: 'GitHub' },
-  { href: 'https://github.com/prismalens/prismalens/issues', label: 'Report a problem' },
-  { href: `${import.meta.env.DEV ? 'http://localhost:4322' : 'https://docs.prismalens.io'}/trust/#these-websites`, label: 'Privacy' },
-]
+import { docsBase, githubUrl } from '../lib/links'
 ---
 
-<footer class="border-t border-border">
-  <div class="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-8 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between sm:px-6">
-    <p class="flex items-center gap-2">
-      <Mark size={18} />
-      PrismaLens is open source under the Apache-2.0 license. Docs are CC-BY-4.0.
-    </p>
-    <ul class="flex flex-wrap gap-x-6 gap-y-2">
-      {links.map((link) => (
-        <li><a href={link.href} class="transition-colors hover:text-foreground">{link.label}</a></li>
-      ))}
-    </ul>
+<footer>
+  <div class="wrap">
+    <a class="brand" href="/" aria-label="PrismaLens home"><Mark size={20} />PrismaLens</a>
+    <nav aria-label="Footer">
+      <a href={`${docsBase}/`}>Docs</a>
+      <a href={githubUrl}>GitHub</a>
+      <span>Apache-2.0</span>
+    </nav>
   </div>
 </footer>
+
+<style>
+  footer {
+    border-top: 1px solid var(--hairline);
+    padding: 30px 0 42px;
+    color: var(--muted-foreground);
+    font-size: 13px;
+  }
+  .wrap {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--foreground);
+    font-weight: 600;
+  }
+  .brand:hover {
+    text-decoration: none;
+  }
+  nav {
+    display: flex;
+    gap: 18px;
+    margin-left: auto;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  a {
+    color: var(--muted-foreground);
+  }
+  a:hover {
+    color: var(--foreground);
+  }
+</style>
