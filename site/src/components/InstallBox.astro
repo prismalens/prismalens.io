@@ -1,27 +1,68 @@
 ---
-import { installCommand } from '../lib/links'
+import { installChannels, platforms } from '../lib/links'
 
 interface Props {
+  /** Prefixes element ids, so the box can appear more than once on a page. */
+  name: string
   class?: string
+  center?: boolean
 }
-const { class: className } = Astro.props
+const { name, class: className, center = false } = Astro.props
+// analytics.ts counts copies on `.expressive-code .copy button` and reads the command from that box's <pre>.
 ---
 
-<!-- analytics.ts counts copies on `.expressive-code .copy button` and reads the command from the <pre>. -->
-<div class:list={['install', 'expressive-code', className]}>
-  <pre><span class="p" aria-hidden="true">$</span>{installCommand}</pre>
-  <div class="copy">
-    <button class="copy-btn" type="button" data-copy={installCommand} aria-label="Copy install command">
-      <span class="idle">
-        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="5" y="5" width="8.5" height="8.5" rx="1.5"></rect><path d="M10.5 5V3.5A1.5 1.5 0 009 2H3.5A1.5 1.5 0 002 3.5V9A1.5 1.5 0 003.5 10.5H5"></path></svg>
-        <span class="lbl">Copy</span>
-      </span>
-      <span class="done">
-        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 8.5l3 3 7-7"></path></svg>
-        <span class="lbl">Copied</span>
-      </span>
-    </button>
+<div class:list={['installer', className, { center }]} data-installer>
+  <div class="tabs" role="tablist" aria-label="Install with">
+    {installChannels.map((c, i) => (
+      <button
+        type="button"
+        role="tab"
+        class="tab"
+        id={`${name}-tab-${c.id}`}
+        aria-controls={`${name}-panel-${c.id}`}
+        aria-selected={i === 0 ? 'true' : 'false'}
+        tabindex={i === 0 ? 0 : -1}
+        data-channel={c.id}
+        data-os={c.os}
+      >
+        {c.label}
+      </button>
+    ))}
   </div>
+
+  {installChannels.map((c, i) => (
+    <div class="panel" role="tabpanel" id={`${name}-panel-${c.id}`} aria-labelledby={`${name}-tab-${c.id}`} hidden={i !== 0}>
+      {c.commands ? (
+        <div class="install expressive-code">
+          <pre tabindex="0">{c.commands.map((cmd) => <span class="line"><span class="p" aria-hidden="true">$</span>{cmd}</span>)}</pre>
+          <div class="copy">
+            <button class="copy-btn" type="button" data-copy={c.commands.join('\n')} aria-label={`Copy the ${c.label} install command`}>
+              <span class="idle">
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="5" y="5" width="8.5" height="8.5" rx="1.5"></rect><path d="M10.5 5V3.5A1.5 1.5 0 009 2H3.5A1.5 1.5 0 002 3.5V9A1.5 1.5 0 003.5 10.5H5"></path></svg>
+                <span class="lbl">Copy</span>
+              </span>
+              <span class="done">
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 8.5l3 3 7-7"></path></svg>
+                <span class="lbl">Copied</span>
+              </span>
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div class="install download">
+          <a class="btn btn-primary" href={c.download}>
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M8 2v8M4.5 6.5L8 10l3.5-3.5M2.5 13.5h11"></path></svg>
+            Download the app
+          </a>
+        </div>
+      )}
+    </div>
+  ))}
+
+  <p class="next">Then run <code>pl up</code></p>
+  <ul class="platforms" aria-label="Platforms">
+    {platforms.map((p) => <li>{p}</li>)}
+  </ul>
 </div>
 
 <script>
@@ -40,7 +81,7 @@ const { class: className } = Astro.props
     }
   }
   const timers = new WeakMap<HTMLElement, number>()
-  document.querySelectorAll<HTMLButtonElement>('.install .copy-btn').forEach((b) =>
+  document.querySelectorAll<HTMLButtonElement>('[data-installer] .copy-btn').forEach((b) =>
     b.addEventListener('click', async () => {
       const ok = await copyText(b.dataset.copy ?? '')
       const status = document.getElementById('copyStatus')
@@ -50,19 +91,91 @@ const { class: className } = Astro.props
       timers.set(b, window.setTimeout(() => b.classList.remove('copied'), 1800))
     }),
   )
+
+  const ua = navigator.userAgent
+  const os = /Windows/i.test(ua) ? 'windows' : /Mac|Linux|X11|CrOS/i.test(ua) && !/Android|iPhone|iPad/i.test(ua) ? 'unix' : null
+
+  document.querySelectorAll<HTMLElement>('[data-installer]').forEach((box) => {
+    const tabs = [...box.querySelectorAll<HTMLButtonElement>('[role="tab"]')]
+    const select = (tab: HTMLButtonElement, focus = false) => {
+      tabs.forEach((t) => {
+        const on = t === tab
+        t.setAttribute('aria-selected', String(on))
+        t.tabIndex = on ? 0 : -1
+        box.querySelector<HTMLElement>(`#${t.getAttribute('aria-controls')}`)!.hidden = !on
+      })
+      // Scrolls only the tab strip, never the page.
+      tab.parentElement!.scrollTo({ left: tab.offsetLeft - 24, behavior: focus ? 'smooth' : 'instant' })
+      if (focus) tab.focus()
+    }
+    tabs.forEach((t, i) => {
+      t.addEventListener('click', () => select(t, true))
+      t.addEventListener('keydown', (e) => {
+        const next = ({ ArrowRight: i + 1, ArrowLeft: i - 1, Home: 0, End: tabs.length - 1 } as Record<string, number>)[e.key]
+        if (next === undefined) return
+        e.preventDefault()
+        select(tabs[(next + tabs.length) % tabs.length], true)
+      })
+    })
+    const preferred = os && tabs.find((t) => t.dataset.os === os)
+    if (preferred) select(preferred)
+  })
 </script>
 
 <style>
+  .installer {
+    max-width: 560px;
+    min-width: 0;
+  }
+  .tabs {
+    position: relative;
+    display: flex;
+    gap: 4px;
+    margin-bottom: 8px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 24px), transparent);
+    mask-image: linear-gradient(90deg, #000 calc(100% - 24px), transparent);
+    padding: 2px 24px 2px 2px;
+  }
+  .tabs::-webkit-scrollbar {
+    display: none;
+  }
+  .tab {
+    flex: none;
+    height: 30px;
+    padding: 0 11px;
+    border-radius: 999px;
+    border: 1px solid transparent;
+    background: transparent;
+    color: var(--muted-foreground);
+    font: 500 12.5px/1 var(--font-sans);
+    white-space: nowrap;
+    cursor: pointer;
+    transition: color 0.2s, background 0.2s, border-color 0.2s;
+  }
+  .tab:hover {
+    color: var(--foreground);
+  }
+  .tab[aria-selected='true'] {
+    color: var(--foreground);
+    background: var(--indigo-soft);
+    border-color: color-mix(in oklch, var(--primary) 40%, transparent);
+  }
   .install {
     display: flex;
     align-items: center;
     gap: 10px;
-    max-width: 520px;
+    min-height: 48px;
     padding: 7px 7px 7px 16px;
     border-radius: 12px;
     border: 1px solid oklch(1 0 0 / 0.12);
     background: color-mix(in oklch, var(--bg-deep) 85%, transparent);
     box-shadow: 0 20px 50px -28px oklch(0 0 0 / 0.9), 0 0 0 1px oklch(0 0 0 / 0.4);
+    text-align: left;
+  }
+  .download {
+    padding-left: 7px;
   }
   pre {
     margin: 0;
@@ -70,13 +183,17 @@ const { class: className } = Astro.props
     min-width: 0;
     overflow-x: auto;
     font-size: 13px;
-    line-height: 1.5;
+    line-height: 1.6;
     color: var(--foreground);
     white-space: pre;
     scrollbar-width: none;
+    border-radius: 6px;
   }
   pre::-webkit-scrollbar {
     display: none;
+  }
+  .line {
+    display: block;
   }
   .p {
     color: var(--link);
@@ -85,6 +202,7 @@ const { class: className } = Astro.props
   }
   .copy {
     flex: none;
+    align-self: flex-start;
   }
   .copy-btn {
     display: inline-flex;
@@ -121,6 +239,46 @@ const { class: className } = Astro.props
     color: color-mix(in oklch, var(--run-done) 80%, white);
     border-color: color-mix(in oklch, var(--run-done) 50%, transparent);
     background: color-mix(in oklch, var(--run-done) 10%, transparent);
+  }
+  .next {
+    margin: 12px 0 0;
+    font-size: 13px;
+    color: var(--muted-foreground);
+  }
+  .next code {
+    margin-left: 4px;
+    padding: 2px 6px;
+    border-radius: 5px;
+    font-size: 12.5px;
+    color: var(--foreground);
+    background: oklch(1 0 0 / 0.07);
+    border: 1px solid oklch(1 0 0 / 0.06);
+  }
+  .platforms {
+    list-style: none;
+    margin: 12px 0 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .platforms li {
+    font: 500 12px/1 var(--font-sans);
+    padding: 6px 10px;
+    border-radius: 999px;
+    border: 1px solid oklch(1 0 0 / 0.09);
+    background: oklch(1 0 0 / 0.025);
+    color: var(--muted-foreground);
+  }
+  .center {
+    margin: 0 auto;
+  }
+  .center .tabs,
+  .center .platforms {
+    justify-content: safe center;
+  }
+  .center .next {
+    text-align: center;
   }
   @media (max-width: 420px) {
     .lbl {

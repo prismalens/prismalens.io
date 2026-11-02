@@ -1,14 +1,22 @@
 ---
 import Mark from './Mark.astro'
-import { docsBase, githubUrl } from '../lib/links'
+import { docsBase, githubUrl, quickstartUrl, releasesUrl, trustUrl } from '../lib/links'
+
+const links = [
+  { href: `${docsBase}/`, label: 'Docs' },
+  { href: quickstartUrl, label: 'Quick start' },
+  { href: '/about/', label: 'About' },
+  { href: trustUrl, label: 'Privacy' },
+  { href: releasesUrl, label: 'Release notes' },
+  { href: githubUrl, label: 'GitHub' },
+]
 ---
 
 <footer>
   <div class="wrap">
     <a class="brand" href="/" aria-label="PrismaLens home"><Mark size={20} />PrismaLens</a>
     <nav aria-label="Footer">
-      <a href={`${docsBase}/`}>Docs</a>
-      <a href={githubUrl}>GitHub</a>
+      {links.map((l) => <a href={l.href}>{l.label}</a>)}
       <span>Apache-2.0</span>
     </nav>
   </div>

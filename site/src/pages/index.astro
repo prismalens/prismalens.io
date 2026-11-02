@@ -2,7 +2,9 @@
 import BaseLayout from '../layouts/BaseLayout.astro'
 import InstallBox from '../components/InstallBox.astro'
 import LiveRun from '../components/LiveRun.astro'
-import { docsBase, githubUrl } from '../lib/links'
+import { githubUrl, quickstartUrl, trustUrl } from '../lib/links'
+
+const agents = ['OpenCode', 'Claude Code', 'Codex', 'Gemini CLI', 'deepagents', '+ any ACP agent']
 ---
 
 <BaseLayout title="Your agent, working while you're not">
@@ -12,8 +14,8 @@ import { docsBase, githubUrl } from '../lib/links'
       <div>
         <h1 id="hero-title">Your agent,<br /><span class="grad">working while you're not.</span></h1>
         <p class="lede">Signals in. Your agent digs in. Evidence out.</p>
-        <InstallBox />
-        <a class="more" href={`${docsBase}/`}>Read the docs →</a>
+        <InstallBox name="hero" />
+        <a class="more" href={quickstartUrl}>Read the docs →</a>
       </div>
       <LiveRun />
     </div>
@@ -63,6 +65,9 @@ import { docsBase, githubUrl } from '../lib/links'
         </div>
         <h2>Your agent</h2>
         <p>The one you already pay for.</p>
+        <ul class="agents" aria-label="Supported agents">
+          {agents.map((a) => <li>{a}</li>)}
+        </ul>
       </article>
       <article class="card reveal" style="--d:.16s">
         <div class="vis" data-load aria-hidden="true">
@@ -82,11 +87,11 @@ import { docsBase, githubUrl } from '../lib/links'
   <section class="trust" aria-label="Trust">
     <div class="wrap">
       <ul class="reveal">
-        <li><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M5 4L1.5 8 5 12M11 4l3.5 4-3.5 4"></path></svg>Open source</li>
-        <li><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="2" y="3" width="12" height="8" rx="1.5"></rect><path d="M5.5 14h5M8 11v3"></path></svg>Runs on your machine</li>
+        <li><a href={githubUrl}><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M5 4L1.5 8 5 12M11 4l3.5 4-3.5 4"></path></svg>Open source</a></li>
+        <li><a href={trustUrl}><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="2" y="3" width="12" height="8" rx="1.5"></rect><path d="M5.5 14h5M8 11v3"></path></svg>Runs on your machine</a></li>
         <li><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="8" cy="5.5" r="2.5"></circle><path d="M3 14c.6-2.6 2.6-4 5-4s4.4 1.4 5 4M2 2l12 12"></path></svg>No account</li>
         <li><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="8" cy="8" r="6"></circle><path d="M3.8 3.8l8.4 8.4"></path></svg>No model bill</li>
-        <li><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M8 1.5l5.5 2v4c0 3.5-2.4 6-5.5 7-3.1-1-5.5-3.5-5.5-7v-4z"></path><path d="M5.5 8l1.8 1.8L10.8 6.3"></path></svg>You approve what it does</li>
+        <li><a href={trustUrl}><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M8 1.5l5.5 2v4c0 3.5-2.4 6-5.5 7-3.1-1-5.5-3.5-5.5-7v-4z"></path><path d="M5.5 8l1.8 1.8L10.8 6.3"></path></svg>You approve what it does</a></li>
       </ul>
     </div>
   </section>
@@ -94,7 +99,7 @@ import { docsBase, githubUrl } from '../lib/links'
   <section class="cta" id="install" aria-labelledby="cta-title">
     <div class="wrap">
       <h2 id="cta-title" class="reveal">Try it in a minute.</h2>
-      <InstallBox class="reveal" />
+      <InstallBox name="closing" class="reveal" center />
       <a class="btn btn-ghost gh reveal" href={githubUrl}>
         <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path></svg>
         GitHub
@@ -347,6 +352,42 @@ import { docsBase, githubUrl } from '../lib/links'
     background: oklch(1 0 0 / 0.025);
     color: oklch(0.92 0.005 286);
   }
+  .trust li:has(a) {
+    padding: 0;
+  }
+  .trust a {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    padding: 12px 16px;
+    border-radius: inherit;
+    color: inherit;
+  }
+  .trust a:hover {
+    color: var(--foreground);
+    background: oklch(1 0 0 / 0.04);
+    text-decoration: none;
+  }
+  .agents {
+    list-style: none;
+    margin: 14px 0 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .agents li {
+    font: 500 12px/1 var(--font-mono);
+    padding: 6px 9px;
+    border-radius: 7px;
+    border: 1px solid oklch(1 0 0 / 0.1);
+    background: oklch(0 0 0 / 0.22);
+    color: oklch(0.88 0.005 286);
+  }
+  .agents li:last-child {
+    color: var(--muted-foreground);
+    border-style: dashed;
+  }
   .trust li svg {
     width: 15px;
     height: 15px;
@@ -380,8 +421,7 @@ import { docsBase, githubUrl } from '../lib/links'
     margin: 0 0 34px;
     font-weight: 640;
   }
-  .cta :global(.install) {
-    margin: 0 auto;
+  .cta :global(.installer) {
     text-align: left;
   }
   .gh {
