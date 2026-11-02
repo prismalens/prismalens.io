@@ -15,8 +15,9 @@ Dashboards (PostHog project 284081):
 - [Reach and acquisition](https://eu.posthog.com/project/284081/dashboard/1076086):
   both sites by traffic source, AI-assistant referrals, use-case pages, the
   landing-to-install funnel, install scripts, npm, GitHub, releases, Homebrew.
-- [Installs](https://eu.posthog.com/project/284081/dashboard/974563): product
-  activation, active installs and outcomes from opt-in telemetry.
+- [Product: installs and investigations](https://eu.posthog.com/project/284081/dashboard/974563):
+  activation, weekly retention, new vs returning installs and outcomes from
+  opt-in telemetry, release builds only. Release annotations mark each version.
 
 ## What is collected
 
