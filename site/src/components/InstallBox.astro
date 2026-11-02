@@ -1,5 +1,5 @@
 ---
-import { installChannels, platforms } from '../lib/links'
+import { installChannels } from '../lib/links'
 
 interface Props {
   /** Prefixes element ids, so the box can appear more than once on a page. */
@@ -8,30 +8,22 @@ interface Props {
   center?: boolean
 }
 const { name, class: className, center = false } = Astro.props
+const primary = installChannels.filter((c) => c.primary)
+const more = installChannels.filter((c) => !c.primary)
 // analytics.ts counts copies on `.expressive-code .copy button` and reads the command from that box's <pre>.
 ---
 
 <div class:list={['installer', className, { center }]} data-installer>
-  <div class="tabs" role="tablist" aria-label="Install with">
-    {installChannels.map((c, i) => (
-      <button
-        type="button"
-        role="tab"
-        class="tab"
-        id={`${name}-tab-${c.id}`}
-        aria-controls={`${name}-panel-${c.id}`}
-        aria-selected={i === 0 ? 'true' : 'false'}
-        tabindex={i === 0 ? 0 : -1}
-        data-channel={c.id}
-        data-os={c.os}
-      >
+  <div class="seg" role="group" aria-label="Install with">
+    {primary.map((c, i) => (
+      <button type="button" class="pick" aria-pressed={i === 0 ? 'true' : 'false'} aria-controls={`${name}-panel-${c.id}`} data-channel={c.id} data-os={c.os}>
         {c.label}
       </button>
     ))}
   </div>
 
   {installChannels.map((c, i) => (
-    <div class="panel" role="tabpanel" id={`${name}-panel-${c.id}`} aria-labelledby={`${name}-tab-${c.id}`} hidden={i !== 0}>
+    <div class="panel" id={`${name}-panel-${c.id}`} aria-label={`Install with ${c.label}`} hidden={i !== 0}>
       {c.commands ? (
         <div class="install expressive-code">
           <pre tabindex="0">{c.commands.map((cmd) => <span class="line"><span class="p" aria-hidden="true">$</span>{cmd}</span>)}</pre>
@@ -59,10 +51,22 @@ const { name, class: className, center = false } = Astro.props
     </div>
   ))}
 
-  <p class="next">Then run <code>pl up</code></p>
-  <ul class="platforms" aria-label="Platforms">
-    {platforms.map((p) => <li>{p}</li>)}
-  </ul>
+  <div class="foot">
+    <p class="next">
+      {installChannels.filter((c) => c.preview).map((c) => (
+        <span class="badge" data-preview-for={c.id} hidden>Preview</span>
+      ))}
+      Then run <code>pl up</code>
+    </p>
+    <p class="more" role="group" aria-label="Other ways to install">
+      <span>Also</span>
+      {more.map((c) => (
+        <button type="button" class="pick link" aria-pressed="false" aria-controls={`${name}-panel-${c.id}`} data-channel={c.id}>
+          {c.label}
+        </button>
+      ))}
+    </p>
+  </div>
 </div>
 
 <script>
@@ -96,28 +100,17 @@ const { name, class: className, center = false } = Astro.props
   const os = /Windows/i.test(ua) ? 'windows' : /Mac|Linux|X11|CrOS/i.test(ua) && !/Android|iPhone|iPad/i.test(ua) ? 'unix' : null
 
   document.querySelectorAll<HTMLElement>('[data-installer]').forEach((box) => {
-    const tabs = [...box.querySelectorAll<HTMLButtonElement>('[role="tab"]')]
-    const select = (tab: HTMLButtonElement, focus = false) => {
-      tabs.forEach((t) => {
-        const on = t === tab
-        t.setAttribute('aria-selected', String(on))
-        t.tabIndex = on ? 0 : -1
-        box.querySelector<HTMLElement>(`#${t.getAttribute('aria-controls')}`)!.hidden = !on
+    const picks = [...box.querySelectorAll<HTMLButtonElement>('.pick')]
+    const select = (pick: HTMLButtonElement) =>
+      picks.forEach((p) => {
+        const on = p === pick
+        p.setAttribute('aria-pressed', String(on))
+        box.querySelector<HTMLElement>(`#${p.getAttribute('aria-controls')}`)!.hidden = !on
+        const badge = box.querySelector<HTMLElement>(`[data-preview-for="${p.dataset.channel}"]`)
+        if (badge) badge.hidden = !on
       })
-      // Scrolls only the tab strip, never the page.
-      tab.parentElement!.scrollTo({ left: tab.offsetLeft - 24, behavior: focus ? 'smooth' : 'instant' })
-      if (focus) tab.focus()
-    }
-    tabs.forEach((t, i) => {
-      t.addEventListener('click', () => select(t, true))
-      t.addEventListener('keydown', (e) => {
-        const next = ({ ArrowRight: i + 1, ArrowLeft: i - 1, Home: 0, End: tabs.length - 1 } as Record<string, number>)[e.key]
-        if (next === undefined) return
-        e.preventDefault()
-        select(tabs[(next + tabs.length) % tabs.length], true)
-      })
-    })
-    const preferred = os && tabs.find((t) => t.dataset.os === os)
+    picks.forEach((p) => p.addEventListener('click', () => select(p)))
+    const preferred = os && picks.find((p) => p.dataset.os === os)
     if (preferred) select(preferred)
   })
 </script>
@@ -127,40 +120,83 @@ const { name, class: className, center = false } = Astro.props
     max-width: 560px;
     min-width: 0;
   }
-  .tabs {
-    position: relative;
-    display: flex;
-    gap: 4px;
+  .seg {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 2px;
+    padding: 3px;
     margin-bottom: 8px;
-    overflow-x: auto;
-    scrollbar-width: none;
-    -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 24px), transparent);
-    mask-image: linear-gradient(90deg, #000 calc(100% - 24px), transparent);
-    padding: 2px 24px 2px 2px;
+    border-radius: 10px;
+    border: 1px solid oklch(1 0 0 / 0.08);
+    background: oklch(1 0 0 / 0.03);
   }
-  .tabs::-webkit-scrollbar {
-    display: none;
-  }
-  .tab {
-    flex: none;
+  .seg .pick {
     height: 30px;
-    padding: 0 11px;
-    border-radius: 999px;
+    padding: 0 8px;
+    border-radius: 7px;
     border: 1px solid transparent;
     background: transparent;
     color: var(--muted-foreground);
     font: 500 12.5px/1 var(--font-sans);
     white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
     cursor: pointer;
     transition: color 0.2s, background 0.2s, border-color 0.2s;
   }
-  .tab:hover {
+  .seg .pick:hover {
     color: var(--foreground);
   }
-  .tab[aria-selected='true'] {
+  .seg .pick[aria-pressed='true'] {
     color: var(--foreground);
     background: var(--indigo-soft);
     border-color: color-mix(in oklch, var(--primary) 40%, transparent);
+  }
+  .badge {
+    margin-right: 8px;
+    font: 500 11px/1 var(--font-sans);
+    padding: 5px 8px;
+    border-radius: 999px;
+    color: var(--warning);
+    background: color-mix(in oklch, var(--warning) 12%, transparent);
+    border: 1px solid color-mix(in oklch, var(--warning) 35%, transparent);
+  }
+  .foot {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px 16px;
+    margin-top: 12px;
+  }
+  .more {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 2px 4px;
+    margin: 0;
+    font-size: 13px;
+    color: var(--muted-foreground);
+  }
+  .more span {
+    margin-right: 4px;
+  }
+  .more .link {
+    padding: 4px 6px;
+    border: 0;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--muted-foreground);
+    font: inherit;
+    text-decoration: underline;
+    text-decoration-color: oklch(1 0 0 / 0.2);
+    text-underline-offset: 3px;
+    cursor: pointer;
+  }
+  .more .link:hover,
+  .more .link[aria-pressed='true'] {
+    color: var(--foreground);
+    text-decoration-color: currentColor;
   }
   .install {
     display: flex;
@@ -185,7 +221,9 @@ const { name, class: className, center = false } = Astro.props
     font-size: 13px;
     line-height: 1.6;
     color: var(--foreground);
-    white-space: pre;
+    /* Wrap rather than hide: a command cut off at the edge looks complete. */
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
     scrollbar-width: none;
     border-radius: 6px;
   }
@@ -194,6 +232,8 @@ const { name, class: className, center = false } = Astro.props
   }
   .line {
     display: block;
+    padding-left: 1.6em;
+    text-indent: -1.6em;
   }
   .p {
     color: var(--link);
@@ -241,7 +281,7 @@ const { name, class: className, center = false } = Astro.props
     background: color-mix(in oklch, var(--run-done) 10%, transparent);
   }
   .next {
-    margin: 12px 0 0;
+    margin: 0;
     font-size: 13px;
     color: var(--muted-foreground);
   }
@@ -254,31 +294,11 @@ const { name, class: className, center = false } = Astro.props
     background: oklch(1 0 0 / 0.07);
     border: 1px solid oklch(1 0 0 / 0.06);
   }
-  .platforms {
-    list-style: none;
-    margin: 12px 0 0;
-    padding: 0;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-  }
-  .platforms li {
-    font: 500 12px/1 var(--font-sans);
-    padding: 6px 10px;
-    border-radius: 999px;
-    border: 1px solid oklch(1 0 0 / 0.09);
-    background: oklch(1 0 0 / 0.025);
-    color: var(--muted-foreground);
-  }
   .center {
     margin: 0 auto;
   }
-  .center .tabs,
-  .center .platforms {
-    justify-content: safe center;
-  }
-  .center .next {
-    text-align: center;
+  .center .foot {
+    justify-content: center;
   }
   @media (max-width: 420px) {
     .lbl {

@@ -11,19 +11,21 @@ export type InstallChannel = {
   commands?: string[]
   download?: string
   os?: 'unix' | 'windows'
+  /** Primary channels are always visible; the rest sit in the quieter "Also" row. */
+  primary?: boolean
+  preview?: boolean
 }
 
 export const installChannels: InstallChannel[] = [
-  { id: 'unix', label: 'macOS & Linux', commands: ['curl -fsSL https://prismalens.io/install.sh | sh'], os: 'unix' },
-  { id: 'npm', label: 'npm', commands: ['npm install -g prismalens'] },
+  { id: 'unix', label: 'macOS & Linux', commands: ['curl -fsSL https://prismalens.io/install.sh | sh'], os: 'unix', primary: true },
+  { id: 'windows', label: 'Windows', commands: ['irm https://prismalens.io/install.ps1 | iex'], os: 'windows', primary: true, preview: true },
+  { id: 'npm', label: 'npm', commands: ['npm install -g prismalens'], primary: true },
   { id: 'brew', label: 'Homebrew', commands: ['brew install prismalens/tap/prismalens'] },
-  { id: 'windows', label: 'Windows (preview)', commands: ['irm https://prismalens.io/install.ps1 | iex'], os: 'windows' },
   {
     id: 'scoop',
-    label: 'Scoop (preview)',
+    label: 'Scoop',
     commands: ['scoop bucket add prismalens https://github.com/prismalens/scoop-bucket', 'scoop install prismalens'],
+    preview: true,
   },
-  { id: 'desktop', label: 'Desktop app (preview)', download: `${releasesUrl}/latest` },
+  { id: 'desktop', label: 'Desktop app', download: `${releasesUrl}/latest`, preview: true },
 ]
-
-export const platforms = ['macOS', 'Linux', 'WSL2', 'Windows (preview)']

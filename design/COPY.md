@@ -18,16 +18,16 @@ Nav: Docs · GitHub · Install (button, scrolls to the closing install tabs)
 Hero
   H1:   Your agent, working while you're not.
   Line: Signals in. Your agent digs in. Evidence out.
-  Install box (tabs, each with [copy]; commands copied exactly from docs/src/content/docs/install.mdx):
-    macOS & Linux          curl -fsSL https://prismalens.io/install.sh | sh
-    npm                    npm install -g prismalens
-    Homebrew               brew install prismalens/tap/prismalens
-    Windows (preview)      irm https://prismalens.io/install.ps1 | iex
-    Scoop (preview)        scoop bucket add prismalens https://github.com/prismalens/scoop-bucket
-                           scoop install prismalens
-    Desktop app (preview)  [Download the app] → https://github.com/prismalens/prismalens/releases/latest
-  Next step: Then run `pl up`
-  Platform chips: macOS · Linux · WSL2 · Windows (preview)
+  Install box: a 3-way switch (macOS & Linux · Windows · npm), preselected by OS, each with [copy];
+  commands copied exactly from docs/src/content/docs/install.mdx:
+    macOS & Linux   curl -fsSL https://prismalens.io/install.sh | sh
+    Windows         irm https://prismalens.io/install.ps1 | iex                     [Preview badge]
+    npm             npm install -g prismalens
+  Under the box: "Then run `pl up`" · "Also: Homebrew · Scoop · Desktop app" (swap the box)
+    Homebrew        brew install prismalens/tap/prismalens
+    Scoop           scoop bucket add prismalens https://github.com/prismalens/scoop-bucket
+                    scoop install prismalens                                       [Preview badge]
+    Desktop app     [Download the app] → https://github.com/prismalens/prismalens/releases/latest  [Preview badge]
   Link: Read the docs → (to the Quick start)
 
 Pillars (3)
