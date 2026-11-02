@@ -23,7 +23,7 @@
     "docs:generate:watch": "tsx watch scripts/generate-env-docs.ts",
     "docs:generate:integrations": "tsx scripts/generate-integration-docs.ts",
     "tokens:sync": "tsx scripts/sync-design-tokens.ts",
-    "test": "tsx --test scripts/analytics.test.ts",
+    "test": "tsx --test scripts/analytics.test.ts scripts/reach/reach.test.mts",
     "check": "vale docs/src/content site/dist && lychee --offline --root-dir \"$PWD/docs/dist\" 'docs/dist/**/*.html' && lychee --offline --root-dir \"$PWD/site/dist\" 'site/dist/**/*.html' && pnpm check:seo",
     "check:seo": "tsx scripts/check-seo.mts site docs",
     "check:a11y": "cd site && npx -y @lhci/cli@0.15.1 autorun && cd ../docs && npx -y @lhci/cli@0.15.1 autorun"
@@ -33,6 +33,7 @@
     "@marbec/web-auto-extractor": "^2.2.1",
     "@types/node": "^26.6.5",
     "concurrently": "^10.0.6",
-    "tsx": "^4.23.15"
+    "tsx": "^4.23.15",
+    "uuid": "^14.0.3"
   }
 }
