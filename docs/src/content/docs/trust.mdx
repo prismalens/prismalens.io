@@ -1,213 +1,88 @@
 ---
 title: What PrismaLens reads and never does
-description: Permission levels, asks and where the limits stop, what leaves your machine, credentials, and where your data lives.
+description: What the agent can reach, what leaves your machine, and where your data lives.
 ---
 
 import { Aside } from '@astrojs/starlight/components';
 
 PrismaLens puts a coding agent next to your code. This page says what that
-agent can reach, what PrismaLens does to limit it, and where those limits stop.
+agent can reach, what leaves your machine, and where PrismaLens keeps its data.
 
 ## The short version
 
-- The agent works in a **copy** of your repository, never in your checkout. It runs with your own agent setup and your environment, minus PrismaLens's own secrets.
-- Each run has a **permission level**. At **Ask always**, every ask the agent raises waits for your Approve. At the other levels PrismaLens approves what the level allows and logs it. What the agent does without asking is up to its own mode and your settings. Neither is a wall.
-- Fetching a URL or searching the web is a tool call like any other: it asks or runs by the level and the agent's own rules.
-- PrismaLens adds **no sandbox**. A lock on a level means the agent's readiness check saw the agent's own sandbox hold that mode; without one, nothing at the operating-system level blocks a write or a network call.
-- PrismaLens counts **feature use** after a one-time notice, and never the alert, your code or a report. Turn it off in **Settings → Usage data** or with `PRISMALENS_TELEMETRY=off` or `DO_NOT_TRACK=1`. An update check queries GitHub Releases without an identifier. Your agent sends your code and the alert to **its** model provider.
-- PrismaLens **never** reads or stores your agent's login.
+- The agent works in a **git worktree** at the service's last commit, never in
+  your checkout. Uncommitted changes aren't read.
+- The agent runs **as your user, with no sandbox**. Your
+  [permission level](/coding-agents/#what-the-agent-may-do) decides what it may
+  do without asking.
+- PrismaLens **never calls a model**. Your agent sends what it reads to **its**
+  model provider.
+- PrismaLens sends **usage counts** after telling you, and you can turn them
+  off. It never sends your code, alerts or reports.
 - Everything PrismaLens keeps is in **one folder**, `~/.prismalens`.
 
-## Permission and asks
+## What the agent can reach
 
-A run's permission level picks the agent's own mode and decides how its asks
-are answered (see
-[Permission levels and asks](/coding-agents/#permission-levels-and-asks)). At
-**Ask always**, reads and searches run, and every other action the agent asks
-about, a write for example, waits in a dock on the box with **Approve** and **Deny**, naming
-the call, and the incident waits in the Inbox under **Waiting for your
-approval**. Deny refuses it and the run goes on to its report. An ask nobody
-answers is denied after 10 minutes. At **Auto-accept edits** PrismaLens
-approves file changes and the rest waits for you; at **Auto** and **Full
-access** it approves what the agent asks. Every approval is logged in the
-transcript.
+The agent runs as your user, so it can reach what your user can. PrismaLens
+limits which of its requests run without you through the permission level.
+It adds no wall at the operating-system level. For a real boundary, run
+PrismaLens under a user or in a VM that can read only what it should, and give
+the agent read-only credentials for anything outside the repository.
 
-Whatever the level, the brief tells the agent that its job ends at the report:
-changing the system (deploys, restarts, config, scaling, data) is not part of
-it, and an obvious fix goes into its next steps.
+The agent gets the environment your terminal has, minus PrismaLens's own
+secrets, so its own `git` and `gh` work. **Settings → Agent → Only pass named
+variables** limits it to the basics, the agent's provider keys and the
+variables you set.
 
-<Aside type="caution" title="Levels that do not wait for you">
-Auto-accept edits, Auto and Full access let the agent act without asking you,
-as those modes do in your terminal. Unless the agent's own sandbox holds the
-mode, nothing at the operating-system level blocks a write or a network call.
-For a real boundary, run PrismaLens under a user or in a VM that can read only
-what it should, and give the agent read-only credentials for anything outside
-the copy.
-</Aside>
-
-OpenCode asks only where your `opencode.json` says `ask`; by default that is
-files outside the workspace. Claude Code applies your own
-`~/.claude/settings.json`: what it allows runs without asking, and what it
-denies is refused without asking.
-
-Agent configuration committed in the repository never reaches the agent:
-before a run starts, PrismaLens removes `.claude`, `.opencode`, `opencode.json`,
-`.mcp.json`, `.gemini`, `.codex`, `AGENTS.md`, `AGENTS.override.md`,
-`CLAUDE.md`, `GEMINI.md` and `.cursorrules` at any depth from the snapshot, so
-a repository cannot bring its own tools, hooks or instructions into the run.
-
-Alert fields reach the agent inside a block marked as untrusted data. If the
-agent spots text trying to give it orders, it quotes it in the report under
-**Content tried to instruct the agent**.
+Alert text reaches the agent marked as untrusted data. If the agent spots text
+trying to give it orders, the report quotes it.
 
 ## What leaves your machine
 
-- **From PrismaLens:** usage counts after a one-time notice, unless you turn them off (see [Usage telemetry](#usage-telemetry)), and no crash reports. An update check queries GitHub Releases without an identifier. `GET /api/instance` is public and returns `{instanceId, version, apiVersion}` so clients can confirm which instance answers before sending credentials. The app listens on `127.0.0.1` unless you pass `--host`.
-- **Update check:** once a day `pl up` checks GitHub Releases for a newer version by sending a `HEAD` request to `https://github.com/prismalens/prismalens/releases/latest`. The check sends no identifier, query, or body — only the standard IP address and User-Agent header of any HTTP request. Results are cached for 24 hours in `update-check.json` in the workspace folder. The check runs in the background and never delays startup. It is suppressed when standard output is not a TTY, in CI, when running under an Electron launcher, or when `PRISMALENS_UPDATE_CHECK=off` or `DO_NOT_TRACK` is set.
-- **From your agent:** what it reads, including source code, command output and the alert, goes to its model provider, as it would if you used the agent directly.
-- **From git:** fetching a repository URL, or reading its history for What changed, contacts that host with the credential the clone uses (see [Git credentials](/guides/git-credentials/)).
-- **From the Impact chart:** the overview asks your connected Prometheus for the alert's query over the last 24 hours, from the server. Nothing it answers is stored.
+- **From your agent:** what it reads, including source code, command output and
+  the alert, goes to its model provider, as it would if you used the agent
+  directly.
+- **Usage counts:** on by default, after a notice. The first start prints the
+  notice and sends nothing. From the next start, PrismaLens counts feature use
+  under a random install id: the version, OS, how it was installed, and
+  milestones such as "an investigation finished", as fixed categories. It never
+  sends code, repository names, alert content, reports, prompts, errors,
+  hostnames or your IP address. Events go to PostHog Cloud EU. **Settings →
+  Usage data** turns it off and shows what was recently sent. So do
+  `PRISMALENS_TELEMETRY=off` and `DO_NOT_TRACK=1`, and it is always off when
+  `CI` is set. The exact list of what is sent is in
+  [the source](https://github.com/prismalens/prismalens/blob/main/packages/api/src/core/telemetry/telemetry.service.ts).
+- **Update check:** once a day PrismaLens asks GitHub Releases whether a newer
+  version exists, with no identifier. `PRISMALENS_UPDATE_CHECK=off` or
+  `DO_NOT_TRACK=1` turns it off.
+- **From git:** fetching a repository by URL contacts that host with your git
+  credentials.
 
-## Usage telemetry
+## Who can open it
 
-Usage telemetry is **on by default, after a notice**. The first start shows
-the notice and sends nothing; sending begins at the next start, unless you
-turn it off.
+There are no accounts. A browser gets in only by opening a one-time link that
+`pl up` or `pl pair` prints on this machine. No address grants access by itself,
+`localhost` included. A paired device can read every incident and run
+investigations; revoke one under **Settings → Devices**.
 
-### The notice, and turning it off
-
-- **In the terminal:** the first `pl up` on a terminal prints `Usage data:
-  PrismaLens counts feature use under a random install id. Never an alert,
-  code, a repo or a report. Turn it off in Settings, Usage data, or with
-  PRISMALENS_TELEMETRY=off or DO_NOT_TRACK=1. Nothing is sent before the next
-  start.` It never prompts.
-- **In the app:** a strip reads "Usage counts are on." with what is counted,
-  and offers **OK** and **Turn off**. Either one hides it.
-- **In Settings:** **Settings → Usage data → Share usage counts** turns it off
-  or on again at any time.
-- **`pl up --telemetry=off`:** turns it off for that run. `--telemetry`
-  accepts only `off`.
-
-### What forces it off
-
-Three environment variables force telemetry off regardless of what is stored in Settings:
-
-- `PRISMALENS_TELEMETRY=off` (also accepts `0` or `false`): Disables telemetry for the process.
-- `DO_NOT_TRACK`: When set to any value other than empty, `0`, `false`, or `off`, disables telemetry (and the update check).
-- `CI`: Any non-empty value disables telemetry. Automated runs are never counted as installs.
-
-When forced off, the Settings switch reads **Locked off** with a note explaining the environment override, and no events are collected or sent.
-
-### The install id
-
-- **What it is:** A random UUID generated once for the workspace. It is sent as the `distinct_id` on every event so PrismaLens can count installs rather than disconnected events.
-- **Pseudonymous data:** Because the identifier is stable per install, it is pseudonymous rather than anonymous, and is treated as personal data under GDPR Recital 26. It is never joined to an account, email, or user profile.
-- **Where it lives:** In the workspace SQLite database (`prismalens.db`) in the `settings` table under the `TELEMETRY` key. A factory reset deletes this row; a reset instance generates a fresh install ID and shows the notice again.
-- **Retention:** Events are kept for as long as PostHog's plan retains them — at least one year on the plan we use — and are not joined to anything else.
-- **Turning it off:** Switch off **Share usage counts** in **Settings → Usage data**. Collection stops immediately from that moment. You can also pass `pl up --telemetry=off` or set `PRISMALENS_TELEMETRY=off` or `DO_NOT_TRACK=1`.
-
-### What is sent
-
-- An install id: a random identifier created once for this workspace.
-- The PrismaLens version, whether it is a release or a development build, how it was installed (npm, the installer, Homebrew, Scoop or the desktop app), the operating system, CPU architecture and Node major version.
-- One event per milestone, carrying fixed categories only: setup finished; a service gained a repository (local folder or git); an integration was configured (which vendor); the first alert this install ever received (which source); an investigation started (which coding agent, and whether it was asked for by hand or by an alert); an investigation ended (its outcome, how long it took as one of four ranges, and a category for the failure); a report was viewed; a report was exported (Markdown, Slack or a GitHub comment); an incident was resolved by you.
-- Once a day while PrismaLens is running and sharing is on: a sign that this install is active, with nothing else attached.
-
-To check this against what actually leaves your machine, open **Settings → Usage data → Recently sent**: the last 20 events exactly as sent, less the PostHog project key, kept in memory until PrismaLens restarts.
-
-Events go to PostHog Cloud EU (Frankfurt).
-
-### What is never sent
-
-Every event property is an enum, a duration bucket, a bounded integer, or a boolean. The API runs all outbound properties through `sanitize()`, which drops any undeclared property or value outside the declared set before building a request.
-
-PrismaLens never sends:
-
-- **IP addresses or geolocation:** Every event carries `$geoip_disable: true` and `$process_person_profile: false`, and the PostHog project discards the client IP rather than storing it or resolving it to a location.
-- **User identities:** No email addresses, names, or user account IDs (`posthog.identify` is never called).
-- **Repository contents:** No source code, repository names, git remote URLs, branch names, commit hashes, or workspace file paths.
-- **Alert content:** No alert text, payloads, labels, or annotations.
-- **Time of day:** Each event is recorded with its date only, never the time of day: its `timestamp` is midnight UTC of the day it was sent.
-- **Agent data:** No prompts, model outputs, agent thoughts, or credentials.
-- **Error messages:** Investigation errors are classified into a fixed enum class (`error_class`) inside the service; the error message text is discarded and never sent.
-- **Hostnames or machine identifiers:** No hostnames or machine names.
-
-### Event taxonomy
-
-Every event sent when telemetry is enabled carries a common platform block, plus event-specific properties drawn from closed sets:
-
-#### Common properties on every event
-
-| Property | Type / Values | Description |
-| --- | --- | --- |
-| `distinct_id` | UUID string | The workspace install ID. |
-| `app_version` | string | Current PrismaLens version (e.g. `0.5.1`). |
-| `run_mode` | `npm` \| `installer` \| `homebrew` \| `scoop` \| `electron` | How it was installed: npm, the installer, Homebrew, Scoop or the desktop app. |
-| `build` | `release` \| `dev` | A release build, or a development build. |
-| `os` | `aix` \| `darwin` \| `freebsd` \| `linux` \| `openbsd` \| `sunos` \| `win32` | Operating system platform (`process.platform`). |
-| `arch` | `arm` \| `arm64` \| `ia32` \| `loong64` \| `mips` \| `mipsel` \| `ppc` \| `ppc64` \| `riscv64` \| `s390` \| `s390x` \| `x64` | CPU architecture (`process.arch`). |
-| `node_major` | integer | Node.js major version (e.g. `22`). |
-| `$geoip_disable` | `true` | Tells PostHog not to resolve IP to location. |
-| `$process_person_profile` | `false` | Prevents creating person profiles in PostHog. |
-| `$lib` | `prismalens-api` | Client identifier for ingest. |
-| `$lib_version` | string | Matches `app_version`. |
-
-#### Event table
-
-| Event | What it counts | Property | Allowed values |
-| --- | --- | --- | --- |
-| `setup_completed` | Initial setup finished (reported once, at the first send). | _none_ | `{}` |
-| `service_added` | A service gained repository code. | `source` | `local`, `git` |
-| `integration_configured` | An integration was configured. | `kind` | `github`, `slack`, `render`, `other` |
-| `first_webhook_received` | First inbound alert this install ever received (persisted to disk; reported once per install, never per alert). | `provider` | `prometheus`, `generic`, `render` |
-| `investigation_started` | An investigation began. | `harness`<br />`trigger` | `opencode`, `claude-code`, `codex`, `gemini`, `deepagents`, `null`<br />`manual`, `webhook`, `other` |
-| `investigation_finished` | An investigation reached a terminal state (reported once per run). | `state`<br />`duration_bucket`<br />`error_class` | `completed`, `failed`, `cancelled`<br />`<1m`, `1-5m`, `5-15m`, `>15m`<br />`none`, `cancelled`, `harness_unavailable`, `harness_exited`, `timeout`, `repo_unavailable`, `auth`, `network`, `other` |
-| `report_viewed` | An investigation report was viewed in the dashboard (deduplicated per run). | _none_ | `{}` |
-| `report_exported` | A report was exported or delivered. | `target` | `markdown`, `slack`, `github` |
-| `incident_closed` | You pressed **Resolve** on an incident. The event keeps its old name; the app calls this action Resolve. It is not sent when an incident's alerts clear on their own (**Alerts cleared**). | _none_ | `{}` |
-| `install_active` | This install is running with sharing on (at most once per UTC day). | _none_ | `{}` |
-
-
-## Credentials
-
-| Credential | What PrismaLens does |
-| --- | --- |
-| Your agent's login | Never reads, copies or stores it. |
-| Your environment, provider keys such as `ANTHROPIC_API_KEY` and GitHub tokens such as `GH_TOKEN` included | Passed to the agent as your terminal would, minus PrismaLens's own secrets. Never stored. |
-| A gateway for Claude Code | Set `ANTHROPIC_BASE_URL` and `ANTHROPIC_AUTH_TOKEN`; the model you set in Settings applies to every tier. The URL must be `https://` unless it is on this machine. |
-| Your git login | Asks your credential helper whether it has a login for a host, keeps only the user name to label the clone, and discards the rest. Git uses the login itself. |
-| A git host token you add in Settings | Stores it encrypted and sends it only to git, for its own host, over HTTPS, as a header set through git's environment and never in the URL. Your credential helpers are off for that call. |
-| PrismaLens's own secrets: every `PRISMALENS_*` variable, plus `PROMETHEUS_TOKEN`, `ALERTMANAGER_TOKEN` and `LOKI_TOKEN` for its data sources | The generated ones are made on first start and stored as owner-only files. None is given to the agent: they are removed from its environment after every other layer, so a value set in Settings can't bring one back. |
-
-Because GitHub tokens reach the agent, it can push, comment or open pull
-requests with them, as it could from your terminal; its permission level and
-your own rules decide whether it asks first. To pass only a named list
-instead, turn on **Settings → Agent → Environment → Only pass named
-variables**. See [The environment the agent gets](/coding-agents/#the-environment-the-agent-gets).
-
-There are no accounts. A browser gets in only by opening a one-time pairing
-link that `pl up` or `pl pair` prints on the host; no address, `localhost`
-included, grants access by itself. Only the host's own session can pair or
-revoke other devices. Devices are named `<link label> · <browser> on <OS>`,
-e.g. "This machine · Firefox on Linux". A paired device stays valid until revoked
-(the cookie renews on use). See [Opening it from other devices](/guides/devices/).
+<Aside type="caution">
+PrismaLens is built for one person's machine. It has no users or roles. Pair
+only devices you control.
+</Aside>
 
 ## Where your data lives
 
-Everything is under `~/.prismalens`, or the folder you pass to
-`pl up --workspace`.
+Everything is under `~/.prismalens`, or the folder you pass to `--workspace`.
 
 | Path | Contents |
 | --- | --- |
-| `prismalens.db` | Incidents, alerts, services, investigations, reports and their event streams |
-| `instance.json` | Instance ID and port. A new workspace serves on port 6473. `--port` or `PRISMALENS_PORT` overrides the port for one run |
-| `runs/<id>/repo`, `runs/<id>/repos/` | The snapshots a run read, deleted when the run ends, whatever its outcome. A follow-up rebuilds them at the same commits and deletes them again when it ends |
-| `runs/<id>/transcript.jsonl` | Raw messages between PrismaLens and the agent, kept as a best effort |
-| `repos/` | Mirrors of repositories added by URL |
+| `prismalens.db` | Incidents, alerts, services, runs and reports |
+| `runs/<id>/` | Each run's events and report |
+| `worktrees/` | The worktrees runs read, kept until the incident resolves by default |
+| `repos/` | Copies of repositories added by URL |
 | `logs/` | App logs |
-| `PRISMALENS_*_FILE` | Generated secrets |
 
-To remove everything, stop `pl up` and delete the folder.
+To remove everything, stop PrismaLens and run `pl reset`.
 
 A follow-up question on a finished investigation reopens the coding agent's
 own session. That conversation is kept by the agent in its own session store,
@@ -218,9 +93,9 @@ The run keeps reasoning at its pinned commit. If a newer run has looked at a lat
 
 ## These websites
 
-prismalens.io and docs.prismalens.io count visits with PostHog Cloud EU, without
-cookies or browser storage. They record which pages are opened and when a link to
-npm, GitHub or a release is clicked, or an install command is copied. The landing
-site also records where on the page people click, as a heatmap. Nothing typed
-into a page is recorded, IP addresses are not stored, and a visit is never
-linked to an install of PrismaLens.
+prismalens.io and docs.prismalens.io count visits with PostHog Cloud EU,
+without cookies or browser storage. They record which pages are opened and when
+a download link or install command is used. The landing site also records where
+on the page people click, as a heatmap. Nothing typed into a page is recorded,
+IP addresses are not stored, and a visit is never linked to an install of
+PrismaLens.

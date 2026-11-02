@@ -1,18 +1,17 @@
 ---
 title: Quick start
-description: Install PrismaLens, start it, point a service at its code, write an incident and run one investigation.
+description: Install PrismaLens, start it, point a service at its code and run one investigation.
 ---
 
 import { Aside, Steps } from '@astrojs/starlight/components';
 
-This takes about ten minutes and needs no alert source. By the end you will
-have run one investigation against real code and read its report.
+This takes about ten minutes and needs no alert source.
 
 ## Before you start
 
 - **macOS, Linux or WSL2.** Native Windows is a preview.
-- **git**, and **Node.js 24** if you install with npm. The installer and Homebrew bring their own Node.
-- **A coding agent** on your `PATH`, signed in. OpenCode is the one PrismaLens picks automatically: `npm i -g opencode-ai`, then sign it in. See [Coding agents](/coding-agents/) for the others.
+- **git.**
+- **A coding agent** you can sign in to, such as OpenCode, Claude Code or Codex. See [Coding agents](/coding-agents/).
 - **A git repository** on this machine, or a git URL you can clone.
 
 <Steps>
@@ -20,124 +19,58 @@ have run one investigation against real code and read its report.
 1. **Install**
 
    ```bash
-   npm install -g prismalens
-   ```
-
-   Without Node, use the installer, which brings its own:
-
-   ```bash
    curl -fsSL https://prismalens.io/install.sh | sh
    ```
 
-   Windows, Homebrew, Scoop and the desktop app are on
-   [Install, upgrade and uninstall](/install/).
+   Or `npm install -g prismalens` if you have Node.js 24. Other ways are on
+   [Install, upgrade and uninstall](/install/). You get one command under two
+   names, `pl` and `prismalens`.
 
-   Either way you get one command under two names, `prismalens` and `pl`.
-
-2. **Check your machine**
-
-   ```bash
-   pl doctor
-   ```
-
-   Every hard check must pass. The lines that matter most:
-
-   ```text
-   ✔ Harness available: at least one harness is installed
-   ✔ Auto-selected harness: opencode (auto)
-   ✔ Harness ACP handshake: OpenCode: answers ACP
-   ✔ All required checks passed.
-   ```
-
-   If no agent is found, `doctor` prints the install command for each one it
-   knows.
-
-3. **Start PrismaLens**
+2. **Start it**
 
    ```bash
    pl up
    ```
 
-   ```text
-   ℹ Workspace: /home/you/.prismalens
-   ℹ Logs: /home/you/.prismalens/logs
-   ✔ PrismaLens is ready at http://localhost:6473
-   ℹ For a machine that should always be on: pl service install
-   ℹ Open: http://localhost:6473/pair#9f1c…
-   ```
+   The first start creates your workspace in `~/.prismalens` and opens your
+   browser on a one-time link. That link signs the browser in; there is no
+   account. If no browser opens, open the link `pl up` printed. It works once,
+   for 15 minutes. Leave `pl up` running.
 
-   The first start creates the database and its secrets in `~/.prismalens`.
-   Leave this running. Once the browser opens the link, `pl up` prints
-   `✔ Paired this machine's browser (<name>).`, and a device paired later
-   prints `✔ A device paired: <name>.`
+   If something is wrong with the machine, `pl doctor` says what.
 
-4. **Open it**
+3. **Set up an agent**
 
-   Your browser opens on the `Open:` link by itself and lands on your
-   incidents. There is no account to create. If no browser opened, `pl up`
-   says `Couldn't open a browser on this machine. Open the link above.` Open
-   the link yourself; it works once, for 15 minutes. If it expires unused,
-   `pl up` says so, and `pl pair --operator` prints another. See
-   [Opening it from other devices](/guides/devices/).
+   Open **Settings → Agent**. It lists the agents that can run here. If none
+   can, **Add agent** sets one up. Until an agent can run, **Investigate** stays
+   off.
 
-5. **Point a service at its code**
+4. **Add a service**
 
-   Open [http://localhost:6473/services](http://localhost:6473/services) and
-   click **Add service**. Give it a name, set **Repository** to a folder such as
-   `~/code/payments` or a git URL, and click **Create service**.
+   Open **Services → New service**. Give it a name, and set **Code** to a
+   folder such as `~/code/payments` or a git URL. If git can't read it, the
+   service shows git's own error. Fix the path or your git access and save
+   again.
 
-   The service shows what git found, such as `main at 3f2c9a1b04de`. If it shows
-   an error instead, it is git's own message. Fix the path or your git access
-   and save again. See [Services and their code](/guides/services/).
+5. **Write an incident and investigate**
 
-6. **Write the incident**
+   Click **New incident**, describe the problem the way you would to a
+   colleague, pick your service, and click **Investigate**.
 
-   Go to **Incidents** and click **New incident**. A title is the only
-   required field. Describe the problem the way you would to a colleague, pick
-   your service under **Service (optional)**, and click **Create incident**.
-
-   ```text
-   Title: Checkout returns 500 after the 14:00 deploy
-   Description: Error rate on POST /checkout went from 0.1% to 8%. Logs show
-   "TypeError: cannot read properties of undefined (reading 'currency')".
-   ```
-
-7. **Run the investigation**
-
-   On the incident's overview, click **Investigate** in the Next strip. You
-   stay on the overview; click the run's name in the **Latest run** strip to
-   watch the agent read files and run commands as it goes. Most runs take a
-   few minutes, and none can run longer than 15.
-
-   A fresh install runs at **Ask always**, unless your agent's own settings
-   name another default, so the agent asks before each command it runs
-   beyond reading files. Answer with **Approve** or **Deny** in the dock on
-   the box; meanwhile the incident waits in the Inbox under **Waiting for
-   your approval**, and an ask nobody answers is denied after 10 minutes. To
-   let it run without asking, pick another level on the permission chip
-   under the box for this run, or set the default in **Settings → Agent →
-   Permission**. See
-   [Permission levels and asks](/coding-agents/#permission-levels-and-asks).
-
-   When it finishes, the overview shows the likely cause and its evidence
-   under **Why**, and the ways to stop the impact under **Stop the impact**.
-   The run's **Run details** panel holds the rest: what was ruled out, what
-   the agent did and did not query, and its next steps. See
-   [The incident overview](/guides/overview/) and
+   The run streams on the incident. A run you start asks before anything
+   beyond reading and searching: approve or deny each request as it comes.
+   When it finishes, the incident shows the report. See
    [Reading the report](/guides/reports/).
 
 </Steps>
 
 <Aside type="note" title="If the run fails">
-The incident shows **Investigation failed**, the error, the agent's
-last events, and the path of the raw transcript, such as
-`~/.prismalens/runs/<id>/transcript.jsonl`. The most common causes are an agent
-that is not signed in and a repository git could not clone. `pl doctor` and the
-service page show both.
+The incident shows the error and the agent's last events. The most common
+causes are an agent that isn't signed in and a repository git couldn't read.
+**Settings → Agent** and the service page show both.
 </Aside>
 
 ## Next
 
-- [Try it on a broken app](/guides/try-it/) to watch an alert start a run, without your own repository.
-- [Send alerts from Prometheus](/guides/alerts/) so incidents open on their own.
+- [Send alerts from Alertmanager](/guides/alerts/) so incidents open on their own.
 - [What PrismaLens reads](/trust/) before you point it at anything sensitive.
