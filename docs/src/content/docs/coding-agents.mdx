@@ -38,6 +38,8 @@ decides which of its requests wait for you:
 | **Auto** | Runs the agent's own review mode where it has one; requests are approved. |
 | **Full access** | Every request is approved. The agent can do anything your user can. |
 
+A run you start uses Ask always unless Settings or the agent's own
+configuration sets another level, so check both before you rely on approvals.
 A run started by an alert has nobody to ask. It runs at **Auto** and refuses
 anything the agent asks. PrismaLens adds no sandbox. See
 [What PrismaLens reads](/trust/).

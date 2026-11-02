@@ -30,21 +30,21 @@ const AI_ASSISTANTS: Record<string, string> = {
   "phind.com": "phind",
 };
 const SEARCH_ENGINES: Array<[RegExp, string]> = [
-  [/(^|.)google.[a-z.]+$/, "google"],
-  [/(^|.)bing.com$/, "bing"],
-  [/(^|.)duckduckgo.com$/, "duckduckgo"],
-  [/(^|.)search.yahoo.com$/, "yahoo"],
-  [/(^|.)yandex.[a-z.]+$/, "yandex"],
-  [/(^|.)ecosia.org$/, "ecosia"],
-  [/(^|.)search.brave.com$/, "brave"],
-  [/(^|.)kagi.com$/, "kagi"],
-  [/(^|.)baidu.com$/, "baidu"],
+  [/(^|\.)google\.[a-z.]+$/, "google"],
+  [/(^|\.)bing\.com$/, "bing"],
+  [/(^|\.)duckduckgo\.com$/, "duckduckgo"],
+  [/(^|\.)search\.yahoo\.com$/, "yahoo"],
+  [/(^|\.)yandex\.[a-z.]+$/, "yandex"],
+  [/(^|\.)ecosia\.org$/, "ecosia"],
+  [/(^|\.)search\.brave\.com$/, "brave"],
+  [/(^|\.)kagi\.com$/, "kagi"],
+  [/(^|\.)baidu\.com$/, "baidu"],
 ];
 const SOCIAL = ["news.ycombinator.com", "reddit.com", "x.com", "t.co", "twitter.com", "linkedin.com", "lnkd.in", "bsky.app"];
 
 const hostOf = (value: string): string | null => {
   try {
-    return new URL(value).hostname.toLowerCase().replace(/^www./, "");
+    return new URL(value).hostname.toLowerCase().replace(/^www\./, "");
   } catch {
     return null;
   }

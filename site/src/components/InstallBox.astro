@@ -37,6 +37,7 @@ const more = installChannels.filter((c) => !c.primary)
                 <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 8.5l3 3 7-7"></path></svg>
                 <span class="lbl">Copied</span>
               </span>
+              <span class="fail"><span class="lbl">Copy failed</span></span>
             </button>
           </div>
         </div>
@@ -90,9 +91,10 @@ const more = installChannels.filter((c) => !c.primary)
       const ok = await copyText(b.dataset.copy ?? '')
       const status = document.getElementById('copyStatus')
       if (status) status.textContent = ok ? 'Copied' : 'Copy failed'
-      b.classList.add('copied')
+      b.classList.remove('copied', 'failed')
+      b.classList.add(ok ? 'copied' : 'failed')
       clearTimeout(timers.get(b))
-      timers.set(b, window.setTimeout(() => b.classList.remove('copied'), 1800))
+      timers.set(b, window.setTimeout(() => b.classList.remove('copied', 'failed'), 1800))
     }),
   )
 
@@ -266,14 +268,21 @@ const more = installChannels.filter((c) => !c.primary)
     height: 14px;
   }
   .idle,
-  .copied .done {
+  .copied .done,
+  .failed .fail {
     display: inline-flex;
     align-items: center;
     gap: 6px;
   }
   .done,
-  .copied .idle {
+  .fail,
+  .copied .idle,
+  .failed .idle {
     display: none;
+  }
+  .copy-btn.failed {
+    color: var(--destructive);
+    border-color: color-mix(in oklch, var(--destructive) 50%, transparent);
   }
   .copy-btn.copied {
     color: color-mix(in oklch, var(--run-done) 80%, white);

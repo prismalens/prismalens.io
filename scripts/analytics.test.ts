@@ -128,6 +128,13 @@ for (const { name, mod } of modules) {
     describe('trafficSource', () => {
       const t = mod.trafficSource;
 
+      it('treats look-alike domains as plain referrals, not search or AI', () => {
+        assert.deepEqual(t('https://notgoogle.com/', ''), { traffic_source: 'referral', traffic_from: 'notgoogle.com' });
+        assert.deepEqual(t('https://notbing.com/', ''), { traffic_source: 'referral', traffic_from: 'notbing.com' });
+        assert.deepEqual(t('https://wwwxclaude.ai/', ''), { traffic_source: 'referral', traffic_from: 'wwwxclaude.ai' });
+        assert.deepEqual(t('https://www.google.co.uk/', ''), { traffic_source: 'search', traffic_from: 'google' });
+      });
+
       it('names the AI assistant a visitor came from, by referrer or utm_source', () => {
         assert.deepEqual(t('https://chatgpt.com/', ''), { traffic_source: 'ai_assistant', traffic_from: 'chatgpt' });
         assert.deepEqual(t('https://chat.openai.com/c/1', ''), { traffic_source: 'ai_assistant', traffic_from: 'chatgpt' });
