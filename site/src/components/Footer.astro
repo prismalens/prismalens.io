@@ -5,6 +5,7 @@ import { docsBase, githubUrl, quickstartUrl, releasesUrl, trustUrl } from '../li
 const links = [
   { href: `${docsBase}/`, label: 'Docs' },
   { href: quickstartUrl, label: 'Quick start' },
+  { href: '/use-cases/', label: 'Use cases' },
   { href: '/about/', label: 'About' },
   { href: trustUrl, label: 'Privacy' },
   { href: releasesUrl, label: 'Release notes' },
@@ -16,8 +17,10 @@ const links = [
   <div class="wrap">
     <a class="brand" href="/" aria-label="PrismaLens home"><Mark size={20} />PrismaLens</a>
     <nav aria-label="Footer">
-      {links.map((l) => <a href={l.href}>{l.label}</a>)}
-      <span>Apache-2.0</span>
+      <ul>
+        {links.map((l) => <li><a href={l.href}>{l.label}</a></li>)}
+        <li>Apache-2.0</li>
+      </ul>
     </nav>
   </div>
 </footer>
@@ -46,9 +49,15 @@ const links = [
     text-decoration: none;
   }
   nav {
+    margin-left: auto;
+  }
+  /* One item per link, so each reads as its own phrase rather than one long line. */
+  ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
     display: flex;
     gap: 18px;
-    margin-left: auto;
     flex-wrap: wrap;
     align-items: center;
   }

@@ -1,0 +1,21 @@
+---
+import UseCaseLayout from '../../layouts/UseCaseLayout.astro'
+import CodePanel from '../../components/usecase/CodePanel.astro'
+import { useCases } from '../../lib/use-cases'
+
+const useCase = useCases.find((u) => u.slug === 'alertmanager')!
+// Copied from docs/src/content/docs/guides/alerts.mdx ("Configure Alertmanager").
+const config = `receivers:
+  - name: prismalens
+    webhook_configs:
+      - url: http://127.0.0.1:6473/api/webhooks/prometheus
+        send_resolved: true
+        http_config:
+          authorization:
+            type: Bearer
+            credentials_file: /home/you/.prismalens/PRISMALENS_WEBHOOK_SECRET_FILE`
+---
+
+<UseCaseLayout useCase={useCase}>
+  <CodePanel label="Alertmanager receiver for PrismaLens" code={config} />
+</UseCaseLayout>

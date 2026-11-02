@@ -3,6 +3,8 @@ User-agent: *
 Allow: /
 
 # Named so a later blanket rule for unknown bots can't shut these out by accident.
+# Googlebot alone feeds Google Search, including AI Overviews and AI Mode. Google-Extended
+# only governs Gemini training and grounding outside Search; it is allowed too.
 User-agent: Googlebot
 User-agent: Google-Extended
 User-agent: Bingbot

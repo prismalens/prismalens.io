@@ -7,7 +7,7 @@ const docs = 'https://docs.prismalens.io';
 const orgId = `${origin}/#organization`;
 
 export const siteDescription =
-  'An open-source app on your machine that hands signals to your coding agent and keeps the evidence.';
+  'An open-source app on your machine that sends alerts to the coding agent you already use and returns ranked causes with evidence.';
 
 const organization: Organization = {
   '@type': 'Organization',
@@ -46,9 +46,9 @@ const app: SoftwareApplication = {
   author: { '@id': orgId },
 };
 
-/** The JSON-LD graph for a page; the home page also describes the app. */
-export function structuredData(pathname: string): string {
-  const nodes: Thing[] = [organization, website];
+/** The JSON-LD graph for a page; the home page also describes the app, other pages add their own nodes. */
+export function structuredData(pathname: string, extra: Thing[] = []): string {
+  const nodes: Thing[] = [organization, website, ...extra];
   if (pathname === '/') nodes.push(app);
   const graph: Graph = { '@context': 'https://schema.org', '@graph': nodes };
   return JSON.stringify(graph).replaceAll('<', '\\u003c');

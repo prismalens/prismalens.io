@@ -1,0 +1,7 @@
+# A use-case section heading may be the search question itself (design/GUIDELINES.md rule 6 exception).
+extends: occurrence
+message: "A use-case heading is 8 words or fewer (design/GUIDELINES.md §6)."
+level: error
+scope: heading.h2
+max: 8
+token: '[^\s]+'

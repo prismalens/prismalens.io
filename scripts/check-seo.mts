@@ -74,7 +74,7 @@ async function check(name: keyof typeof targets, validator: Validator) {
       const message = `${issue.severity} ${issue.issueMessage} (${JSON.stringify(issue.path)})`;
       // The validator reports a property schema.org doesn't define as a warning; here it fails.
       if (issue.severity === 'ERROR' || issue.errorType === 'schemaOrg') fail(where, message);
-      else console.warn(`${where}: ${message}`);
+      else if (!issue.issueMessage.includes('(optional)')) console.warn(`${where}: ${message}`);
     }
   }
   console.log(`${name}: ${urls.length} pages checked`);

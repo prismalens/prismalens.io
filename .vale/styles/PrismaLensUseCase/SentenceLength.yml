@@ -1,0 +1,7 @@
+# Use-case pages may carry one answer block and FAQ answers (design/GUIDELINES.md rule 6 exception).
+extends: occurrence
+message: "Use-case sentences are 30 words or fewer; answers stay short (design/GUIDELINES.md §6)."
+level: error
+scope: sentence
+max: 30
+token: '[^\s]+'
