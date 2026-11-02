@@ -26,8 +26,8 @@ const steps = [
     <div class="lg:mt-6 lg:grid lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)] lg:items-end lg:gap-x-14">
       <p class="mt-6 max-w-2xl text-lg leading-relaxed text-muted-foreground lg:mt-0">
         PrismaLens opens an incident from your alert, hands it to the coding agent you already use, and
-        runs that agent on a copy of the code, asking you before it does more than read. You get the likely causes in order, each tied
-        to the file, line or commit that supports it.
+        keeps that agent on a throwaway copy of the code, asking first by default. You get the likely causes in order, each tied
+        to the file, line or commit that supports it, and a command to stop the impact when the agent finds one.
       </p>
 
       <div>
@@ -47,11 +47,10 @@ const steps = [
           </div>
         </div>
         <p class="mt-3 text-sm text-muted-foreground">
-          Needs Node.js 24 or later on macOS, Linux or WSL2.
+          Runs on macOS, Linux or WSL2.
           <a href={`${docsBase}/install/`} class="underline underline-offset-4">Install</a>
         </p>
       </div>
-      <p class="mt-3 text-sm text-muted-foreground">Runs on macOS, Linux or WSL2.</p>
     </div>
 
     <figure class="demo mt-14 sm:mt-20 lg:mt-10" data-demo data-cleared-at="17.5">
@@ -84,7 +83,7 @@ const steps = [
         </video>
       </div>
       <figcaption class="mt-4 text-sm text-muted-foreground">
-        A real lab incident on 0.5.1, with the waits shortened: the alert fires, the agent finds the stopped
+        A real lab incident, with the waits shortened: the alert fires, the agent finds the stopped
         container, you run the command it gives, and the alert clears.
       </figcaption>
     </figure>
@@ -105,7 +104,7 @@ const steps = [
   </section>
 
   <section class="mx-auto max-w-6xl px-4 pb-20 sm:px-6">
-    <a href="/screenshots/report.webp" class="block">
+    <a href="/screenshots/report.webp" class="shot block">
       <img
         src="/screenshots/report.webp"
         width="1600"
@@ -116,7 +115,8 @@ const steps = [
       />
     </a>
     <p class="mt-3 text-sm text-muted-foreground">
-      The report for the run above.
+      A real lab incident: a stopped container. The overview holds the cause and its evidence,
+      the command that stops the impact, and the alert's own query from Prometheus.
     </p>
   </section>
 
@@ -128,9 +128,10 @@ const steps = [
       </div>
       <div class="grid gap-x-10 gap-y-8 leading-relaxed sm:grid-cols-2">
         <p><strong>Nobody pastes the alert.</strong> Alertmanager posts to PrismaLens, and a critical or high alert on a known service starts a run. You can change that per service.</p>
-        <p><strong>It uses the agent you already have.</strong> OpenCode by default, or Claude Code, Codex or Gemini CLI. PrismaLens never calls a model and has no account to sign up for.</p>
-        <p><strong>Your checkout stays yours.</strong> Every run gets its own copy of the last commit.</p>
-        <p><strong>It tells you where the limits are.</strong> Permission levels decide what the agent may do without asking, and PrismaLens adds no sandbox: the agent runs as your user. <a href={`${docsBase}/trust/`} class="underline underline-offset-4">What it reads and never does</a></p>
+        <p><strong>It uses the agent you already have.</strong> OpenCode, Codex, Claude Code, Gemini CLI or deepagents. PrismaLens never calls a model and has no account to sign up for.</p>
+        <p><strong>Your checkout stays yours.</strong> Every run gets its own copy of the last commit of each repository it reads.</p>
+        <p><strong>It starts from the code.</strong> The agent gets the alert, every repository involved, the service's dependencies and similar past incidents. With Prometheus connected, the run's brief points the agent at it and the overview charts the alert's own query. PrismaLens does not connect to logs or traces.</p>
+        <p><strong>It tells you where the limits are.</strong> At Ask always, the default for a run you start, anything the agent asks beyond reading waits for your Approve. A run an alert starts refuses every ask beyond reading. PrismaLens adds no sandbox. <a href={`${docsBase}/trust/`} class="underline underline-offset-4">What it reads and never does</a></p>
         <p><strong>It keeps the record.</strong> A week later the report, the evidence and every command the agent ran are still on the incident.</p>
       </div>
     </div>
