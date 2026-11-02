@@ -19,6 +19,16 @@ Dashboards (PostHog project 284081):
   activation, weekly retention, new vs returning installs and outcomes from
   opt-in telemetry, release builds only. Release annotations mark each version.
 
+Notifications (Slack workspace "Prismalens"):
+
+| Channel | Gets | From |
+| --- | --- | --- |
+| `#alerts-prismalens` | An insight alert firing (completed-run rate below 50%); a new website error | PostHog internal destinations |
+| `#feed-prismalens` | A new release install (`setup_completed`); an install's first alert (`first_webhook_received`); the Monday reach summary | PostHog destinations and a dashboard subscription |
+| email | A failed production deploy of `prismalens-site` or `prismalens-docs` | Cloudflare notification |
+
+The install destinations use the project's test-account filter, so dev builds, pre-0.5.0 versions and `internal-` installs never post. Mention `@PostHog` in either channel to ask about the data.
+
 ## What is collected
 
 | Event | Properties | Source | Window | Needs |
