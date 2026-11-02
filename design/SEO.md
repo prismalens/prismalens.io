@@ -70,13 +70,16 @@ Rule 4 keeps the home body generic. Site pages never name competitors; this tabl
 | 11 | dev.to or blog posts | One per use case: its steps, a real run, the report. Link back to the use-case page. |
 | 12 | Directories | AlternativeTo, OpenAlternative, LibHunt, SaaSHub, Product Hunt, There's An AI For That. |
 
-## 4. Cloudflare (both zones already on Cloudflare Pages and DNS)
+## 4. Cloudflare (one zone, `prismalens.io`, covers the site, docs and www; audited and set 2026-11-02)
 
 | Item | Type | Steps or finding |
 | --- | --- | --- |
-| AI Crawl Control: allow everything | dashboard toggle (operator) | Each zone → **AI Crawl Control** → set **Search**, **Agent** and **Training** to **Allow** (not "Block", not "Block on pages with ads"). Reported change from 2026-09-15: Free zones that never touched the setting get Training and Agent blocked on pages with ads, and blocking Training also blocks multi-purpose crawlers such as Googlebot, Bingbot and Applebot. We show no ads, but set all three explicitly so nothing depends on ad detection. Then **Overview → Control AI crawlers**: managed robots.txt **off**, "Block AI bots" **off**. Confirm with `curl -s https://prismalens.io/robots.txt` that ours comes back unprefixed. |
-| Bot Fight Mode / WAF | dashboard toggle (operator) | Security → Bots: leave verified bots allowed; check Security → Events shows no challenges for Googlebot, Bingbot, GPTBot, ClaudeBot or PerplexityBot. |
-| Crawler Hints (IndexNow) | dashboard toggle (operator) | Free plan. Each zone → **Caching → Configuration → Crawler Hints** on. Cloudflare then signals changed URLs to IndexNow (Bing, Yandex and others); no key file needed here. |
+| AI crawlers allowed | done (API, 2026-11-02) | Bot settings had AI training disallowed and Bot Fight Mode on: GPTBot and ClaudeBot got 403. Now Bot Fight Mode off, AI bot blocking off (Search, Agent, Training not blocked), managed robots.txt off. Verified: GPTBot, ClaudeBot, OAI-SearchBot and Googlebot get 200 on both sites, and our robots.txt is served without the Cloudflare-managed block. Re-check after any dashboard change: `curl -s -o /dev/null -w "%{http_code}" -A "GPTBot/1.2" https://docs.prismalens.io/`. |
+| Bot Fight Mode | done: off | It can't exempt verified bots or agents on Free, and a static site gains little from it. DDoS protection and the managed WAF rules stay on. |
+| Crawler Hints (IndexNow) | dashboard toggle (operator) | API tokens can't change it. **Caching → Configuration → Crawler Hints** on. Cloudflare then signals changed URLs to IndexNow (Bing, Yandex and others). |
+| `www.prismalens.io` | done (API) | It returned 525: its DNS still pointed at the old Hostinger CDN. A single redirect rule now sends `www` to `https://prismalens.io` with a 301, keeping path and query. |
+| Early Hints | done: on | Free speed gain for page loads. HTTPS redirect, HSTS, TLS 1.3, HTTP/3 and Brotli were already on. |
+| Deploy failure alert | done | Notification "PrismaLens site or docs deploy failed" emails on a failed production deployment of `prismalens-site` or `prismalens-docs`. The docs project deploys from the `live` branch, not `main`. |
 | AI Crawl Control metrics | dashboard (operator) | The one thing PostHog can't see: requests per AI crawler, by category. Free keeps 24 hours, so check it during the monthly loop and after each launch. |
 | Web Analytics | optional | Cookieless and free, but it measures what PostHog already does. Skip unless PostHog is ever removed. |
 | Markdown for Agents | dashboard toggle (operator), **Pro or above** | Converts HTML to Markdown at the edge for clients sending `Accept: text/markdown` (Claude Code, OpenCode do); passes through anything the origin already serves as `text/markdown`. Not on Free. If a zone moves to Pro: enable it for **prismalens.io** (no `.md` twins there). For docs it adds little, since `.md` twins and `rel="alternate"` already exist; enabling it does not conflict with `docs/public/_headers`, which only sets the type of the `.md` files. |
@@ -87,8 +90,8 @@ Rule 4 keeps the home body generic. Site pages never name competitors; this tabl
 
 | Tool | Type | Steps |
 | --- | --- | --- |
-| Google Search Console | dashboard toggle (operator) | Add a **Domain** property `prismalens.io` (covers docs and www) → copy the TXT record → Cloudflare DNS → add TXT on the apex → Verify. Submit `https://prismalens.io/sitemap-index.xml` and `https://docs.prismalens.io/sitemap-index.xml`. |
-| Bing Webmaster Tools | dashboard toggle (operator) | Sign in → My Sites → **Import** → sign in with Google → Allow → select both → Import. If GSC access lapses, verify by DNS. Feeds ChatGPT search and Copilot. |
+| Google Search Console | dashboard toggle (operator) | A `google-site-verification` TXT record is already on the apex, so the property likely exists: open it and submit the sitemaps. If not, add a **Domain** property `prismalens.io` (covers docs and www) → copy the TXT record → Cloudflare DNS → add TXT on the apex → Verify. Submit `https://prismalens.io/sitemap-index.xml` and `https://docs.prismalens.io/sitemap-index.xml`. |
+| Bing Webmaster Tools | dashboard toggle (operator) | A Bing verification CNAME is already in DNS, so the site is likely added: submit both sitemaps there. Otherwise: sign in → My Sites → **Import** → sign in with Google → Allow → select both → Import. If GSC access lapses, verify by DNS. Feeds ChatGPT search and Copilot. |
 | Ahrefs Webmaster Tools | dashboard toggle (operator) | Free sign-up → add project → verify with **Google Search Console** (needs Owner on the property). Monthly Site Audit; Site Explorer for backlinks and mentions. |
 
 robots.txt (in code, done): Googlebot alone feeds Google Search, AI Overviews and AI Mode.
