@@ -34,11 +34,11 @@ jobs:
           node-version: 22
           cache: pnpm
 
-      - name: Check docs for version talk
-        run: node scripts/check-version-talk.mjs
-
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
       - name: Build docs
         run: pnpm --filter docs build
+
+      - name: Check content rules
+        run: node scripts/check-content.mjs docs

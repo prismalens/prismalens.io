@@ -23,7 +23,8 @@
     "docs:generate:watch": "tsx watch scripts/generate-env-docs.ts",
     "docs:generate:integrations": "tsx scripts/generate-integration-docs.ts",
     "tokens:sync": "tsx scripts/sync-design-tokens.ts",
-    "test": "tsx --test scripts/analytics.test.ts"
+    "test": "tsx --test scripts/analytics.test.ts",
+    "check:content": "node scripts/check-content.mjs site && node scripts/check-content.mjs docs"
   },
   "devDependencies": {
     "@types/node": "^26.6.5",

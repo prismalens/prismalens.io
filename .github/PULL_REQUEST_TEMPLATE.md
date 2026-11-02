@@ -25,7 +25,7 @@ Keep PRs focused and small where you can.
       pass locally
 - [ ] Tests added or updated for the change
 - [ ] No secrets, tokens, or private content committed
-- [ ] Docs / README / mage notes updated if behavior changed
+- [ ] Touches `site/` or `docs/`: follows `design/GUIDELINES.md` and `docs/POLICY.md`; `pnpm check:content` passes; checked at 390px and with reduced motion
 
 ## Related issues
 

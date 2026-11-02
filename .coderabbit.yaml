@@ -17,3 +17,16 @@ reviews:
         environment variables no contract task needs, version history, newly added or still-changing features, internals),
         and flag a new page that is not in its contract table. Flag a specific claim (a default, a label, a limit, a behaviour) the PR gives no source for, and suggest deleting it rather than softening it. Flag any version number (PrismaLens, Node, an agent) and any "since" or "upgrading from" note. Flag "self-hosted" or server wording: PrismaLens is an app
         that runs on the user's machine.
+    - path: "site/src/**"
+      instructions: >-
+        The site follows `design/GUIDELINES.md`. Flag text outside `design/COPY.md` or over its budget (hero headline of 6
+        words or fewer and one line of 10 or fewer; other headings of 5 words or fewer, at most one line of 10; no paragraphs,
+        captions, disclaimers or explainer tooltips). Flag product-specific nouns (incident, investigation, hypothesis, SRE,
+        on-call, setting, flag or permission-level names): the site stays generic. Flag hard-coded colours instead of tokens,
+        a rotating tick used as a spinner, an async surface with no skeleton, empty or failed state, animation with no
+        prefers-reduced-motion path, a looping demo that doesn't pause when hidden or hovered, controls without a focus ring,
+        and a new runtime dependency added for an effect.
+    - path: "docs/src/{components,styles}/**"
+      instructions: >-
+        The docs theme follows `design/GUIDELINES.md` (Look, Motion and states, Accessibility). Flag hard-coded colours
+        instead of tokens, animation with no prefers-reduced-motion path, and missing focus rings.

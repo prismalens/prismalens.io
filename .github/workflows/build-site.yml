@@ -39,3 +39,6 @@ jobs:
 
       - name: Build site
         run: pnpm --filter site build
+
+      - name: Check content rules
+        run: node scripts/check-content.mjs site
