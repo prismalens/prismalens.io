@@ -20,7 +20,7 @@ curl -fsSL https://prismalens.io/install.sh | sh
 ```
 
 No Node needed: the installer brings its own and checks the download against
-the release's `SHA256SUMS`. `sh -s -- --help` lists its options.
+the release's `SHA256SUMS`.
 
 </TabItem>
 <TabItem label="npm">
@@ -59,8 +59,7 @@ scoop install prismalens
 <TabItem label="Desktop app (preview)">
 
 Download the zip for your OS from the
-[latest release](https://github.com/prismalens/prismalens/releases/latest). It
-is unsigned, so your OS warns before opening it.
+[latest release](https://github.com/prismalens/prismalens/releases/latest).
 
 </TabItem>
 </Tabs>
@@ -96,8 +95,7 @@ the installed tree; older ones do not.
 pl upgrade
 ```
 
-It upgrades the way you installed. The desktop app shows a notification
-with a download link instead. Your database upgrades itself on the next start
+It upgrades the way you installed. Your database upgrades itself on the next start
 and is backed up first, as `prismalens.db.bak-<time>` in the workspace.
 
 ## Uninstall

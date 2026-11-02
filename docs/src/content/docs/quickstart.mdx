@@ -3,7 +3,7 @@ title: Quick start
 description: Install PrismaLens, start it, point a service at its code and run one investigation.
 ---
 
-import { Aside, Steps } from '@astrojs/starlight/components';
+import { Steps } from '@astrojs/starlight/components';
 
 This takes about ten minutes and needs no alert source.
 
@@ -48,9 +48,7 @@ This takes about ten minutes and needs no alert source.
 4. **Add a service**
 
    Open **Services → New service**. Give it a name, and set **Code** to a
-   folder such as `~/code/payments` or a git URL. If git can't read it, the
-   service shows git's own error. Fix the path or your git access and save
-   again.
+   folder such as `~/code/payments` or a git URL. A run reads its last commit.
 
 5. **Write an incident and investigate**
 
@@ -63,12 +61,6 @@ This takes about ten minutes and needs no alert source.
    [Reading the report](/guides/reports/).
 
 </Steps>
-
-<Aside type="note" title="If the run fails">
-The incident shows the error and the agent's last events. The most common
-causes are an agent that isn't signed in and a repository git couldn't read.
-**Settings → Agent** and the service page show both.
-</Aside>
 
 ## Next
 

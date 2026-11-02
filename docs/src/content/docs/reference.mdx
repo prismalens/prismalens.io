@@ -33,16 +33,9 @@ Start with `pl doctor`. Logs are in `~/.prismalens/logs/`.
 **Investigate is off.** No agent can run. Open **Settings → Agent** and add or
 fix one.
 
-**The run failed "not signed in".** Some agents check sign-in only when a run
-starts. Sign the agent in, or enter its API key in **Add agent**, and run again.
-
 **The service shows a git error.** It is git's own message. Check that
 `git clone <the same URL>` works in your terminal. PrismaLens never lets git
 prompt for a password.
-
-**A second `pl up` refuses to start.** One PrismaLens runs per workspace. It
-names the process holding it, which may be the background service:
-`pl service status`.
 
 **Filing a bug.** Include the output of `pl doctor` and `pl --version`, and the
 relevant lines from the newest file in `~/.prismalens/logs/`. Open it at

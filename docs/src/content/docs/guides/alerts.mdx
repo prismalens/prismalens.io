@@ -12,12 +12,9 @@ point Prometheus Alertmanager at PrismaLens.
 
 - An alert reaches a service through its `service` label, which must equal the
   service's name exactly.
-- A critical or high alert on a service starts an investigation when it
-  arrives. Change that per service, from always to never, on the service's
-  **Investigation** tab. An alert with no matching service opens an incident
-  and starts nothing.
-- A resolved alert resolves its incident once none of the incident's alerts
-  are still firing.
+- By default, a critical or high alert on a service starts an investigation
+  when it arrives. Each service can change that, from always to never. An
+  alert with no matching service starts no investigation.
 
 The timeline names states the way the incident header does. A status change
 reads "From Acknowledged to Resolved", not the stored status names.
@@ -30,8 +27,7 @@ The first `pl up` writes a token to your workspace:
 ~/.prismalens/PRISMALENS_WEBHOOK_SECRET_FILE
 ```
 
-Every delivery must carry it. If you replace the token, restart PrismaLens and
-update every sender. `pl doctor` prints the file's path and the webhook URL.
+Every delivery must carry it.
 
 ## Configure Alertmanager
 

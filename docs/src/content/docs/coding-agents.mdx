@@ -22,8 +22,7 @@ Other ACP agents can be added from the ACP registry, or as a local command, in
 
 ## Signing in
 
-The agent uses its own sign-in, as it does in your terminal: `claude /login`,
-`codex login` or `opencode auth login` carry over. You can also enter an API
+The agent uses its own sign-in, as it does in your terminal. You can also enter an API
 key in **Add agent**. PrismaLens stores that key encrypted and never shows it
 again. It never reads or stores the agent's own login.
 
@@ -42,8 +41,3 @@ decides which of its requests wait for you:
 A run started by an alert has nobody to ask. It runs at **Auto** and refuses
 anything the agent asks. PrismaLens adds no sandbox. See
 [What PrismaLens reads](/trust/).
-
-## Choosing a model
-
-Each agent uses its own default model. To use another, pick it next to the
-agent in **Settings → Agent**. A model is kept per agent.

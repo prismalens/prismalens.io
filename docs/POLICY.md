@@ -5,6 +5,13 @@ user needs to install it, run it, trust it and read its output. Everything else
 is described by the app itself, `pl <command> --help` and the
 [release notes](https://github.com/prismalens/prismalens/releases).
 
+## Leave it out rather than guess
+
+Every sentence must be checked against the release the docs describe: its
+code, its `--help` or its README. A claim nobody checked is deleted, not
+kept "probably right". A shorter page that is true beats a fuller one that
+might not be.
+
 ## The documented contract
 
 A product PR that changes one of these updates the docs, or opens a docs issue.

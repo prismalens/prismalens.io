@@ -15,5 +15,5 @@ reviews:
         These docs follow `docs/POLICY.md`. Flag a page or passage that documents something on its "Keep out" list
         (settings click-paths beyond the one a task needs, terminal transcripts, limits and tuning constants, flags or
         environment variables no contract task needs, version history, newly added or still-changing features, internals),
-        and flag a new page that is not in its contract table. Flag "self-hosted" or server wording: PrismaLens is an app
+        and flag a new page that is not in its contract table. Flag a specific claim (a default, a label, a limit, a behaviour) the PR gives no source for, and suggest deleting it rather than softening it. Flag "self-hosted" or server wording: PrismaLens is an app
         that runs on the user's machine.

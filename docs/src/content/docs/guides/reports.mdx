@@ -11,8 +11,7 @@ explains what they mean and how to check them.
 A report is a strong first theory from a colleague who read the code and ran
 the commands. It isn't a verdict. Models aren't deterministic, so two runs on
 the same incident can disagree, and a confident sentence can still be wrong.
-Every claim points at the command, file or log line behind it, so you can check
-it fast. If a run found nothing to stand on, it says no cause was named rather
+Evidence names where it came from, so you can check it fast. If a run found nothing to stand on, it says no cause was named rather
 than inventing one.
 
 ## No confidence scores, on purpose
@@ -37,8 +36,6 @@ evidence for and against each one.
 
 - **Evidence** for each hypothesis: whether it's for or against, what was
   observed and where, and whether the agent **verified** it or **inferred** it.
-  Anything the agent took from what PrismaLens gave it, without checking, is
-  marked inferred.
 - **Ruled out**: causes the agent considered and dropped, with the reason.
 - **Checked** and **Not checked**. Something under Not checked isn't an
   all-clear; nobody looked at it.
@@ -49,9 +46,8 @@ evidence for and against each one.
 1. Read the top hypothesis and its status.
 2. Run its first piece of evidence yourself: the same command, or the same file.
 3. Look at **Ruled out** before you chase the second hypothesis.
-4. If the report is wrong, the run's steps show where the reasoning went off. Every action the agent took is recorded.
+4. If the report is wrong, the run's steps show where the reasoning went off.
 
 ## Sharing it
 
-A report exports as Markdown. Close the incident with what actually caused it:
-a later investigation on a similar incident is told about it.
+A report exports as Markdown.

@@ -34,9 +34,6 @@ secrets, so its own `git` and `gh` work. **Settings → Agent → Only pass name
 variables** limits it to the basics, the agent's provider keys and the
 variables you set.
 
-Alert text reaches the agent marked as untrusted data. If the agent spots text
-trying to give it orders, the report quotes it.
-
 ## What leaves your machine
 
 - **From your agent:** what it reads, including source code, command output and
@@ -44,10 +41,8 @@ trying to give it orders, the report quotes it.
   directly.
 - **Usage counts:** on by default, after a notice. The first start prints the
   notice and sends nothing. From the next start, PrismaLens counts feature use
-  under a random install id: the version, OS, how it was installed, and
-  milestones such as "an investigation finished", as fixed categories. It never
-  sends code, repository names, alert content, reports, prompts, errors,
-  hostnames or your IP address. Events go to PostHog Cloud EU. **Settings →
+  under a random install id. It never sends your code, a repository, an alert
+  or a report. Events go to PostHog Cloud EU. **Settings →
   Usage data** turns it off and shows what was recently sent. So do
   `PRISMALENS_TELEMETRY=off` and `DO_NOT_TRACK=1`, and it is always off when
   `CI` is set. The exact list of what is sent is in
@@ -62,8 +57,7 @@ trying to give it orders, the report quotes it.
 
 There are no accounts. A browser gets in only by opening a one-time link that
 `pl up` or `pl pair` prints on this machine. No address grants access by itself,
-`localhost` included. A paired device can read every incident and run
-investigations; revoke one under **Settings → Devices**.
+`localhost` included. Revoke a paired device under **Settings → Devices**.
 
 <Aside type="caution">
 PrismaLens is built for one person's machine. It has no users or roles. Pair
