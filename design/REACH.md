@@ -10,6 +10,14 @@ same PostHog project (Cloud EU). Two parts:
   `site/public/_routes.json`) counts requests for the install scripts, then
   redirects to the latest release as `_redirects` did.
 
+Dashboards (PostHog project 284081):
+
+- [Reach and acquisition](https://eu.posthog.com/project/284081/dashboard/1076086):
+  both sites by traffic source, AI-assistant referrals, use-case pages, the
+  landing-to-install funnel, install scripts, npm, GitHub, releases, Homebrew.
+- [Installs](https://eu.posthog.com/project/284081/dashboard/974563): product
+  activation, active installs and outcomes from opt-in telemetry.
+
 ## What is collected
 
 | Event | Properties | Source | Window | Needs |
