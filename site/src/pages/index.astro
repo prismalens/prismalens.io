@@ -51,6 +51,7 @@ const steps = [
           <a href={`${docsBase}/install/`} class="underline underline-offset-4">Install</a>
         </p>
       </div>
+      <p class="mt-3 text-sm text-muted-foreground">Runs on macOS, Linux or WSL2.</p>
     </div>
 
     <figure class="demo mt-14 sm:mt-20 lg:mt-10" data-demo data-cleared-at="17.5">
@@ -104,9 +105,9 @@ const steps = [
   </section>
 
   <section class="mx-auto max-w-6xl px-4 pb-20 sm:px-6">
-    <a href="/screenshots/report-0.5.1.webp" class="shot block">
+    <a href="/screenshots/report.webp" class="block">
       <img
-        src="/screenshots/report-0.5.1.webp"
+        src="/screenshots/report.webp"
         width="1600"
         height="900"
         alt="The PrismaLens incident overview after a finished run: the summary, the confirmed cause under Why with its evidence, the alert's query on the Impact chart, the docker start command under Stop the impact with Copy, and the commits under What changed and when"
@@ -115,8 +116,7 @@ const steps = [
       />
     </a>
     <p class="mt-3 text-sm text-muted-foreground">
-      A real lab incident on 0.5.1: a stopped container. The overview holds the cause and its evidence,
-      the command that stops the impact, and the alert's own query from Prometheus.
+      The report for the run above.
     </p>
   </section>
 
@@ -129,8 +129,7 @@ const steps = [
       <div class="grid gap-x-10 gap-y-8 leading-relaxed sm:grid-cols-2">
         <p><strong>Nobody pastes the alert.</strong> Alertmanager posts to PrismaLens, and a critical or high alert on a known service starts a run. You can change that per service.</p>
         <p><strong>It uses the agent you already have.</strong> OpenCode by default, or Claude Code, Codex or Gemini CLI. PrismaLens never calls a model and has no account to sign up for.</p>
-        <p><strong>Your checkout stays yours.</strong> Every run gets its own copy of the last commit, with any agent config committed in the repository removed.</p>
-        <p><strong>It reads code, not dashboards.</strong> 0.5.0 gives the agent the alert and the repository. It does not connect to your metrics, logs or traces.</p>
+        <p><strong>Your checkout stays yours.</strong> Every run gets its own copy of the last commit.</p>
         <p><strong>It tells you where the limits are.</strong> Permission levels decide what the agent may do without asking, and PrismaLens adds no sandbox: the agent runs as your user. <a href={`${docsBase}/trust/`} class="underline underline-offset-4">What it reads and never does</a></p>
         <p><strong>It keeps the record.</strong> A week later the report, the evidence and every command the agent ran are still on the incident.</p>
       </div>

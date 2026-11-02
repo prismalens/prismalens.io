@@ -34,7 +34,7 @@ Nothing else does.
 - Terminal transcripts of `pl doctor` or logs, except one line a reader must match.
 - Limits, timeouts, rate limits, retry windows and other tuning constants.
 - Flags and environment variables nobody needs for the tasks above. `--help` lists them.
-- Version tables, "upgrading from 0.x" notes and other release history.
+- Version numbers of any kind: PrismaLens, Node, agents, or "since" and "upgrading from" notes. The pages describe the latest release; history lives in the release notes.
 - Features a release just added or is still reshaping. Document one only once it
   is on the contract and has held through a release.
 - Internal APIs, CI-only switches, implementation details and roadmap.
