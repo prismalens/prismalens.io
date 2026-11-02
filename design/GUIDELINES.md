@@ -38,6 +38,12 @@ into this file either way.
    incidents, investigations, hypotheses, SRE or on-call, and never names
    settings, flags or permission levels. The docs describe today's product and
    may use its real nouns.
+   **Exception:** use-case pages (`site/src/pages/use-cases/**`) answer search
+   intent and may use the product's real nouns, settings and flags. They follow
+   every other rule here: no versions, no "self-hosted", no numeric confidence,
+   no unchecked claims, the text budget as rule 6 narrows it, and shown rather
+   than told. They may be added or retired as the direction changes;
+   `design/SEO.md` says which and why.
 5. **No unchecked claims.** A sentence nobody traced to the release is deleted,
    not softened. No invented stats, users, logos, testimonials or pricing.
 6. **Text budget (site)** [CI]: a hero gets a headline of 6 words or fewer and one
@@ -45,6 +51,12 @@ into this file either way.
    fewer and at most one line of 10. No paragraphs, captions, disclaimers,
    explainer tooltips or footnotes: the visual carries the meaning. New site
    text goes into `design/COPY.md` first.
+   **Exception (use-case pages only):** right under the hero, the search query as
+   a question heading (8 words or fewer) and one answer of 60 words or fewer; then
+   numbered steps (title of 5 words, line of 10); an optional table comparing
+   approaches, never products; and a FAQ with question headings and answers of
+   40 words or fewer. Every answer is true per the docs page it links. The home
+   page keeps the strict budget. [CI: `.vale.ini`, `scripts/use-cases.test.ts`]
 7. **Docs instruct; they don't narrate.** A step is a title, a command and at
    most one short line. Callouts warn; they don't explain.
 
