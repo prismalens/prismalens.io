@@ -5,3 +5,7 @@
   Content-Type: text/plain; charset=utf-8
 /llms-full.txt
   Content-Type: text/plain; charset=utf-8
+
+# Hashed build assets never change under the same name, so browsers may keep them for a year.
+/_astro/*
+  Cache-Control: public, max-age=31536000, immutable
