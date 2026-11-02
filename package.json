@@ -24,10 +24,13 @@
     "docs:generate:integrations": "tsx scripts/generate-integration-docs.ts",
     "tokens:sync": "tsx scripts/sync-design-tokens.ts",
     "test": "tsx --test scripts/analytics.test.ts",
-    "check": "vale docs/src/content site/dist && lychee --offline --root-dir \"$PWD/docs/dist\" 'docs/dist/**/*.html' && lychee --offline --root-dir \"$PWD/site/dist\" 'site/dist/**/*.html'",
+    "check": "vale docs/src/content site/dist && lychee --offline --root-dir \"$PWD/docs/dist\" 'docs/dist/**/*.html' && lychee --offline --root-dir \"$PWD/site/dist\" 'site/dist/**/*.html' && pnpm check:seo",
+    "check:seo": "tsx scripts/check-seo.mts site docs",
     "check:a11y": "cd site && npx -y @lhci/cli@0.15.1 autorun && cd ../docs && npx -y @lhci/cli@0.15.1 autorun"
   },
   "devDependencies": {
+    "@adobe/structured-data-validator": "^1.7.0",
+    "@marbec/web-auto-extractor": "^2.2.1",
     "@types/node": "^26.6.5",
     "concurrently": "^10.0.6",
     "tsx": "^4.23.15"

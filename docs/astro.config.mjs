@@ -1,6 +1,7 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
 import starlight from '@astrojs/starlight';
+import starlightLlmActions from 'starlight-llm-actions';
 import tailwindcss from '@tailwindcss/vite';
 
 // The docs header has no About link, so About needs a sidebar entry. `astro dev`
@@ -50,6 +51,8 @@ export default defineConfig({
 	integrations: [
 		starlight({
 			title: 'PrismaLens Docs',
+			description:
+				'Install PrismaLens, run it with the coding agent you already use, and read the evidence it keeps.',
 			customCss: ['./src/styles/custom.css'],
 			expressiveCode: {
 				styleOverrides: {
@@ -77,9 +80,8 @@ export default defineConfig({
 			// Per-page "Last updated" timestamps, so readers can judge whether a
 			// time-sensitive gotcha (e.g. the WSL srt caveat) is still current.
 			lastUpdated: true,
-			// Social/OG preview card for shared links — reuses the brand card the
-			// marketing site ships; wired here because Starlight emits no og:image
-			// on its own.
+			// Per-page og:image and JSON-LD.
+			routeMiddleware: './src/routeData.ts',
 			head: [
 				// Dark-first: seeds the theme Starlight reads; any stored choice, auto included, still wins.
 				// The synced tokens switch themes on a `.dark` class; Starlight switches on data-theme.
@@ -88,11 +90,10 @@ export default defineConfig({
 					content:
 						"try{if(localStorage.getItem('starlight-theme')===null)localStorage.setItem('starlight-theme','dark')}catch(e){}const r=document.documentElement;const s=()=>r.classList.toggle('dark',r.dataset.theme!=='light');s();new MutationObserver(s).observe(r,{attributeFilter:['data-theme']});",
 				},
-				{ tag: 'meta', attrs: { property: 'og:image', content: 'https://docs.prismalens.io/og-default.png' } },
-				{ tag: 'meta', attrs: { property: 'og:image:width', content: '1200' } },
-				{ tag: 'meta', attrs: { property: 'og:image:height', content: '630' } },
-				{ tag: 'meta', attrs: { name: 'twitter:card', content: 'summary_large_image' } },
-				{ tag: 'meta', attrs: { name: 'twitter:image', content: 'https://docs.prismalens.io/og-default.png' } },
+			],
+			plugins: [
+				// One renderer for the .md twins, llms.txt and llms-full.txt, so agents read what people read.
+				starlightLlmActions({ renderMarkdown: 'simple', linkAlternate: true, llmsTxt: true }),
 			],
 			sidebar: [
 				{
@@ -116,7 +117,7 @@ export default defineConfig({
 				{
 					label: 'Site',
 					items: [
-						{ label: 'About', link: `${siteBase}/about` },
+						{ label: 'About', link: `${siteBase}/about/` },
 					],
 				},
 			],
