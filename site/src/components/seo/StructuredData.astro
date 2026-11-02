@@ -1,0 +1,7 @@
+---
+import { structuredData } from '../../lib/structured-data'
+
+const json = structuredData(Astro.url.pathname)
+---
+
+<script type="application/ld+json" is:inline set:html={json}></script>

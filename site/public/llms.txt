@@ -1,0 +1,23 @@
+# PrismaLens
+
+> An open-source app on your machine that hands signals to your coding agent and keeps the evidence.
+
+PrismaLens runs on macOS and Linux, with Windows in preview. It brings no model of its own: it drives a coding agent you already use, such as OpenCode, Claude Code or Codex. It needs no account and is licensed Apache-2.0. Findings are ranked and backed by evidence, never scored.
+
+## Docs
+
+- [Docs index for agents](https://docs.prismalens.io/llms.txt): every docs page as Markdown, with a one-line summary each
+- [All docs in one file](https://docs.prismalens.io/llms-full.txt): every docs page concatenated as Markdown
+- [What PrismaLens is](https://docs.prismalens.io/index.md): what it does and what it keeps
+- [Install, upgrade and uninstall](https://docs.prismalens.io/install.md): one command per channel
+- [Quick start](https://docs.prismalens.io/quickstart.md): first run to first report
+
+## Site
+
+- [Home](https://prismalens.io/): what PrismaLens does, and the install command
+- [About](https://prismalens.io/about/): why it exists and the rules it is built on
+
+## Optional
+
+- [Source code](https://github.com/prismalens/prismalens)
+- [Release notes](https://github.com/prismalens/prismalens/releases)
