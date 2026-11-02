@@ -1,0 +1,6 @@
+extends: existence
+message: "PrismaLens is an app on your machine, not '%s' (design/GUIDELINES.md §2)."
+level: error
+ignorecase: true
+tokens:
+  - self[- ]hosted?

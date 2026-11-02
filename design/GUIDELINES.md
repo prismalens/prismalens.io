@@ -5,11 +5,20 @@ The rules every change to `site/` and `docs/` follows. `docs/POLICY.md` decides
 `design/COPY.md` holds the site's approved text, and `design/landing.html` and
 `design/docs.html` are the reference designs.
 
-Enforced three ways:
-- **CI:** `scripts/check-content.mjs` fails a build whose visible text breaks a
-  rule marked [CI] below. Run it locally with `pnpm check:content` after building.
-- **Review:** CodeRabbit checks the rest (`.coderabbit.yaml`).
+Enforced with standard tools; a rule marked [CI] fails the build:
+- **[Vale](https://vale.sh)** lints the docs' MDX and the site's built HTML
+  against the rules in `.vale/styles/` (wording, versions, text budget).
+- **[lychee](https://lychee.cli.rs)** fails on a broken internal link.
+- **[Lighthouse CI](https://github.com/GoogleChrome/lighthouse-ci)** fails a page
+  below 0.95 accessibility, 0.9 best practices or 0.9 SEO, and warns below 0.9
+  performance (`site/lighthouserc.json`, `docs/lighthouserc.json`).
+- **Review:** CodeRabbit checks what a tool can't (`.coderabbit.yaml`).
 - **Authors:** agents read this file before touching `site/` or `docs/` (`AGENTS.md`).
+
+Locally, after building: `pnpm check` (needs `vale` and `lychee` on your PATH,
+for example `brew install vale lychee`) and `pnpm check:a11y` (needs Chrome).
+A new rule goes into `.vale/styles/` as a Vale rule when it's about words, and
+into this file either way.
 
 ## Words
 
@@ -27,7 +36,7 @@ Enforced three ways:
    may use its real nouns.
 5. **No unchecked claims.** A sentence nobody traced to the release is deleted,
    not softened. No invented stats, users, logos, testimonials or pricing.
-6. **Text budget (site):** a hero gets a headline of 6 words or fewer and one
+6. **Text budget (site)** [CI]: a hero gets a headline of 6 words or fewer and one
    line of 10 words or fewer. Every other section gets a heading of 5 words or
    fewer and at most one line of 10. No paragraphs, captions, disclaimers,
    explainer tooltips or footnotes: the visual carries the meaning. New site
@@ -61,7 +70,7 @@ Enforced three ways:
 
 ## Accessibility and quality
 
-15. Text and controls meet WCAG AA contrast. Every control has a visible focus
+15. [CI] Text and controls meet WCAG AA contrast. Every control has a visible focus
     ring and works from the keyboard. A streaming log uses `aria-live="polite"`.
 16. Pages work at 390px wide with no sideways scroll. Long code scrolls inside
     its own block.
@@ -71,5 +80,5 @@ Enforced three ways:
 
 ## Before you open a PR
 
-- `pnpm build:site`, `pnpm build:docs`, `pnpm check:content` and `pnpm test` pass.
+- `pnpm build:site`, `pnpm build:docs`, `pnpm check`, `pnpm check:a11y` and `pnpm test` pass.
 - Look at the changed pages at desktop width and at 390px, with reduced motion on.

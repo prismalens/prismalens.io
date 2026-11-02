@@ -96,12 +96,13 @@ code, pre, kbd {
   height: 16px;
 }
 .btn-primary {
-  background: var(--primary);
+  /* The raw primary is 4.38:1 against its foreground; AA needs 4.5:1. */
+  background: color-mix(in oklch, var(--primary) 86%, black);
   color: var(--primary-foreground);
   box-shadow: 0 0 0 1px oklch(1 0 0 / 0.12) inset, 0 8px 24px -8px color-mix(in oklch, var(--primary) 70%, transparent);
 }
 .btn-primary:hover {
-  background: color-mix(in oklch, var(--primary) 88%, white);
+  background: color-mix(in oklch, var(--primary) 78%, black);
   transform: translateY(-1px);
 }
 .btn-ghost {

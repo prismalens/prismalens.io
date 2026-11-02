@@ -40,5 +40,19 @@ jobs:
       - name: Build site
         run: pnpm --filter site build
 
-      - name: Check content rules
-        run: node scripts/check-content.mjs site
+      - name: Install Vale
+        run: |
+          curl -fsSL https://github.com/vale-cli/vale/releases/download/v3.26.0/vale_3.26.0_Linux_64-bit.tar.gz | tar xz -C "$RUNNER_TEMP" vale
+          echo "$RUNNER_TEMP" >> "$GITHUB_PATH"
+
+      - name: Content rules (design/GUIDELINES.md)
+        run: vale site/dist
+
+      - name: Links
+        uses: lycheeverse/lychee-action@e7477775783ea5526144ba13e8db5eec57747ce8 # v2.9.0
+        with:
+          args: --offline --no-progress --root-dir ${{ github.workspace }}/site/dist 'site/dist/**/*.html'
+
+      - name: Accessibility, performance, SEO (Lighthouse)
+        working-directory: site
+        run: npx -y @lhci/cli@0.15.1 autorun

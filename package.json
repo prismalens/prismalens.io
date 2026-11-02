@@ -24,7 +24,8 @@
     "docs:generate:integrations": "tsx scripts/generate-integration-docs.ts",
     "tokens:sync": "tsx scripts/sync-design-tokens.ts",
     "test": "tsx --test scripts/analytics.test.ts",
-    "check:content": "node scripts/check-content.mjs site && node scripts/check-content.mjs docs"
+    "check": "vale docs/src/content site/dist && lychee --offline --root-dir \"$PWD/docs/dist\" 'docs/dist/**/*.html' && lychee --offline --root-dir \"$PWD/site/dist\" 'site/dist/**/*.html'",
+    "check:a11y": "cd site && npx -y @lhci/cli@0.15.1 autorun && cd ../docs && npx -y @lhci/cli@0.15.1 autorun"
   },
   "devDependencies": {
     "@types/node": "^26.6.5",
