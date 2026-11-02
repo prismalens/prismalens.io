@@ -40,6 +40,9 @@ jobs:
       - name: Build site
         run: pnpm --filter site build
 
+      - name: Search and agent surfaces (sitemap, llms.txt, meta, JSON-LD)
+        run: pnpm exec tsx scripts/check-seo.mts site
+
       - name: Install Vale
         run: |
           curl -fsSL https://github.com/vale-cli/vale/releases/download/v3.26.0/vale_3.26.0_Linux_64-bit.tar.gz | tar xz -C "$RUNNER_TEMP" vale

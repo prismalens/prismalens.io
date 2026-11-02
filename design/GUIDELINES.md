@@ -10,8 +10,12 @@ Enforced with standard tools; a rule marked [CI] fails the build:
   against the rules in `.vale/styles/` (wording, versions, text budget).
 - **[lychee](https://lychee.cli.rs)** fails on a broken internal link.
 - **[Lighthouse CI](https://github.com/GoogleChrome/lighthouse-ci)** fails a page
-  below 0.95 accessibility, 0.9 best practices or 0.9 SEO, and warns below 0.9
+  below 0.95 accessibility, 0.9 best practices or 1.0 SEO, and warns below 0.9
   performance (`site/lighthouserc.json`, `docs/lighthouserc.json`).
+- **`scripts/check-seo.mts`** fails a build without its sitemap, robots.txt or
+  `llms.txt`, a page without a unique title, description, canonical URL or
+  social image, a docs page without its `.md` twin, or JSON-LD that
+  schema.org doesn't define.
 - **Review:** CodeRabbit checks what a tool can't (`.coderabbit.yaml`).
 - **Authors:** agents read this file before touching `site/` or `docs/` (`AGENTS.md`).
 
