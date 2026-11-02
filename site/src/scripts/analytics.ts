@@ -171,8 +171,9 @@ export async function initAnalytics(): Promise<void> {
     cookieless_mode: "always",
     disable_session_recording: true,
     disable_surveys: true,
-    capture_exceptions: false,
-    capture_performance: false,
+    capture_exceptions: true,
+    // Web Vitals only: real-visitor speed for the SEO work; no network timings.
+    capture_performance: { web_vitals: true, network_timing: false },
     capture_pageview: true,
     capture_pageleave: true,
     autocapture: site === "site",
