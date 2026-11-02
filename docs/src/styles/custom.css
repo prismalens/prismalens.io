@@ -45,46 +45,287 @@
   --sl-color-black: var(--background);
 
   --sl-color-bg: var(--background);
+  --sl-color-bg-nav: color-mix(in oklch, var(--background) 78%, transparent);
   --sl-color-bg-sidebar: var(--background);
   --sl-color-bg-inline-code: var(--muted);
   --sl-color-hairline: var(--border);
+  --sl-color-hairline-light: var(--border);
+  --sl-color-hairline-shade: var(--border);
+
+  --sl-nav-height: 3.75rem;
+  --sl-sidebar-width: 16.5rem;
+  --sl-content-width: 46rem;
+
+  --pl-ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --pl-soft: color-mix(in oklch, var(--primary) 12%, transparent);
+  --pl-surface: color-mix(in oklch, var(--foreground) 3%, transparent);
+  --pl-line: color-mix(in oklch, var(--foreground) 10%, transparent);
+  --pl-code-bg: color-mix(in oklch, var(--foreground) 3%, var(--background));
+  --pl-code-bar: color-mix(in oklch, var(--foreground) 5%, var(--background));
+}
+
+/* Dark-first tints from the approved mockup (design/docs.html). */
+:root[data-theme="dark"] {
+  --sl-color-bg: oklch(0.115 0.006 285.8);
+  --sl-color-bg-sidebar: oklch(0.115 0.006 285.8);
+  --sl-color-black: oklch(0.115 0.006 285.8);
+  --sl-color-bg-nav: oklch(0.115 0.006 285.8 / 0.78);
+  --sl-color-text: oklch(0.86 0.006 286);
+  --sl-color-text-accent: oklch(0.8 0.11 277);
+  --sl-color-hairline: oklch(1 0 0 / 0.08);
+  --sl-color-hairline-light: oklch(1 0 0 / 0.08);
+  --sl-color-hairline-shade: oklch(1 0 0 / 0.08);
+  --pl-soft: color-mix(in oklch, var(--primary) 16%, transparent);
+  --pl-code-bg: oklch(0.135 0.006 285.9);
+  --pl-code-bar: oklch(0.155 0.006 285.9);
 }
 
 :root[data-theme="light"] {
   color-scheme: light;
+  --sl-color-text-accent: var(--primary);
 }
 
-/* Active sidebar link */
-.sidebar a[aria-current="page"] {
+body {
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Header ── */
+header.header {
+  backdrop-filter: saturate(1.4) blur(14px);
+  -webkit-backdrop-filter: saturate(1.4) blur(14px);
+}
+
+/* ── Search button and dialog ── */
+site-search button[data-open-modal] {
+  height: 2.375rem;
+  border-radius: 10px;
+  border: 1px solid var(--pl-line);
+  background: var(--pl-surface);
+  color: var(--sl-color-gray-3);
+  transition: border-color 0.2s, background 0.2s;
+}
+site-search button[data-open-modal]:hover {
+  border-color: color-mix(in oklch, var(--foreground) 20%, transparent);
+  background: color-mix(in oklch, var(--foreground) 6%, transparent);
+  color: var(--sl-color-gray-2);
+}
+site-search button[data-open-modal] kbd {
+  border-radius: 5px;
+  background: transparent;
+}
+@media (max-width: 50rem) {
+  site-search button[data-open-modal] {
+    width: 2.375rem;
+    justify-content: center;
+    font-size: var(--sl-text-base);
+  }
+}
+@media (min-width: 50rem) {
+  site-search button[data-open-modal] {
+    max-width: 26.25rem;
+  }
+  site-search dialog {
+    border-radius: 16px;
+    border: 1px solid color-mix(in oklch, var(--foreground) 12%, transparent);
+    box-shadow: 0 40px 100px -20px oklch(0 0 0 / 0.9), 0 0 0 1px oklch(0 0 0 / 0.4);
+  }
+}
+site-search dialog::backdrop {
+  background: oklch(0.08 0.006 285.8 / 0.7);
+  backdrop-filter: blur(4px);
+}
+site-search {
+  --pagefind-ui-primary: var(--sl-color-text-accent);
+  --pagefind-ui-border-radius: 9px;
+  --pagefind-ui-border: var(--pl-line);
+  --pagefind-ui-tag: var(--pl-soft);
+}
+site-search mark {
+  background: color-mix(in oklch, var(--primary) 35%, transparent);
   color: var(--sl-color-white);
-  background-color: color-mix(in oklch, var(--primary) 20%, transparent);
+  border-radius: 3px;
+}
+
+/* ── Sidebar ── */
+.sidebar-content summary {
+  border-radius: 7px;
+}
+.sidebar-content summary:hover {
+  background: var(--pl-surface);
+}
+.sidebar-content summary .large {
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.sidebar-content .top-level > li > a.large {
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
   font-weight: 600;
+  color: var(--sl-color-white);
+}
+.sidebar-content a {
+  position: relative;
+  border-radius: 7px;
+  font-size: var(--sl-text-sm);
+  color: var(--sl-color-gray-3);
+  transition: color 0.15s, background 0.15s;
+}
+.sidebar-content a:hover {
+  color: var(--sl-color-white);
+  background: var(--pl-surface);
+}
+.sidebar-content a[aria-current="page"],
+.sidebar-content a[aria-current="page"]:hover,
+.sidebar-content a[aria-current="page"]:focus {
+  color: var(--sl-color-white);
+  background: var(--pl-soft);
+  font-weight: 500;
+}
+.sidebar-content a[aria-current="page"]::before {
+  content: "";
+  position: absolute;
+  inset-inline-start: 0;
+  top: 7px;
+  bottom: 7px;
+  width: 2px;
+  border-radius: 2px;
+  background: var(--ring);
 }
 
-.sidebar a[aria-current="page"]:hover {
-  background-color: color-mix(in oklch, var(--primary) 30%, transparent);
+/* ── Page title and content ── */
+h1#_top {
+  font-size: clamp(2rem, 4.4vw, 2.75rem);
+  line-height: 1.08;
+  letter-spacing: -0.032em;
+  font-weight: 650;
+}
+.sl-markdown-content h2 {
+  letter-spacing: -0.02em;
+  font-weight: 620;
+}
+.sl-markdown-content :not(pre) > code {
+  font-size: 0.86em;
+  padding: 2px 6px;
+  border-radius: 5px;
+  background: color-mix(in oklch, var(--foreground) 7%, transparent);
+  color: var(--sl-color-white);
+  border: 1px solid color-mix(in oklch, var(--foreground) 6%, transparent);
 }
 
-.sidebar a:not([aria-current="page"]):hover {
-  background-color: color-mix(in oklch, var(--primary) 10%, transparent);
-  color: var(--sl-color-accent);
-}
-
-/* Table of contents */
-.right-sidebar a {
-  color: var(--muted-foreground);
-}
-
-.right-sidebar a:hover,
-.right-sidebar a[aria-current="true"] {
-  color: var(--sl-color-accent);
-}
-
-.right-sidebar a[aria-current="true"] {
+/* ── Steps ── */
+.sl-steps > li::before {
+  border-radius: 10px;
+  font-family: var(--sl-font-mono);
   font-weight: 600;
+  color: var(--sl-color-white);
+  background: var(--card);
+  border: 1px solid var(--pl-line);
+  box-shadow: none;
+  transition: background 0.4s, border-color 0.4s, box-shadow 0.4s;
+}
+.sl-steps > li::after {
+  background: var(--sl-color-hairline);
+}
+.sl-steps > li.seen::before {
+  background: var(--primary);
+  color: var(--primary-foreground);
+  border-color: transparent;
+  box-shadow: 0 0 0 4px color-mix(in oklch, var(--primary) 18%, transparent),
+    0 8px 24px -6px color-mix(in oklch, var(--primary) 60%, transparent);
+}
+.sl-steps > li.seen::after {
+  background: linear-gradient(var(--ring), var(--chart-2));
 }
 
-/* Code blocks */
-.expressive-code {
-  --ec-brdCol: var(--border);
+/* ── Asides and tabs ── */
+.starlight-aside {
+  border-radius: 12px;
+  border-inline-start-width: 2px;
+}
+starlight-tabs [role="tablist"] {
+  border-color: var(--sl-color-hairline);
+}
+starlight-tabs [role="tab"][aria-selected="true"] {
+  border-color: var(--ring);
+  color: var(--sl-color-white);
+}
+
+/* ── Code blocks (the rest of the frame colours live in astro.config.mjs) ── */
+/* Starlight pins the editor and terminal backgrounds per theme, so they are reset on the frame. */
+.expressive-code .frame {
+  --ec-frm-edBg: var(--pl-code-bg);
+  --ec-frm-trmBg: var(--pl-code-bg);
+  box-shadow: 0 20px 40px -24px oklch(0 0 0 / 0.8);
+}
+
+/* ── Cards and pagination ── */
+.sl-link-card,
+.card {
+  border-radius: 12px;
+  border-color: var(--sl-color-hairline);
+  background: color-mix(in oklch, var(--foreground) 2%, transparent);
+  box-shadow: none;
+  transition: border-color 0.2s, background 0.2s, transform 0.2s var(--pl-ease);
+}
+.sl-link-card:hover {
+  border-color: color-mix(in oklch, var(--ring) 50%, transparent);
+  background: color-mix(in oklch, var(--primary) 6%, transparent);
+  transform: translateY(-1px);
+}
+.pagination-links a {
+  border-radius: 12px;
+  border-color: var(--sl-color-hairline);
+  box-shadow: none;
+  transition: border-color 0.2s, background 0.2s;
+}
+.pagination-links a:hover {
+  border-color: color-mix(in oklch, var(--ring) 50%, transparent);
+  background: color-mix(in oklch, var(--primary) 5%, transparent);
+}
+.pagination-links .link-title {
+  font-size: var(--sl-text-lg);
+  font-weight: 550;
+}
+
+/* ── On this page rail ── */
+.right-sidebar-panel h2 {
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--sl-color-white);
+}
+.right-sidebar-panel starlight-toc > nav > ul {
+  border-inline-start: 1px solid var(--sl-color-hairline);
+}
+.right-sidebar-panel starlight-toc a {
+  position: relative;
+  border-radius: 0;
+  padding-inline-start: calc(1rem * var(--depth, 0) + 0.875rem);
+  font-size: 0.84375rem;
+  color: var(--sl-color-gray-3);
+  transition: color 0.2s;
+}
+.right-sidebar-panel starlight-toc a:hover,
+.right-sidebar-panel starlight-toc a[aria-current="true"] {
+  color: var(--sl-color-white);
+}
+.right-sidebar-panel starlight-toc a[aria-current="true"]::before {
+  content: "";
+  position: absolute;
+  inset-inline-start: -1px;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  border-radius: 2px;
+  background: var(--ring);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
 }

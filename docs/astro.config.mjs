@@ -3,10 +3,8 @@ import { defineConfig } from 'astro/config';
 import starlight from '@astrojs/starlight';
 import tailwindcss from '@tailwindcss/vite';
 
-// The marketing site's header collapses About below md, and Starlight's
-// mobile drawer only shows the page tree — so those links need a sidebar entry
-// too, or mobile readers have no way to reach them. `astro dev` vs `astro build`
-// both put their subcommand in argv, so this is a reliable dev/prod switch.
+// The docs header has no About link, so About needs a sidebar entry. `astro dev`
+// vs `astro build` both put their subcommand in argv: a reliable dev/prod switch.
 const isDev = process.argv.includes('dev');
 const siteBase = isDev ? 'http://localhost:4321' : 'https://prismalens.io';
 
@@ -53,6 +51,20 @@ export default defineConfig({
 		starlight({
 			title: 'PrismaLens Docs',
 			customCss: ['./src/styles/custom.css'],
+			expressiveCode: {
+				styleOverrides: {
+					borderRadius: '12px',
+					borderColor: 'var(--pl-line)',
+					codeBackground: 'var(--pl-code-bg)',
+					frames: {
+						editorTabBarBackground: 'var(--pl-code-bar)',
+						terminalTitlebarBackground: 'var(--pl-code-bar)',
+						terminalTitlebarBorderBottomColor: 'var(--pl-line)',
+						editorTabBarBorderBottomColor: 'var(--pl-line)',
+						frameBoxShadowCssValue: 'none',
+					},
+				},
+			},
 			components: {
 				Header: './src/components/CustomHeader.astro',
 				Footer: './src/components/CustomFooter.astro',
@@ -69,11 +81,12 @@ export default defineConfig({
 			// marketing site ships; wired here because Starlight emits no og:image
 			// on its own.
 			head: [
+				// Dark-first: seeds the theme Starlight reads; any stored choice, auto included, still wins.
 				// The synced tokens switch themes on a `.dark` class; Starlight switches on data-theme.
 				{
 					tag: 'script',
 					content:
-						"const r=document.documentElement;const s=()=>r.classList.toggle('dark',r.dataset.theme!=='light');s();new MutationObserver(s).observe(r,{attributeFilter:['data-theme']});",
+						"try{if(localStorage.getItem('starlight-theme')===null)localStorage.setItem('starlight-theme','dark')}catch(e){}const r=document.documentElement;const s=()=>r.classList.toggle('dark',r.dataset.theme!=='light');s();new MutationObserver(s).observe(r,{attributeFilter:['data-theme']});",
 				},
 				{ tag: 'meta', attrs: { property: 'og:image', content: 'https://docs.prismalens.io/og-default.png' } },
 				{ tag: 'meta', attrs: { property: 'og:image:width', content: '1200' } },
