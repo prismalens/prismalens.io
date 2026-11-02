@@ -2,9 +2,16 @@
 import '../styles/global.css'
 import Header from '../components/Header.astro'
 import Footer from '../components/Footer.astro'
+import StructuredData from '../components/seo/StructuredData.astro'
+import type { Thing } from 'schema-dts'
+import { siteDescription } from '../lib/structured-data'
 
 interface Props {
   title: string
+  /** Replaces the whole `<title>`; without it the title reads `{title} | PrismaLens`. */
+  fullTitle?: string
+  /** Extra JSON-LD nodes for this page. */
+  schema?: Thing[]
   description?: string
   ogImage?: string
   ogImageWidth?: number
@@ -14,7 +21,9 @@ interface Props {
 
 const {
   title,
-  description = 'An open-source app that investigates an incident with the coding agent you already use, on a throwaway copy, asking first by default, and keeps the evidence.',
+  fullTitle = `${title} | PrismaLens`,
+  schema = [],
+  description = siteDescription,
   ogImage = '/og-default.png',
   ogImageWidth = 1200,
   ogImageHeight = 630,
@@ -22,17 +31,13 @@ const {
 } = Astro.props
 
 const canonicalURL = new URL(Astro.url.pathname, Astro.site)
+const isNotFound = Astro.url.pathname.startsWith('/404')
 ---
 
 <!doctype html>
-<html lang="en" class="dark scroll-smooth">
+<html lang="en" class="dark">
   <head>
-    <script is:inline>
-      (function () {
-        var t = localStorage.getItem('prismalens-theme');
-        if (t === 'light') document.documentElement.classList.remove('dark');
-      })();
-    </script>
+    <script is:inline>document.documentElement.classList.add('js')</script>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
@@ -40,12 +45,13 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site)
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="sitemap" href="/sitemap-index.xml" />
     <meta name="generator" content={Astro.generator} />
-    <title>{title} | PrismaLens</title>
+    <title>{fullTitle}</title>
     <meta name="description" content={description} />
-    <link rel="canonical" href={canonicalURL} />
+    {isNotFound ? <meta name="robots" content="noindex" /> : <link rel="canonical" href={canonicalURL} />}
     <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="PrismaLens" />
     <meta property="og:url" content={canonicalURL} />
-    <meta property="og:title" content={`${title} | PrismaLens`} />
+    <meta property="og:title" content={fullTitle} />
     <meta property="og:description" content={description} />
     <meta property="og:image" content={new URL(ogImage, Astro.site)} />
     <meta property="og:image:width" content={String(ogImageWidth)} />
@@ -53,15 +59,21 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site)
     {ogImageAlt && <meta property="og:image:alt" content={ogImageAlt} />}
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:image" content={new URL(ogImage, Astro.site)} />
+    {ogImageAlt && <meta name="twitter:image:alt" content={ogImageAlt} />}
+    <StructuredData extra={schema} />
   </head>
-  <body class="min-h-screen bg-background text-foreground antialiased font-sans">
+  <body>
+    <a class="skip" href="#main">Skip to content</a>
     <Header />
-    <main class="overflow-x-clip">
+    <main id="main">
       <slot />
     </main>
     <Footer />
+    <p class="sr-only" id="copyStatus" role="status" aria-live="polite"></p>
     <script>
       import { initAnalytics } from '../scripts/analytics'
+      import { initReveals } from '../scripts/reveal'
+      initReveals()
       initAnalytics().catch(() => {})
     </script>
   </body>

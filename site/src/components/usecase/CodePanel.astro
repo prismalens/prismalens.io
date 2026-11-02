@@ -1,0 +1,46 @@
+---
+// A still code frame in the console's look, for a use-case hero. The code is copied from the docs page it names.
+interface Props {
+  label: string
+  code: string
+}
+const { label, code } = Astro.props
+---
+
+<figure class="panel" aria-label={label}>
+  <div class="bar" aria-hidden="true"><i></i><i></i><i></i></div>
+  <pre tabindex="0"><code>{code}</code></pre>
+</figure>
+
+<style>
+  .panel {
+    margin: 0;
+    min-width: 0;
+    border-radius: 14px;
+    background: linear-gradient(180deg, oklch(0.19 0.007 285.9), oklch(0.155 0.006 285.9));
+    border: 1px solid oklch(1 0 0 / 0.09);
+    box-shadow: 0 0 0 1px oklch(0 0 0 / 0.5), 0 40px 80px -30px oklch(0 0 0 / 0.8),
+      0 0 120px -40px color-mix(in oklch, var(--primary) 55%, transparent);
+    overflow: hidden;
+  }
+  .bar {
+    display: flex;
+    gap: 6px;
+    padding: 13px 14px;
+    border-bottom: 1px solid var(--hairline);
+    background: oklch(0 0 0 / 0.18);
+  }
+  .bar i {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: oklch(1 0 0 / 0.12);
+  }
+  pre {
+    margin: 0;
+    padding: 22px 22px 26px;
+    overflow-x: auto;
+    font: 400 14px/1.7 var(--font-mono);
+    color: oklch(0.92 0.005 286);
+  }
+</style>

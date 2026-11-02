@@ -1,0 +1,6 @@
+extends: occurrence
+message: "The hero headline is 6 words or fewer (design/GUIDELINES.md §6)."
+level: error
+scope: heading.h1
+max: 6
+token: '[^\s]+'

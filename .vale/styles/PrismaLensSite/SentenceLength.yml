@@ -1,0 +1,6 @@
+extends: occurrence
+message: "Site lines are 10 words or fewer; no paragraphs (design/GUIDELINES.md §6)."
+level: error
+scope: sentence
+max: 10
+token: '[^\s]+'

@@ -1,39 +1,34 @@
 ---
 title: What PrismaLens is
-description: A self-hosted app that investigates an incident with the coding agent you already use, and keeps the evidence.
+description: Open-source AI incident investigation on your machine, run by the coding agent you already use, with the evidence kept.
 ---
 
-PrismaLens is an open-source app you run on your own machine with one command,
-`pl up`. When something breaks, it opens an incident and hands it to a coding
-agent you already have installed, such as OpenCode or Claude Code. The agent
-reads a fresh copy of the service's code, works out what went wrong, and writes
-a report. PrismaLens keeps the whole run: every command the agent ran, what it
-found, and what it ruled out.
+PrismaLens is an open-source app that runs on your machine. Start it with
+`pl up`, or open the desktop app (preview). When something breaks, it opens an
+incident and hands it to a coding agent you already use, such as OpenCode,
+Claude Code or Codex. The agent reads the service's code, works out what went
+wrong and writes a report. PrismaLens keeps the whole run: what the agent did,
+what it found and what it ruled out.
 
 There is no PrismaLens account, no subscription and no model bill from us.
-PrismaLens never calls a model. Your agent does, with the sign-in it already has.
+PrismaLens never calls a model. Your agent does, with its own sign-in.
+
+PrismaLens is alpha and changes often, so read the
+[release notes](https://github.com/prismalens/prismalens/releases) before you
+upgrade.
 
 ## What a run looks like
 
-1. An alert arrives from Prometheus, or you write the incident by hand.
-2. PrismaLens takes a snapshot of the service's repository. Your own checkout is never the working directory.
-3. Your coding agent investigates inside that snapshot, at the run's permission level. At Ask always, what it asks to do waits for your Approve.
-4. You watch the agent work on the incident page as it happens.
-5. The report lists hypotheses in order, each with the evidence behind it, what was ruled out, and what to check next.
-
-## When to use it instead of your agent
-
-For a one-off question, ask your agent directly. PrismaLens is for everything
-around the question. A webhook creates the incident, so the alert is already in
-the brief when the agent starts. The run happens in a snapshot, at the
-permission level you pick, asking first by default. And a week later the report, the evidence and the full event
-stream are still on the incident.
+1. An alert arrives from Prometheus Alertmanager, or you write the incident yourself.
+2. The agent works in a fresh git worktree of the service's last commit, never in your checkout.
+3. You watch it work on the incident and approve or deny what it asks to do.
+4. The report ranks its hypotheses, each with the evidence for and against it, and says what it ruled out and what to check next.
 
 ## Where to go next
 
-- [Quick start](/quickstart/) installs it, points a service at a folder and runs one investigation. It takes about ten minutes.
-- [Coding agents](/coding-agents/) covers which agents work, which one gets picked, and how they sign in.
-- [Reading the report](/guides/reports/) explains why hypotheses are ranked and never scored, and how to check one.
-- [What PrismaLens reads](/trust/) says what the agent can reach, what PrismaLens never does, and where your data lives.
+- [Quick start](/quickstart/): install it and run one investigation, in about ten minutes.
+- [Coding agents](/coding-agents/): which agents work, and what they're allowed to do.
+- [Reading the report](/guides/reports/): why hypotheses are ranked, never scored.
+- [What PrismaLens reads](/trust/): what the agent can reach, what leaves your machine and where your data lives.
 
 PrismaLens is [Apache-2.0 licensed](https://github.com/prismalens/prismalens/blob/main/LICENSE).

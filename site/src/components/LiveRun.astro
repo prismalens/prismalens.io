@@ -1,0 +1,793 @@
+---
+// The hero's simulated run (design/landing.html). Built client-side, so its styles are global under `.console`.
+---
+
+<div class="console" role="region" aria-label="Demo run" data-live-run>
+  <div class="c-bar">
+    <div class="lights" aria-hidden="true"><i></i><i></i><i></i></div>
+    <div class="c-ctrl">
+      <button class="icon-btn" data-pause type="button" aria-label="Pause demo" aria-pressed="false">
+        <svg data-ic-pause viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><rect x="4" y="3" width="3" height="10" rx="1"></rect><rect x="9" y="3" width="3" height="10" rx="1"></rect></svg>
+        <svg data-ic-play viewBox="0 0 16 16" fill="currentColor" aria-hidden="true" hidden><path d="M5 3.5v9l7-4.5z"></path></svg>
+      </button>
+      <button class="icon-btn" data-replay type="button" aria-label="Replay demo">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M2.5 8a5.5 5.5 0 1 0 1.7-4"></path><path d="M2.5 2.5v3h3"></path></svg>
+      </button>
+    </div>
+  </div>
+  <div class="c-body">
+    <aside class="c-side">
+      <ul class="signals" data-signals aria-label="Signals"></ul>
+      <ol class="phases" data-phases>
+        <li data-p="0"><i aria-hidden="true"></i>Signal</li>
+        <li data-p="1"><i aria-hidden="true"></i>Your agent</li>
+        <li data-p="2"><i aria-hidden="true"></i>Findings</li>
+      </ol>
+      <div class="copybox" data-copybox>
+        <svg viewBox="0 0 30 20" fill="none" aria-hidden="true"><path d="M2 15H28" stroke="oklch(1 0 0 / .25)" stroke-width="1.5"></path><path d="M9 15C14 15 14 5 20 5H28" stroke="var(--ring)" stroke-width="1.5"></path><circle cx="9" cy="15" r="2.5" fill="var(--foreground)"></circle></svg>
+        copy of your code
+      </div>
+    </aside>
+    <div class="c-main" data-main>
+      <div class="run-head"><span class="agent-badge hidden" data-badge><span class="live" aria-hidden="true"></span>your agent</span></div>
+      <div role="log" aria-live="polite" aria-label="Agent steps"><ol class="log" data-log></ol></div>
+      <div class="perm" data-perm hidden role="group" aria-label="Your agent asks to run a command">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M8 1.5l5.5 2v4c0 3.5-2.4 6-5.5 7-3.1-1-5.5-3.5-5.5-7v-4z"></path><path d="M8 5v3.5M8 10.8v.2"></path></svg>
+        <code data-perm-cmd></code>
+        <button class="btn btn-approve" data-approve type="button">Approve</button>
+        <button class="btn btn-deny" data-deny type="button">Deny</button>
+        <span class="perm-timer" aria-hidden="true"></span>
+      </div>
+      <div class="finds-head" data-finds-head hidden>Findings</div>
+      <ol class="finds" data-finds aria-live="polite" aria-label="Findings, ranked"></ol>
+    </div>
+  </div>
+  <div class="c-foot"><span class="progress" aria-hidden="true"><b data-prog></b></span></div>
+</div>
+
+<script>
+  type Source = 'alert' | 'webhook' | 'you'
+  type Finding = { t: string; ev: string[]; s: 1 | 2 | 3 | 4 }
+  type Run = { src: Source; label: string; steps: string[]; ask: string; after: string[]; finds: Finding[] }
+
+  const ICON = {
+    ok: '<svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2"><path d="M2.5 6.2l2.3 2.3 4.7-4.7"/></svg>',
+    no: '<svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3l6 6M9 3l-6 6"/></svg>',
+    file: '<svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M3 1.5h4l2 2v7H3z"/></svg>',
+  }
+  const SRC_ICON: Record<Source, string> = {
+    alert: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M4 11h8M5 11V7a3 3 0 016 0v4M7 13.5h2"/></svg>',
+    webhook: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M5 12l3-6M12 12H7M9 4l3 6"/><circle cx="8" cy="4" r="1.3"/><circle cx="4.5" cy="12.5" r="1.3"/><circle cx="12" cy="12.5" r="1.3"/></svg>',
+    you: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M2.5 3.5h11v7h-6l-3.5 3v-3H2.5z"/></svg>',
+  }
+  const STR = ['', 'thin evidence', 'some evidence', 'good evidence', 'strong evidence']
+
+  const RUNS: Run[] = [
+    { src: 'alert', label: 'checkout 5xx',
+      steps: ['src/db/pool.ts', 'recent commits', 'diff last deploy'], ask: 'tail logs/checkout.log', after: ['src/payments/client.ts'],
+      finds: [{ t: 'Pool size cut in last deploy', ev: ['pool.ts diff', 'log timeouts'], s: 4 },
+              { t: 'Retries hold connections', ev: ['client.ts'], s: 2 },
+              { t: 'Database under load', ev: ['timing only'], s: 1 }] },
+    { src: 'webhook', label: 'error spike',
+      steps: ['read stack trace', 'src/api/orders.ts', 'recent commits'], ask: 'npm test orders', after: ['db/migrations/'],
+      finds: [{ t: 'Guest orders lack a customer', ev: ['orders.ts:142', 'failing test'], s: 4 },
+              { t: 'Migration dropped a default', ev: ['migrations/'], s: 2 },
+              { t: 'Stale cache shape', ev: ['cache.ts'], s: 1 }] },
+    { src: 'you', label: 'why is login slow?',
+      steps: ['src/auth/login.ts', 'trace login path', 'src/auth/hash.ts'], ask: 'node bench/login.js', after: ['recent commits'],
+      finds: [{ t: 'Hash cost raised', ev: ['hash.ts diff', 'bench run'], s: 4 },
+              { t: 'Unindexed session lookup', ev: ['sessions.sql'], s: 2 },
+              { t: 'Cold token cache', ev: ['tokens.ts'], s: 1 }] },
+  ]
+
+  const demo = document.querySelector<HTMLElement>('[data-live-run]')
+  if (demo) start(demo)
+
+  function start(demo: HTMLElement) {
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches
+    const q = <T extends HTMLElement>(s: string) => demo.querySelector<T>(s)!
+    const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!)
+    const els = {
+      main: q('[data-main]'), log: q('[data-log]'), perm: q('[data-perm]'), cmd: q('[data-perm-cmd]'),
+      finds: q('[data-finds]'), head: q('[data-finds-head]'), badge: q('[data-badge]'), prog: q('[data-prog]'),
+      sigs: q('[data-signals]'), copybox: q('[data-copybox]'), pause: q<HTMLButtonElement>('[data-pause]'),
+      approve: q<HTMLButtonElement>('[data-approve]'), deny: q<HTMLButtonElement>('[data-deny]'),
+      icPause: demo.querySelector<SVGElement>('[data-ic-pause]')!, icPlay: demo.querySelector<SVGElement>('[data-ic-play]')!,
+    }
+    els.sigs.innerHTML = RUNS.map((r, i) =>
+      `<li class="sig" data-i="${i}">${SRC_ICON[r.src]}<span>${r.src} · ${esc(r.label)}</span><span class="pulse" aria-hidden="true"></span></li>`).join('')
+
+    let runId = 0, paused = false, hover = false, offscreen = false, loop = 0
+    let decide: ((v: 'approve' | 'deny' | 'auto') => void) | null = null
+    const halted = () => paused || hover || offscreen || document.hidden
+    const syncHalt = () => demo.classList.toggle('is-paused', halted())
+
+    // Time only advances while the demo is visible, unhovered and not paused.
+    const wait = (ms: number, id: number) => new Promise<void>((res, rej) => {
+      if (reduce) ms = 0
+      let left = ms, last = performance.now()
+      const tick = () => {
+        const t = performance.now()
+        if (id !== runId) return rej(new Error('stale'))
+        if (!halted()) left -= t - last
+        last = t
+        if (left <= 0) res()
+        else setTimeout(tick, Math.min(left, 60))
+      }
+      setTimeout(tick, Math.min(left, 60))
+    })
+
+    const phase = (n: number, done = false) => demo.querySelectorAll<HTMLElement>('[data-phases] li').forEach((li) => {
+      const p = Number(li.dataset.p)
+      li.classList.toggle('done', p < n || (p === n && done))
+      li.classList.toggle('active', p === n && !done)
+    })
+    const progress = (v: number) => { els.prog.style.width = v + '%' }
+    const step = (label: string) => {
+      const li = document.createElement('li')
+      li.innerHTML = `<span class="ic spin" aria-hidden="true"></span><span class="cmd">${esc(label)}</span>`
+      els.log.appendChild(li)
+      while (els.log.children.length > 8) els.log.firstElementChild!.remove()
+      return li
+    }
+    // Swaps the ring spinner for a still icon; the spin class must go so the tick never rotates.
+    const finish = (li: HTMLElement, ok = true) => {
+      const ic = li.querySelector('.ic')!
+      ic.className = 'ic ' + (ok ? 'ok' : 'no')
+      ic.innerHTML = ICON[ok ? 'ok' : 'no']
+      if (!ok) li.classList.add('no')
+    }
+    const addFind = (f: Finding, i: number) => {
+      const li = document.createElement('li')
+      li.className = 'find' + (i === 0 ? ' top' : '')
+      li.innerHTML = `<span class="rank" aria-label="Rank ${i + 1}">${i + 1}</span><h4>${esc(f.t)}</h4>
+        <span class="str s${f.s}" role="img" aria-label="${STR[f.s]}"><i></i><i></i><i></i><i></i></span>
+        <ul class="ev">${f.ev.map((e) => `<li class="chip">${ICON.file}<span>${esc(e)}</span></li>`).join('')}</ul>`
+      els.finds.appendChild(li)
+    }
+
+    function reset(run: Run) {
+      els.log.innerHTML = ''; els.finds.innerHTML = ''; els.head.hidden = true; els.main.classList.remove('ranking')
+      els.perm.hidden = true; els.perm.classList.remove('counting'); els.cmd.textContent = run.ask
+      els.badge.classList.add('hidden'); els.badge.classList.remove('running'); els.copybox.classList.remove('on')
+      ;[...els.sigs.children].forEach((li) => li.classList.remove('on'))
+      els.approve.disabled = false; els.deny.disabled = false
+      progress(0); phase(-1)
+    }
+
+    function ask(id: number) {
+      els.perm.hidden = false
+      const AUTO = 3200
+      els.perm.style.setProperty('--dur', AUTO + 'ms')
+      requestAnimationFrame(() => els.perm.classList.add('counting'))
+      return new Promise<'approve' | 'deny' | 'auto'>((res) => {
+        decide = (v) => { decide = null; res(v) }
+        wait(AUTO, id).then(() => decide?.('auto'), () => {})
+      })
+    }
+
+    async function play() {
+      const id = ++runId, n = loop++ % RUNS.length, run = RUNS[n]
+      const finds = run.finds.map((f) => ({ ...f, ev: [...f.ev] }))
+      reset(run)
+      try {
+        await wait(600, id)
+        els.sigs.children[n].classList.add('on'); phase(0); progress(8)
+        await wait(900, id)
+        phase(0, true); phase(1); els.copybox.classList.add('on')
+        els.badge.classList.remove('hidden'); els.badge.classList.add('running'); progress(14)
+        for (const [i, s] of run.steps.entries()) {
+          const li = step(s); await wait(950, id); finish(li); progress(20 + i * 10); await wait(220, id)
+        }
+        const choice = await ask(id)
+        els.perm.hidden = true; els.perm.classList.remove('counting')
+        const li = step(run.ask)
+        if (choice === 'deny') {
+          finish(li, false)
+          finds[0].ev.pop(); finds[0].s = 3
+        } else { await wait(900, id); finish(li) }
+        progress(62)
+        for (const s of run.after) { const l = step(s); await wait(850, id); finish(l); await wait(200, id) }
+        phase(1, true); phase(2); progress(74)
+        els.badge.classList.remove('running'); els.main.classList.add('ranking'); els.head.hidden = false
+        for (const [i, f] of finds.entries()) { addFind(f, i); progress(80 + i * 7); await wait(700, id) }
+        phase(2, true); progress(100)
+        if (reduce) return
+        await wait(5500, id)
+        play()
+      } catch {
+        // Superseded by a replay.
+      }
+    }
+
+    const syncPause = () => {
+      els.pause.setAttribute('aria-pressed', String(paused))
+      els.pause.setAttribute('aria-label', paused ? 'Resume demo' : 'Pause demo')
+      els.icPause.toggleAttribute('hidden', paused)
+      els.icPlay.toggleAttribute('hidden', !paused)
+      syncHalt()
+    }
+    els.approve.addEventListener('click', () => decide?.('approve'))
+    els.deny.addEventListener('click', () => decide?.('deny'))
+    q('[data-replay]').addEventListener('click', () => { paused = false; syncPause(); play() })
+    els.pause.addEventListener('click', () => { paused = !paused; syncPause() })
+    demo.addEventListener('mouseenter', () => { hover = true; syncHalt() })
+    demo.addEventListener('mouseleave', () => { hover = false; syncHalt() })
+    new IntersectionObserver(([e]) => { offscreen = !e.isIntersecting; syncHalt() }, { threshold: 0.15 }).observe(demo)
+    document.addEventListener('visibilitychange', syncHalt)
+
+    if (reduce) {
+      // Reduced motion shows the finished first run without looping; Replay still steps through it.
+      const run = RUNS[0]; reset(run); loop = 1
+      els.sigs.children[0].classList.add('on'); els.copybox.classList.add('on'); els.badge.classList.remove('hidden')
+      ;[...run.steps, run.ask, ...run.after].forEach((s) => finish(step(s)))
+      els.main.classList.add('ranking'); els.head.hidden = false; run.finds.forEach(addFind); phase(2, true); progress(100)
+    } else play()
+  }
+</script>
+
+<style is:global>
+  .console {
+    position: relative;
+    border-radius: 14px;
+    background: linear-gradient(180deg, oklch(0.19 0.007 285.9), oklch(0.155 0.006 285.9));
+    border: 1px solid oklch(1 0 0 / 0.09);
+    box-shadow: 0 0 0 1px oklch(0 0 0 / 0.5), 0 40px 80px -30px oklch(0 0 0 / 0.8),
+      0 0 120px -40px color-mix(in oklch, var(--primary) 55%, transparent);
+    overflow: hidden;
+    min-width: 0;
+  }
+  .console::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    background: linear-gradient(180deg, oklch(1 0 0 / 0.06), transparent 30%);
+  }
+  .console.is-paused :is(.perm-timer, .ic.spin, .phases li i, .live),
+  .console.is-paused .pulse::before,
+  .console.is-paused .pulse::after {
+    animation-play-state: paused;
+  }
+  .console [hidden] {
+    display: none !important;
+  }
+  .console .c-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--hairline);
+    background: oklch(0 0 0 / 0.18);
+  }
+  .console .lights {
+    display: flex;
+    gap: 6px;
+  }
+  .console .lights i {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: oklch(1 0 0 / 0.12);
+  }
+  .console .c-ctrl {
+    margin-left: auto;
+    display: flex;
+    gap: 6px;
+  }
+  .console .icon-btn {
+    display: inline-grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 7px;
+    border: 1px solid oklch(1 0 0 / 0.1);
+    background: oklch(1 0 0 / 0.03);
+    color: var(--muted-foreground);
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+  }
+  .console .icon-btn:hover {
+    background: oklch(1 0 0 / 0.08);
+    color: var(--foreground);
+  }
+  .console .icon-btn svg {
+    width: 14px;
+    height: 14px;
+  }
+  .console .c-body {
+    display: grid;
+    grid-template-columns: 200px minmax(0, 1fr);
+    height: 540px;
+  }
+  .console .c-side {
+    border-right: 1px solid var(--hairline);
+    padding: 14px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    background: oklch(0 0 0 / 0.12);
+  }
+  .console .signals {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .console .sig {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 9px 10px;
+    border-radius: 9px;
+    border: 1px solid oklch(1 0 0 / 0.07);
+    background: oklch(1 0 0 / 0.02);
+    font: 11.5px/1.35 var(--font-mono);
+    color: var(--muted-foreground);
+    opacity: 0.5;
+    transition: opacity 0.4s, border-color 0.4s, background 0.4s, color 0.4s;
+  }
+  .console .sig svg {
+    width: 14px;
+    height: 14px;
+    flex: none;
+  }
+  .console .sig .pulse {
+    position: relative;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: oklch(1 0 0 / 0.25);
+    flex: none;
+    margin-left: auto;
+  }
+  .console .sig.on {
+    opacity: 1;
+    color: var(--foreground);
+    border-color: color-mix(in oklch, var(--live) 50%, transparent);
+    background: color-mix(in oklch, var(--live) 8%, transparent);
+  }
+  .console .sig.on .pulse {
+    background: var(--live);
+  }
+  .console .sig.on .pulse::before,
+  .console .sig.on .pulse::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: var(--live);
+    animation: lr-radar 1.6s ease-out infinite;
+  }
+  .console .sig.on .pulse::after {
+    animation-delay: 0.8s;
+  }
+  .console .phases {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .console .phases li {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    font-size: 12.5px;
+    color: var(--muted-foreground);
+    padding: 6px 8px;
+    border-radius: 7px;
+    transition: color 0.3s, background 0.3s;
+  }
+  .console .phases li i {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    border: 1.5px solid oklch(1 0 0 / 0.2);
+    flex: none;
+    display: grid;
+    place-items: center;
+    transition: background-color 0.2s, border-color 0.2s;
+  }
+  .console .phases li.active {
+    color: var(--foreground);
+    background: oklch(1 0 0 / 0.04);
+  }
+  .console .phases li.active i {
+    border-color: oklch(1 0 0 / 0.15);
+    border-top-color: var(--run-active);
+    animation: lr-rot 0.7s linear infinite;
+  }
+  .console .phases li.done {
+    color: var(--foreground);
+  }
+  .console .phases li.done i {
+    border-color: var(--run-done);
+    background: var(--run-done);
+    animation: lr-pop 0.25s var(--ease-out-soft) both;
+  }
+  .console .phases li.done i::after {
+    content: '';
+    width: 6px;
+    height: 3px;
+    border-left: 1.5px solid var(--bg-deep);
+    border-bottom: 1.5px solid var(--bg-deep);
+    transform: rotate(-45deg) translate(1px, -1px);
+  }
+  .console .copybox {
+    margin-top: auto;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px;
+    border-radius: 9px;
+    border: 1px dashed oklch(1 0 0 / 0.14);
+    font: 11.5px/1.3 var(--font-mono);
+    color: var(--muted-foreground);
+    transition: border-color 0.4s, color 0.4s;
+  }
+  .console .copybox svg {
+    width: 30px;
+    height: 20px;
+    flex: none;
+  }
+  .console .copybox.on {
+    border-color: color-mix(in oklch, var(--ring) 55%, transparent);
+    color: var(--foreground);
+  }
+  .console .c-main {
+    padding: 14px 16px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    min-width: 0;
+    overflow: hidden;
+  }
+  .console .run-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 26px;
+  }
+  .console .agent-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    font: 500 12px/1 var(--font-mono);
+    padding: 6px 9px;
+    border-radius: 7px;
+    background: var(--indigo-soft);
+    color: color-mix(in oklch, var(--ring) 45%, white);
+    border: 1px solid color-mix(in oklch, var(--primary) 35%, transparent);
+    transition: opacity 0.3s;
+  }
+  .console .agent-badge .live {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--run-active);
+  }
+  .console .agent-badge.running .live {
+    animation: lr-ping 1.6s infinite;
+  }
+  .console .agent-badge.hidden {
+    opacity: 0;
+  }
+  .console .log {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    font: 12.5px/1.45 var(--font-mono);
+  }
+  .console .log li {
+    display: grid;
+    grid-template-columns: 16px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 10px;
+    padding: 5px 8px;
+    border-radius: 6px;
+    animation: lr-rise 0.35s var(--ease-out-soft) both;
+  }
+  .console .log .ic {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+  }
+  .console .log .ic.spin {
+    border: 1.5px solid oklch(1 0 0 / 0.15);
+    border-top-color: var(--run-active);
+    animation: lr-rot 0.7s linear infinite;
+  }
+  .console .log .ic.ok {
+    background: color-mix(in oklch, var(--run-done) 16%, transparent);
+    color: var(--run-done);
+    animation: lr-pop 0.25s var(--ease-out-soft) both;
+  }
+  .console .log .ic.no {
+    background: color-mix(in oklch, var(--run-failed) 16%, transparent);
+    color: var(--run-failed);
+    animation: lr-pop 0.25s var(--ease-out-soft) both;
+  }
+  .console .log .ic svg {
+    width: 10px;
+    height: 10px;
+  }
+  .console .log .cmd {
+    color: var(--foreground);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .console .log li.no .cmd {
+    color: var(--muted-foreground);
+    text-decoration: line-through;
+    text-decoration-color: oklch(1 0 0 / 0.3);
+  }
+  .console .c-main.ranking .log li:not(:nth-last-child(-n + 2)) {
+    display: none;
+  }
+  .console .perm {
+    border: 1px solid color-mix(in oklch, var(--stale) 45%, transparent);
+    background: linear-gradient(180deg, color-mix(in oklch, var(--stale) 9%, transparent), color-mix(in oklch, var(--stale) 3%, transparent));
+    border-radius: 10px;
+    padding: 10px 12px;
+    animation: lr-rise 0.35s var(--ease-out-soft) both;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .console .perm > svg {
+    width: 16px;
+    height: 16px;
+    color: var(--stale);
+    flex: none;
+  }
+  .console .perm code {
+    flex: 1;
+    min-width: 140px;
+    font-size: 12.5px;
+    color: var(--foreground);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .console .perm .btn {
+    height: 30px;
+    padding: 0 13px;
+    font-size: 12.5px;
+    border-radius: 7px;
+  }
+  .console .btn-approve {
+    background: var(--foreground);
+    color: var(--bg-deep);
+  }
+  .console .btn-approve:hover {
+    background: oklch(0.9 0 0);
+  }
+  .console .btn-deny {
+    background: transparent;
+    color: var(--foreground);
+    border-color: oklch(1 0 0 / 0.18);
+  }
+  .console .btn-deny:hover {
+    background: oklch(1 0 0 / 0.06);
+  }
+  .console .perm-timer {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    height: 2px;
+    width: 100%;
+    background: var(--stale);
+    transform-origin: left;
+    transform: scaleX(0);
+  }
+  .console .perm.counting .perm-timer {
+    animation: lr-timer var(--dur, 3200ms) linear forwards;
+  }
+  .console .finds-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font: 600 11px/1 var(--font-sans);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted-foreground);
+    margin-top: 2px;
+  }
+  .console .finds {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .console .find {
+    display: grid;
+    grid-template-columns: 26px minmax(0, 1fr) auto;
+    gap: 4px 12px;
+    align-items: center;
+    padding: 11px 12px;
+    border-radius: 10px;
+    border: 1px solid oklch(1 0 0 / 0.08);
+    background: oklch(1 0 0 / 0.025);
+    animation: lr-slide 0.55s var(--ease-out-soft) both;
+  }
+  .console .find.top {
+    border-color: color-mix(in oklch, var(--run-done) 40%, transparent);
+    background: linear-gradient(90deg, color-mix(in oklch, var(--run-done) 8%, transparent), oklch(1 0 0 / 0.02) 60%);
+  }
+  .console .rank {
+    width: 24px;
+    height: 24px;
+    border-radius: 7px;
+    display: grid;
+    place-items: center;
+    font: 600 12px/1 var(--font-mono);
+    background: oklch(1 0 0 / 0.07);
+    color: var(--foreground);
+    grid-row: span 2;
+  }
+  .console .find.top .rank {
+    background: var(--run-done);
+    color: var(--bg-deep);
+  }
+  .console .find h4 {
+    margin: 0;
+    font-size: 13.5px;
+    font-weight: 550;
+    line-height: 1.35;
+    min-width: 0;
+  }
+  .console .ev {
+    grid-column: 2 / 4;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .console .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font: 11.5px/1.3 var(--font-mono);
+    padding: 4px 8px;
+    border-radius: 6px;
+    color: oklch(0.85 0.005 286);
+    border: 1px solid oklch(1 0 0 / 0.1);
+    background: oklch(0 0 0 / 0.22);
+    max-width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .console .chip svg {
+    width: 11px;
+    height: 11px;
+    flex: none;
+    color: var(--muted-foreground);
+  }
+  /* Evidence strength is segments only, never a number. */
+  .console .str {
+    display: inline-flex;
+    gap: 3px;
+    align-items: center;
+  }
+  .console .str i {
+    width: 12px;
+    height: 5px;
+    border-radius: 2px;
+    background: oklch(1 0 0 / 0.1);
+  }
+  .console .str.s1 i:nth-child(-n + 1),
+  .console .str.s2 i:nth-child(-n + 2),
+  .console .str.s3 i:nth-child(-n + 3),
+  .console .str.s4 i:nth-child(-n + 4) {
+    background: var(--ring);
+  }
+  .console .find.top .str i {
+    background: oklch(1 0 0 / 0.1);
+  }
+  .console .find.top .str.s4 i,
+  .console .find.top .str.s3 i:nth-child(-n + 3) {
+    background: var(--run-done);
+  }
+  .console .c-foot {
+    padding: 9px 14px;
+    border-top: 1px solid var(--hairline);
+    background: oklch(0 0 0 / 0.18);
+  }
+  .console .progress {
+    display: block;
+    height: 3px;
+    border-radius: 3px;
+    background: oklch(1 0 0 / 0.08);
+    overflow: hidden;
+  }
+  .console .progress b {
+    display: block;
+    height: 100%;
+    width: 0;
+    background: linear-gradient(90deg, var(--primary), var(--chart-2));
+    transition: width 0.6s var(--ease-out-soft);
+  }
+
+  @media (max-width: 640px) {
+    .console .c-body {
+      grid-template-columns: 1fr;
+      height: auto;
+    }
+    .console .c-side {
+      border-right: 0;
+      border-bottom: 1px solid var(--hairline);
+      gap: 10px;
+      padding: 12px;
+    }
+    .console .sig:not(.on) {
+      display: none;
+    }
+    .console .phases {
+      flex-direction: row;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .console .phases li {
+      padding: 4px 8px;
+      border: 1px solid oklch(1 0 0 / 0.07);
+    }
+    .console .copybox {
+      display: none;
+    }
+    .console .c-main {
+      height: 500px;
+    }
+  }
+  @media (forced-colors: active) {
+    .console .chip,
+    .console .sig {
+      border: 1px solid CanvasText;
+    }
+  }
+
+  @keyframes lr-radar {
+    from { transform: scale(1); opacity: 0.7; }
+    to { transform: scale(3.4); opacity: 0; }
+  }
+  @keyframes lr-rot {
+    to { transform: rotate(360deg); }
+  }
+  @keyframes lr-pop {
+    from { transform: scale(0.5); opacity: 0.4; }
+    to { transform: none; opacity: 1; }
+  }
+  @keyframes lr-ping {
+    0% { box-shadow: 0 0 0 0 color-mix(in oklch, var(--run-active) 60%, transparent); }
+    80%, 100% { box-shadow: 0 0 0 7px transparent; }
+  }
+  @keyframes lr-rise {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: none; }
+  }
+  @keyframes lr-slide {
+    from { opacity: 0; transform: translateX(18px) scale(0.985); }
+    to { opacity: 1; transform: none; }
+  }
+  @keyframes lr-timer {
+    to { transform: scaleX(1); }
+  }
+</style>

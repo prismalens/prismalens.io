@@ -1,0 +1,10 @@
+extends: existence
+message: "'%s' is a product noun; the site stays generic: signal, agent, run, finding, evidence (design/GUIDELINES.md §4)."
+level: error
+ignorecase: true
+tokens:
+  - incidents?
+  - investigat\w*
+  - hypothes[ie]s
+  - SRE
+  - on-call

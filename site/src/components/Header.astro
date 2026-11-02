@@ -1,34 +1,66 @@
 ---
-import ThemeToggle from './react/ThemeToggle.tsx'
-import MobileNav from './react/MobileNav.tsx'
 import Mark from './Mark.astro'
-
-const navLinks = [
-  { href: import.meta.env.DEV ? 'http://localhost:4322' : 'https://docs.prismalens.io', label: 'Docs' },
-  { href: '/about', label: 'About' },
-  { href: 'https://github.com/prismalens/prismalens', label: 'GitHub' },
-]
+import { docsBase, githubUrl } from '../lib/links'
 ---
 
-<header class="sticky top-0 z-50 border-b border-border bg-background">
-  <nav class="mx-auto flex h-14 max-w-6xl items-center justify-between px-4 sm:px-6">
-    <a href="/" class="flex items-center gap-2 text-lg font-semibold tracking-tight">
-      <Mark size={22} />
-      <span><span class="text-primary">Prisma</span>Lens</span>
+<header class="nav">
+  <div class="wrap">
+    <a class="brand" href="/" aria-label="PrismaLens home">
+      <Mark size={26} />
+      PrismaLens
     </a>
-
-    <div class="hidden items-center gap-7 md:flex">
-      {navLinks.map((link) => (
-        <a href={link.href} class="text-sm text-muted-foreground transition-colors hover:text-foreground">
-          {link.label}
-        </a>
-      ))}
-      <ThemeToggle client:load />
-    </div>
-
-    <div class="flex items-center gap-2 md:hidden">
-      <ThemeToggle client:load />
-      <MobileNav client:load navLinks={navLinks} />
-    </div>
-  </nav>
+    <nav class="nav-right" aria-label="Primary">
+      <a href={`${docsBase}/`}>Docs</a>
+      <a href={githubUrl}>GitHub</a>
+      <a class="btn btn-primary" href="/#install">Install</a>
+    </nav>
+  </div>
 </header>
+
+<style>
+  .nav {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    backdrop-filter: saturate(1.4) blur(14px);
+    -webkit-backdrop-filter: saturate(1.4) blur(14px);
+    background: color-mix(in oklch, var(--bg-deep) 72%, transparent);
+    border-bottom: 1px solid oklch(1 0 0 / 0.06);
+  }
+  .wrap {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    height: 60px;
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--foreground);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+  .brand:hover {
+    text-decoration: none;
+  }
+  .nav-right {
+    margin-left: auto;
+    display: flex;
+    gap: 22px;
+    align-items: center;
+    font-size: 14px;
+  }
+  .nav-right > a:not(.btn) {
+    color: var(--muted-foreground);
+  }
+  .nav-right > a:not(.btn):hover {
+    color: var(--foreground);
+    text-decoration: none;
+  }
+  @media (max-width: 420px) {
+    .nav-right {
+      gap: 16px;
+    }
+  }
+</style>

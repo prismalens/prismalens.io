@@ -1,25 +1,70 @@
 ---
 import Mark from './Mark.astro'
+import { docsBase, githubUrl, quickstartUrl, releasesUrl, trustUrl } from '../lib/links'
 
 const links = [
-  { href: import.meta.env.DEV ? 'http://localhost:4322' : 'https://docs.prismalens.io', label: 'Docs' },
-  { href: '/about', label: 'About' },
-  { href: 'https://github.com/prismalens/prismalens', label: 'GitHub' },
-  { href: 'https://github.com/prismalens/prismalens/issues', label: 'Report a problem' },
-  { href: `${import.meta.env.DEV ? 'http://localhost:4322' : 'https://docs.prismalens.io'}/trust/#these-websites`, label: 'Privacy' },
+  { href: `${docsBase}/`, label: 'Docs' },
+  { href: quickstartUrl, label: 'Quick start' },
+  { href: '/use-cases/', label: 'Use cases' },
+  { href: '/about/', label: 'About' },
+  { href: trustUrl, label: 'Privacy' },
+  { href: releasesUrl, label: 'Release notes' },
+  { href: githubUrl, label: 'GitHub' },
 ]
 ---
 
-<footer class="border-t border-border">
-  <div class="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-8 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between sm:px-6">
-    <p class="flex items-center gap-2">
-      <Mark size={18} />
-      PrismaLens is open source under the Apache-2.0 license. Docs are CC-BY-4.0.
-    </p>
-    <ul class="flex flex-wrap gap-x-6 gap-y-2">
-      {links.map((link) => (
-        <li><a href={link.href} class="transition-colors hover:text-foreground">{link.label}</a></li>
-      ))}
-    </ul>
+<footer>
+  <div class="wrap">
+    <a class="brand" href="/" aria-label="PrismaLens home"><Mark size={20} />PrismaLens</a>
+    <nav aria-label="Footer">
+      <ul>
+        {links.map((l) => <li><a href={l.href}>{l.label}</a></li>)}
+        <li>Apache-2.0</li>
+      </ul>
+    </nav>
   </div>
 </footer>
+
+<style>
+  footer {
+    border-top: 1px solid var(--hairline);
+    padding: 30px 0 42px;
+    color: var(--muted-foreground);
+    font-size: 13px;
+  }
+  .wrap {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--foreground);
+    font-weight: 600;
+  }
+  .brand:hover {
+    text-decoration: none;
+  }
+  nav {
+    margin-left: auto;
+  }
+  /* One item per link, so each reads as its own phrase rather than one long line. */
+  ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    gap: 18px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  a {
+    color: var(--muted-foreground);
+  }
+  a:hover {
+    color: var(--foreground);
+  }
+</style>

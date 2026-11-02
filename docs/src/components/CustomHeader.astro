@@ -1,68 +1,120 @@
 ---
+import Search from '@astrojs/starlight/components/Search.astro'
 import ThemeSelect from '@astrojs/starlight/components/ThemeSelect.astro'
 
-const siteBase = import.meta.env.DEV ? 'http://localhost:4321' : 'https://prismalens.io';
+const siteBase = import.meta.env.DEV ? 'http://localhost:4321' : 'https://prismalens.io'
 ---
 
-<!-- Fills Starlight's fixed header shell (header.header) — the shell paints bg + border, theme-aware. -->
-<div class="docs-header mx-auto flex w-full max-w-7xl items-center justify-between">
-  <!-- Split lockup: the brand exits to the marketing site, "Docs" is home within the docs. -->
-  <span class="flex items-center gap-2 text-xl font-bold">
-    <a href={siteBase} class="flex items-center gap-2" title="prismalens.io">
-      <svg width="24" height="24" viewBox="0 0 256 256" fill="none" aria-hidden="true">
+<div class="pl-header">
+  <!-- Split lockup: the mark exits to the marketing site, the "docs" tag is home within the docs. -->
+  <div class="site-title">
+    <a href={siteBase} class="brand" aria-label="prismalens.io">
+      <svg viewBox="0 0 256 256" fill="none" aria-hidden="true">
         <g class="mark" stroke-linecap="round">
-          <circle cx="142" cy="104" r="54" stroke-width="36"/>
-          <path d="M88 64V224" stroke-width="36"/>
-          <path d="M120 108A24 24 0 0 1 144 82" stroke-width="11"/>
+          <circle cx="142" cy="104" r="54" stroke-width="36"></circle>
+          <path d="M88 64V224" stroke-width="36"></path>
+          <path d="M120 108A24 24 0 0 1 144 82" stroke-width="11"></path>
         </g>
       </svg>
-      <span class="whitespace-nowrap"><span style="color: var(--sl-color-accent);">Prisma</span><span style="color: var(--sl-color-white);">Lens</span></span>
+      PrismaLens
     </a>
-    <a href="/" class="docs-header-link text-sm font-normal ml-2" style="color: var(--sl-color-gray-2);" title="Docs home">Docs</a>
-  </span>
-
-  <div class="hidden items-center gap-6 md:flex">
-    <!-- Marketing site links -->
-    <a
-      href={`${siteBase}/about`}
-      class="docs-header-link text-sm transition-colors"
-      style="color: var(--sl-color-gray-2);"
-    >
-      About
-    </a>
-
-    <ThemeSelect />
-
-    <a
-      href="https://github.com/prismalens/prismalens"
-      class="docs-header-link text-sm transition-colors"
-      style="color: var(--sl-color-gray-2);"
-    >
-      GitHub
-    </a>
+    <a href="/" class="tag">docs</a>
   </div>
+
+  <div class="search print:hidden">
+    <Search />
+  </div>
+
+  <nav class="links print:hidden" aria-label="Site">
+    <a href={siteBase} class="txt">prismalens.io</a>
+    <span class="theme"><ThemeSelect /></span>
+    <a href="https://github.com/prismalens/prismalens" aria-label="GitHub">
+      <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path></svg>
+    </a>
+  </nav>
 </div>
 
 <style>
-  /* The Starlight header shell already paints var(--sl-color-bg-nav) + hairline; just add blur. */
-  :global(header.header) {
-    backdrop-filter: blur(12px);
+  .pl-header {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    height: 100%;
   }
-
+  .site-title {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    white-space: nowrap;
+    min-width: calc(var(--sl-sidebar-width) - 2.5rem);
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    color: var(--sl-color-white);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    text-decoration: none;
+  }
+  .brand svg {
+    width: 24px;
+    height: 24px;
+  }
   .mark {
     stroke: #4f46e5;
   }
-
   :global([data-theme='dark']) .mark {
     stroke: #818cf8;
   }
-
-  .docs-header a {
+  .tag {
+    font: 500 11px/1 var(--sl-font-mono);
+    color: var(--sl-color-gray-3);
+    padding: 4px 7px;
+    border: 1px solid var(--sl-color-hairline);
+    border-radius: 999px;
+    text-decoration: none;
+    transition: color 0.2s, border-color 0.2s;
+  }
+  .tag:hover {
+    color: var(--sl-color-white);
+    border-color: var(--ring);
+  }
+  .search {
+    flex: 1;
+    max-width: 26.25rem;
+    display: flex;
+  }
+  .links {
+    margin-inline-start: auto;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    font-size: var(--sl-text-sm);
+  }
+  .links a {
+    color: var(--sl-color-gray-3);
     text-decoration: none;
   }
-
-  /* Navigation link hover state */
-  .docs-header-link:hover {
-    color: var(--sl-color-accent) !important;
+  .links a:hover {
+    color: var(--sl-color-white);
+  }
+  .links svg {
+    width: 18px;
+    height: 18px;
+    display: block;
+  }
+  @media (max-width: 50rem) {
+    .site-title {
+      min-width: 0;
+    }
+    .tag,
+    .txt,
+    .theme {
+      display: none;
+    }
+    .search {
+      flex: none;
+    }
   }
 </style>

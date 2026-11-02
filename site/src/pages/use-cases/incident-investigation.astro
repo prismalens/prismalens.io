@@ -1,0 +1,11 @@
+---
+import UseCaseLayout from '../../layouts/UseCaseLayout.astro'
+import LiveRun from '../../components/LiveRun.astro'
+import { useCases } from '../../lib/use-cases'
+
+const useCase = useCases.find((u) => u.slug === 'incident-investigation')!
+---
+
+<UseCaseLayout useCase={useCase}>
+  <LiveRun />
+</UseCaseLayout>

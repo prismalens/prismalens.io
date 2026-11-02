@@ -1,72 +1,35 @@
 ---
 title: Install, upgrade and uninstall
-description: Every way to install PrismaLens, how each one upgrades and uninstalls, and what happens to your data when two copies share a machine.
+description: The ways to install PrismaLens, how to keep it running, upgrade it and remove it.
 ---
 
-import { Aside, Tabs, TabItem } from '@astrojs/starlight/components';
+import { Tabs, TabItem } from '@astrojs/starlight/components';
 
-PrismaLens is one command under two names, `pl` and `prismalens`. Pick one way
-to install it and stick to it: every copy on a machine shares one workspace,
-`~/.prismalens`.
+PrismaLens is one command under two names, `pl` and `prismalens`. Install it
+one way and stick to that: every copy on a machine shares the workspace
+`~/.prismalens`, and an older copy refuses a database a newer one has
+upgraded.
 
 ## Install
 
 <Tabs syncKey="channel">
-<TabItem label="npm">
-
-Needs Node.js 24 or newer.
-
-```bash
-npm install -g prismalens
-```
-
-To try it once without installing: `npx prismalens@latest up`.
-
-</TabItem>
 <TabItem label="macOS and Linux">
-
-No Node needed. The installer brings its own.
 
 ```bash
 curl -fsSL https://prismalens.io/install.sh | sh
 ```
 
-It finds the newest release, checks the download against that release's
-`SHA256SUMS`, and puts the runtime in `~/.local/share/prismalens` and `pl` in
-`~/.local/bin`. If that folder isn't on your `PATH`, it adds one marked line to
-your shell's rc file (`~/.zshrc`, `~/.bashrc` or fish's `conf.d`).
-
-| Option | What it does |
-| --- | --- |
-| `--version 0.5.1` | Install that version instead of the newest. |
-| `--no-modify-path` | Leave your rc file alone. |
-| `--uninstall` | Remove what the installer added. |
-| `--help` | List the options and environment variables. |
-
-Pass options after `sh -s --`, for example
-`curl -fsSL https://prismalens.io/install.sh | sh -s -- --version 0.5.1`.
+No Node needed: the installer brings its own and checks the download against
+the release's `SHA256SUMS`.
 
 </TabItem>
-<TabItem label="Windows (preview)">
+<TabItem label="npm">
 
-Native Windows is a preview: it installs and runs, and CI checks it on every
-change, but expect rough edges. WSL2 with the macOS and Linux installer is the
-supported path on Windows.
+Needs Node.js. `pl doctor` says if yours is too old.
 
-No Node needed. The installer brings its own. In PowerShell:
-
-```powershell
-irm https://prismalens.io/install.ps1 | iex
+```bash
+npm install -g prismalens
 ```
-
-It puts the runtime and `pl` under `%LOCALAPPDATA%\prismalens` and adds the
-`bin` folder to your user `PATH`. With options:
-
-```powershell
-& ([scriptblock]::Create((irm https://prismalens.io/install.ps1))) -Version 0.5.1
-```
-
-`-NoModifyPath`, `-Uninstall` and `-Help` work the same way.
 
 </TabItem>
 <TabItem label="Homebrew">
@@ -76,7 +39,16 @@ brew install prismalens/tap/prismalens
 ```
 
 </TabItem>
-<TabItem label="Scoop (preview)">
+<TabItem label="Windows (preview)">
+
+WSL2 with the macOS and Linux installer is the supported path. Native Windows
+installs and runs, with rough edges. In PowerShell:
+
+```powershell
+irm https://prismalens.io/install.ps1 | iex
+```
+
+Scoop (preview) works too:
 
 ```powershell
 scoop bucket add prismalens https://github.com/prismalens/scoop-bucket
@@ -84,81 +56,19 @@ scoop install prismalens
 ```
 
 </TabItem>
-<TabItem label="Desktop app">
+<TabItem label="Desktop app (preview)">
 
 Download the zip for your OS from the
-[latest release](https://github.com/prismalens/prismalens/releases/latest). It
-is a preview and unsigned, so your OS warns before opening it. On Windows and
-Linux the window's menu bar is hidden; press <kbd>Alt</kbd> to show it. While
-PrismaLens starts, a small window reads "Starting…". It closes when the app's
-window opens, or when PrismaLens fails to start.
+[latest release](https://github.com/prismalens/prismalens/releases/latest).
 
 </TabItem>
 </Tabs>
 
-### Run the desktop app's PrismaLens inside WSL
+## Keep it running
 
-On Windows, the desktop app can connect to a `pl` already running inside a WSL
-distro instead of running its own copy. The distro must have `bash`. The app
-checks a distro when you pick it: one that fails is not saved, and the reason,
-such as `no bash`, shows next to its name in the menu.
-
-Install PrismaLens in the distro first (the Linux tab above), so `pl` is on its
-login shell's `PATH`. Then, from the tray icon's menu:
-
-1. Pick the distro under **WSL distro**. **Default distro** is the one `wsl.exe`
-   uses with no `-d`.
-2. Tick **Use PrismaLens in WSL**. The app restarts.
-
-The app never starts or stops anything in the distro: start `pl up` or install
-the service in the distro yourself. When WSL mode is on:
-
-| In the distro | The app |
-| --- | --- |
-| `pl up` or the service is already running | opens a window on it |
-| nothing is running | shows a dialog: run `pl up` there, or `pl service install` once, then Retry |
-
-If the saved distro fails at launch, the app offers to run on Windows instead,
-retry, or quit.
-
-The window opens on `http://localhost:<port>`, the workspace's own port,
-through WSL's localhost forwarding. Untick **Use PrismaLens in WSL** to go back
-to the app's own copy. Only one runs at a time.
-
-### Check a download yourself
-
-A release's `SHA256SUMS` lists every file it ships (the archives, the desktop
-zips, the two install scripts and the SBOM) with a build-provenance attestation
-over that list; older releases list only the `prismalens-*` archives and carry
-no SBOM, so a file missing from the list there is expected. Download `SHA256SUMS` beside the
-file, then check both, here with the [GitHub CLI](https://cli.github.com):
-
-```console
-$ sha256sum -c SHA256SUMS --ignore-missing
-prismalens-0.5.2-linux-x64.tar.gz: OK
-
-$ gh attestation verify prismalens-0.5.2-linux-x64.tar.gz --repo prismalens/prismalens --format json --jq '.[0].verificationResult.statement.predicateType'
-https://slsa.dev/provenance/v1
-```
-
-`--ignore-missing` skips a file it cannot find without saying so. Go on only when
-your file's name appears above with `OK`. On macOS, `shasum -a 256 -c SHA256SUMS
---ignore-missing` does the same as `sha256sum`.
-
-The npm package is published with npm provenance. This reads the registry's
-metadata and shows the attestation is there; it does not verify it:
-
-```console
-$ npm view prismalens@0.5.2 dist.attestations.provenance.predicateType
-https://slsa.dev/provenance/v1
-```
-
-`npm audit signatures` does not work on a project that installed `prismalens`: it
-looks up the packages bundled inside the tarball on the registry, where they are not
-published, and stops with a 404.
-
-Current releases also carry `prismalens-<version>.cdx.json`, a CycloneDX SBOM of
-the installed tree; older ones do not.
+`pl up` runs until you stop it. On Linux and macOS, `pl service install` runs
+it in the background for your user and starts it when you log in. On Windows,
+turn on **Start at login** in the desktop app.
 
 ## Upgrade
 
@@ -166,138 +76,20 @@ the installed tree; older ones do not.
 pl upgrade
 ```
 
-`pl upgrade` knows how it was installed and runs that channel's own upgrade.
-Stop `pl up` first; it refuses while `pl up` is running.
-
-| Installed with | `pl upgrade` runs |
-| --- | --- |
-| npm | `npm install -g prismalens@latest` |
-| The installer | the installer again, for the new version |
-| Homebrew | `brew upgrade prismalens` |
-| Scoop | `scoop update prismalens` |
-| The desktop app | nothing; the app shows a notification with a download link |
-
-`pl upgrade --check` only says whether a newer version exists.
-`pl upgrade --version 0.5.1` installs a specific version (not on Homebrew).
-
-When a newer release is out, `pl up` says so in one line, and the desktop app
-shows a notification. Neither sends anything about you: both ask GitHub which
-release is newest, the same request a browser makes.
-`PRISMALENS_UPDATE_CHECK=off` or `DO_NOT_TRACK=1` turns that off.
-
-**Settings → About** shows the same from the app: the version, how it was
-installed, the workspace, the last database backup, whether a newer version
-is out, and this install's upgrade command with a copy button. **Settings**
-in the sidebar shows a dot while an update is available.
-
-Your database upgrades itself the first time the new version runs `pl up`.
-Before migrating, it copies the database to `prismalens.db.bak-<time>` in your
-workspace.
-
-### With a background service: a trial, and rollback
-
-On a [background service](/guides/background-service/), `pl upgrade` keeps the
-new version only once it has proved itself. The trial runs on the service's
-own workspace, even one installed with `--workspace`:
-
-1. It stops the service and copies `prismalens.db`, `prismalens.db-wal` and
-   `prismalens.db-shm` to `upgrade-snapshot/` in your workspace.
-2. It runs the upgrade and starts the service on the new version, which
-   migrates the database.
-3. It waits up to two minutes (`--trial-seconds`) for `/api/instance` to answer
-   with this workspace's id and the new version.
-4. If it does, the snapshot is deleted. If not, `pl upgrade` stops the service,
-   puts the snapshot back, reinstates the previous version and starts it.
-
-```text
-$ pl upgrade
-◐ Stopping the background service for the upgrade…
-◐ Upgrading 0.5.1 → 0.5.2 with installer: sh -c curl -fsSL https://prismalens.io/install.sh | sh -s -- --version 0.5.2
-◐ Starting 0.5.2 as a trial…
-✖ 0.5.2 didn't come up (no healthy 0.5.2 in time: http://127.0.0.1:6473 fetch failed). The database is restored and 0.5.1 runs again.
-
-$ pl service status
-…
-Running:   yes (pid 48211)
-Version:   0.5.1
-Upgrade:   0.5.1 → 0.5.2 rolled back to 0.5.1 on 2026-10-02 09:14: no healthy 0.5.2 in time: http://127.0.0.1:6473 fetch failed
-```
-
-When the new version exits during the trial, the reason is its last error
-line, with pairing links and tokens removed, and the path of the full log:
-`0.5.2 exited during the trial: <line> (full log: <path>)`.
-
-How far rollback goes depends on how PrismaLens was installed:
-
-| Installed with | Database restored | Previous version back |
-| --- | --- | --- |
-| The installer | yes | yes, from the copy the installer keeps; no download |
-| npm | yes | yes, by `npm install -g prismalens@<previous>`; needs the registry |
-| Homebrew | yes | no. Homebrew installs only its newest version, so the service is left stopped and `pl service status` says why |
-
-Scoop is not in the table: it installs on Windows, where `pl service` is not
-supported, so a Scoop upgrade has no trial and no rollback.
-
-Only the database is rolled back; other files in the workspace are not. If a
-rollback is cut short (a crash, a reboot), the next `pl upgrade`, or `pl up` on
-a version that has this feature, finishes putting the database back before
-anything opens it.
-
-## Two copies, and going back a version
-
-All copies of PrismaLens on a machine read the same workspace. A newer copy
-migrates the database, and an older copy then refuses to open it rather than
-risk damaging it:
-
-```text
-$ pl up
-✖ The database at ~/.prismalens/prismalens.db was written by a newer PrismaLens:
-  it records a migration this build does not ship (20260921000000_devices).
-  Nothing was applied. Upgrade this copy with `pl upgrade`, restore the
-  prismalens.db.bak-* file the newer version made before migrating, or point
-  PRISMALENS_WORKSPACE_DIR at a different directory to start fresh.
-```
-
-So keep one copy. `pl doctor` lists every `pl` on your `PATH` and warns when
-there's more than one:
-
-```text
-$ pl doctor
-⚠ PrismaLens 0.5.1 (installer): 2 on PATH, sharing one workspace:
-  ~/.local/bin/pl (installer, 0.5.1); /usr/local/bin/pl (npm, 0.5.0).
-  An older one stops once a newer one has migrated the database; remove all but one.
-```
-
-To go back a version on purpose:
-
-1. Stop `pl up`.
-2. Replace `prismalens.db` in your workspace with the `prismalens.db.bak-*`
-   file the newer version made before migrating.
-3. Install the older version. The installer asks you to confirm with
-   `PRISMALENS_ALLOW_DOWNGRADE=1`.
-
-The installer keeps the version you upgraded from next to the new one, so
-switching back doesn't need a download.
+It upgrades the way you installed. Your database upgrades itself on the next start
+and is backed up first, as `prismalens.db.bak-<time>` in the workspace.
 
 ## Uninstall
 
-Uninstalling removes the program and leaves your workspace
-(`~/.prismalens`: database, secrets, logs). To delete the workspace as well,
-run `pl reset` first. **Settings → Danger zone** shows the uninstall command
-for the way this copy was installed.
+Uninstalling leaves your workspace (`~/.prismalens`). To delete it as well,
+stop PrismaLens and run `pl reset` first. If you installed the background service, run
+`pl service uninstall` too.
 
 | Installed with | Uninstall |
 | --- | --- |
-| npm | `npm uninstall -g prismalens` |
 | The installer (macOS, Linux) | `curl -fsSL https://prismalens.io/install.sh \| sh -s -- --uninstall` |
 | The installer (Windows) | `& ([scriptblock]::Create((irm https://prismalens.io/install.ps1))) -Uninstall` |
+| npm | `npm uninstall -g prismalens` |
 | Homebrew | `brew uninstall prismalens` |
 | Scoop | `scoop uninstall prismalens` |
 | The desktop app | delete the app |
-
-<Aside>
-The installer's uninstall removes only what it added: the `pl` and
-`prismalens` wrappers, the marked line in your rc file or the user `PATH`
-entry, and `~/.local/share/prismalens` (`%LOCALAPPDATA%\prismalens` on
-Windows).
-</Aside>

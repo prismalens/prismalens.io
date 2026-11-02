@@ -1,0 +1,31 @@
+# PrismaLens
+
+> An open-source app on your machine that sends alerts to the coding agent you already use and returns ranked causes with evidence.
+
+PrismaLens does AI incident investigation and root cause analysis on your machine. It takes Prometheus Alertmanager webhooks, or incidents you write, and runs on macOS and Linux, with Windows in preview. It brings no model of its own: it drives a coding agent you already use, such as OpenCode, Claude Code or Codex. It needs no account and is licensed Apache-2.0. Findings are ranked and backed by evidence, never scored.
+
+## Docs
+
+- [Docs index for agents](https://docs.prismalens.io/llms.txt): every docs page as Markdown, with a one-line summary each
+- [All docs in one file](https://docs.prismalens.io/llms-full.txt): every docs page concatenated as Markdown
+- [What PrismaLens is](https://docs.prismalens.io/index.md): what it does and what it keeps
+- [Install, upgrade and uninstall](https://docs.prismalens.io/install.md): one command per channel
+- [Quick start](https://docs.prismalens.io/quickstart.md): first run to first report
+
+## Site
+
+- [Home](https://prismalens.io/): what PrismaLens does, and the install command
+- [About](https://prismalens.io/about/): why it exists and the rules it is built on
+
+## Use cases
+
+- [AI incident investigation](https://prismalens.io/use-cases/incident-investigation/): your coding agent reads the code and ranks hypotheses with evidence
+- [Alertmanager webhook](https://prismalens.io/use-cases/alertmanager/): critical and high alerts start an investigation by default
+- [Claude Code incident investigation](https://prismalens.io/use-cases/claude-code/): Claude Code, Codex, OpenCode or Gemini CLI, with their own sign-in
+- [Alertmanager webhook setup](https://docs.prismalens.io/guides/alerts.md): receiver config, token and service label
+- [Reading the root cause report](https://docs.prismalens.io/guides/reports.md): ranked hypotheses, evidence, ruled out
+
+## Optional
+
+- [Source code](https://github.com/prismalens/prismalens)
+- [Release notes](https://github.com/prismalens/prismalens/releases)

@@ -1,0 +1,13 @@
+---
+import UseCaseLayout from '../../layouts/UseCaseLayout.astro'
+import CodePanel from '../../components/usecase/CodePanel.astro'
+import { useCases } from '../../lib/use-cases'
+
+const useCase = useCases.find((u) => u.slug === 'claude-code')!
+// Copied from docs/src/content/docs/coding-agents.mdx ("Which one runs").
+const command = 'PRISMALENS_HARNESS=claude-code pl up'
+---
+
+<UseCaseLayout useCase={useCase}>
+  <CodePanel label="Start PrismaLens with Claude Code" code={`$ ${command}`} />
+</UseCaseLayout>

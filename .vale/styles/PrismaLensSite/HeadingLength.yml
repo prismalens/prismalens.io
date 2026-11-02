@@ -1,0 +1,6 @@
+extends: occurrence
+message: "A section heading is 5 words or fewer (design/GUIDELINES.md §6)."
+level: error
+scope: heading.h2
+max: 5
+token: '[^\s]+'

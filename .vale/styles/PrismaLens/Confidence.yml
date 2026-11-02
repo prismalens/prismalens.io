@@ -1,0 +1,6 @@
+extends: existence
+message: "No numeric confidence; findings are ranked, never scored (design/GUIDELINES.md §3)."
+level: error
+nonword: true
+tokens:
+  - '\d+\s*%\s*(?i:likely|confiden|probab|sure|certain)'

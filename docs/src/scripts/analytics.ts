@@ -15,6 +15,66 @@ export function analyticsHost(hostname: string): "site" | "docs" | null {
   return null;
 }
 
+const AI_ASSISTANTS: Record<string, string> = {
+  "chatgpt.com": "chatgpt",
+  "chat.openai.com": "chatgpt",
+  "perplexity.ai": "perplexity",
+  "claude.ai": "claude",
+  "gemini.google.com": "gemini",
+  "copilot.microsoft.com": "copilot",
+  "grok.com": "grok",
+  "chat.deepseek.com": "deepseek",
+  "chat.mistral.ai": "mistral",
+  "meta.ai": "meta_ai",
+  "you.com": "you",
+  "phind.com": "phind",
+};
+const SEARCH_ENGINES: Array<[RegExp, string]> = [
+  [/(^|\.)google\.[a-z.]+$/, "google"],
+  [/(^|\.)bing\.com$/, "bing"],
+  [/(^|\.)duckduckgo\.com$/, "duckduckgo"],
+  [/(^|\.)search\.yahoo\.com$/, "yahoo"],
+  [/(^|\.)yandex\.[a-z.]+$/, "yandex"],
+  [/(^|\.)ecosia\.org$/, "ecosia"],
+  [/(^|\.)search\.brave\.com$/, "brave"],
+  [/(^|\.)kagi\.com$/, "kagi"],
+  [/(^|\.)baidu\.com$/, "baidu"],
+];
+const SOCIAL = ["news.ycombinator.com", "reddit.com", "x.com", "t.co", "twitter.com", "linkedin.com", "lnkd.in", "bsky.app"];
+
+const hostOf = (value: string): string | null => {
+  try {
+    return new URL(value).hostname.toLowerCase().replace(/^www\./, "");
+  } catch {
+    return null;
+  }
+};
+const within = (host: string, domain: string) => host === domain || host.endsWith(`.${domain}`);
+
+export type TrafficSource = {
+  traffic_source: "ai_assistant" | "search" | "social" | "campaign" | "referral" | "internal" | "direct";
+  traffic_from: string | null;
+};
+
+/** Where a visit came from, so AI-assistant and organic-search arrivals can be told apart. */
+export function trafficSource(referrer: string, search: string): TrafficSource {
+  const utm = new URLSearchParams(search).get("utm_source")?.toLowerCase().trim() || null;
+  const host = hostOf(referrer);
+
+  for (const candidate of [host, utm && (hostOf(`https://${utm}`) ?? utm)]) {
+    if (!candidate) continue;
+    const domain = Object.keys(AI_ASSISTANTS).find((d) => within(candidate, d));
+    if (domain) return { traffic_source: "ai_assistant", traffic_from: AI_ASSISTANTS[domain] };
+  }
+  if (utm) return { traffic_source: "campaign", traffic_from: utm };
+  if (!host) return { traffic_source: "direct", traffic_from: null };
+  if (analyticsHost(host) || analyticsHost(`www.${host}`)) return { traffic_source: "internal", traffic_from: host };
+  const engine = SEARCH_ENGINES.find(([pattern]) => pattern.test(host));
+  if (engine) return { traffic_source: "search", traffic_from: engine[1] };
+  if (SOCIAL.some((d) => within(host, d))) return { traffic_source: "social", traffic_from: host };
+  return { traffic_source: "referral", traffic_from: host };
+}
+
 export function installTarget(href: string): "npm" | "desktop" | "github" | null {
   try {
     const url = new URL(href, "https://prismalens.io");
@@ -111,8 +171,9 @@ export async function initAnalytics(): Promise<void> {
     cookieless_mode: "always",
     disable_session_recording: true,
     disable_surveys: true,
-    capture_exceptions: false,
-    capture_performance: false,
+    capture_exceptions: true,
+    // Web Vitals only: real-visitor speed for the SEO work; no network timings.
+    capture_performance: { web_vitals: true, network_timing: false },
     capture_pageview: true,
     capture_pageleave: true,
     autocapture: site === "site",
@@ -122,7 +183,9 @@ export async function initAnalytics(): Promise<void> {
     before_send: sanitizeEvent,
   });
 
-  posthog.register({ site });
+  // Recomputed on every page load: nothing is stored, so it stays cookieless.
+  const referrer = typeof document === "undefined" ? "" : document.referrer;
+  posthog.register({ site, ...trafficSource(referrer, location.search) });
 
   if (typeof document === "undefined") return;
 

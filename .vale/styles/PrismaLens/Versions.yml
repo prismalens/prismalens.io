@@ -1,0 +1,8 @@
+extends: existence
+message: "No version numbers: pages describe the latest release (design/GUIDELINES.md §1)."
+level: error
+nonword: true
+tokens:
+  - '(?:^|[^\d.])v?\d+\.\d+\.\d+(?:[^\d.]|$)'
+  - '\b\d+\.x\b'
+  - '\bNode(?:\.js)?\s+\d+'

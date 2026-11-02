@@ -1,12 +1,11 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
 import starlight from '@astrojs/starlight';
+import starlightLlmActions from 'starlight-llm-actions';
 import tailwindcss from '@tailwindcss/vite';
 
-// The marketing site's header collapses About below md, and Starlight's
-// mobile drawer only shows the page tree — so those links need a sidebar entry
-// too, or mobile readers have no way to reach them. `astro dev` vs `astro build`
-// both put their subcommand in argv, so this is a reliable dev/prod switch.
+// The docs header has no About link, so About needs a sidebar entry. `astro dev`
+// vs `astro build` both put their subcommand in argv: a reliable dev/prod switch.
 const isDev = process.argv.includes('dev');
 const siteBase = isDev ? 'http://localhost:4321' : 'https://prismalens.io';
 
@@ -23,14 +22,28 @@ export default defineConfig({
 		'/cli/troubleshooting': '/reference/#troubleshooting',
 		'/cli/api-keys': '/coding-agents/',
 		'/cli/listen': '/guides/alerts/',
-		'/cli/sandboxing': '/trust/#permission-and-asks',
+		'/cli/sandboxing': '/trust/#what-the-agent-can-reach',
 		'/cli/sample-report': '/guides/reports/',
 		'/concepts/how-it-works': '/',
 		'/concepts/byo-agent-and-key': '/coding-agents/',
 		'/concepts/ordered-evidence': '/guides/reports/',
 		'/concepts/data-and-privacy': '/trust/',
-		// 0.5.1 replaced the incident tabs with one overview and a page per run (prismalens#811).
-		'/guides/conversation': '/guides/runs/',
+		// Trimmed to the documented contract (docs/POLICY.md).
+		'/guides/services': '/quickstart/',
+		'/guides/devices': '/trust/#who-can-open-it',
+		'/guides/background-service': '/install/#keep-it-running',
+		'/guides/conversation': '/guides/reports/',
+		'/guides/try-it': '/quickstart/',
+		'/guides/alert-sources': '/guides/alerts/',
+		'/guides/connect-a-source': '/guides/alerts/',
+		'/guides/git-credentials': '/quickstart/',
+		'/guides/incident-lifecycle': '/guides/alerts/',
+		'/guides/incidents': '/quickstart/',
+		'/guides/investigation-data': '/trust/',
+		'/guides/overview': '/guides/reports/',
+		'/guides/prometheus': '/guides/alerts/',
+		'/guides/record-deploys': '/guides/alerts/',
+		'/guides/runs': '/guides/reports/',
 	},
 	server: {
 		port: 4322,
@@ -38,7 +51,23 @@ export default defineConfig({
 	integrations: [
 		starlight({
 			title: 'PrismaLens Docs',
+			description:
+				'Install PrismaLens, run it with the coding agent you already use, and read the evidence it keeps.',
 			customCss: ['./src/styles/custom.css'],
+			expressiveCode: {
+				styleOverrides: {
+					borderRadius: '12px',
+					borderColor: 'var(--pl-line)',
+					codeBackground: 'var(--pl-code-bg)',
+					frames: {
+						editorTabBarBackground: 'var(--pl-code-bar)',
+						terminalTitlebarBackground: 'var(--pl-code-bar)',
+						terminalTitlebarBorderBottomColor: 'var(--pl-line)',
+						editorTabBarBorderBottomColor: 'var(--pl-line)',
+						frameBoxShadowCssValue: 'none',
+					},
+				},
+			},
 			components: {
 				Header: './src/components/CustomHeader.astro',
 				Footer: './src/components/CustomFooter.astro',
@@ -51,21 +80,20 @@ export default defineConfig({
 			// Per-page "Last updated" timestamps, so readers can judge whether a
 			// time-sensitive gotcha (e.g. the WSL srt caveat) is still current.
 			lastUpdated: true,
-			// Social/OG preview card for shared links — reuses the brand card the
-			// marketing site ships; wired here because Starlight emits no og:image
-			// on its own.
+			// Per-page og:image and JSON-LD.
+			routeMiddleware: './src/routeData.ts',
 			head: [
+				// Dark-first: seeds the theme Starlight reads; any stored choice, auto included, still wins.
 				// The synced tokens switch themes on a `.dark` class; Starlight switches on data-theme.
 				{
 					tag: 'script',
 					content:
-						"const r=document.documentElement;const s=()=>r.classList.toggle('dark',r.dataset.theme!=='light');s();new MutationObserver(s).observe(r,{attributeFilter:['data-theme']});",
+						"try{if(localStorage.getItem('starlight-theme')===null)localStorage.setItem('starlight-theme','dark')}catch(e){}const r=document.documentElement;const s=()=>r.classList.toggle('dark',r.dataset.theme!=='light');s();new MutationObserver(s).observe(r,{attributeFilter:['data-theme']});",
 				},
-				{ tag: 'meta', attrs: { property: 'og:image', content: 'https://docs.prismalens.io/og-default.png' } },
-				{ tag: 'meta', attrs: { property: 'og:image:width', content: '1200' } },
-				{ tag: 'meta', attrs: { property: 'og:image:height', content: '630' } },
-				{ tag: 'meta', attrs: { name: 'twitter:card', content: 'summary_large_image' } },
-				{ tag: 'meta', attrs: { name: 'twitter:image', content: 'https://docs.prismalens.io/og-default.png' } },
+			],
+			plugins: [
+				// One renderer for the .md twins, llms.txt and llms-full.txt, so agents read what people read.
+				starlightLlmActions({ renderMarkdown: 'simple', linkAlternate: true, llmsTxt: true }),
 			],
 			sidebar: [
 				{
@@ -75,26 +103,12 @@ export default defineConfig({
 						{ label: 'Quick start', slug: 'quickstart' },
 						{ label: 'Install, upgrade, uninstall', slug: 'install' },
 						{ label: 'Coding agents', slug: 'coding-agents' },
-						{ label: 'Try it on a broken app', slug: 'guides/try-it' },
 					],
 				},
 				{
 					label: 'Using PrismaLens',
 					items: [
-						{ label: 'Services and their code', slug: 'guides/services' },
-						{ label: 'Git credentials', slug: 'guides/git-credentials' },
 						{ label: 'Sending alerts', slug: 'guides/alerts' },
-						{ label: 'Alert sources', slug: 'guides/alert-sources' },
-						{ label: 'Connect a source', slug: 'guides/connect-a-source' },
-						{ label: 'How investigations reach your data', slug: 'guides/investigation-data' },
-						{ label: 'Record deploys', slug: 'guides/record-deploys' },
-						{ label: 'Prometheus and the Impact chart', slug: 'guides/prometheus' },
-						{ label: 'Incidents and the Inbox', slug: 'guides/incidents' },
-						{ label: 'The incident overview', slug: 'guides/overview' },
-						{ label: 'Runs and questions', slug: 'guides/runs' },
-						{ label: 'Resolving and reopening', slug: 'guides/incident-lifecycle' },
-						{ label: 'Opening it from other devices', slug: 'guides/devices' },
-						{ label: 'Run in the background', slug: 'guides/background-service' },
 						{ label: 'Reading the report', slug: 'guides/reports' },
 					],
 				},
@@ -103,7 +117,7 @@ export default defineConfig({
 				{
 					label: 'Site',
 					items: [
-						{ label: 'About', link: `${siteBase}/about` },
+						{ label: 'About', link: `${siteBase}/about/` },
 					],
 				},
 			],

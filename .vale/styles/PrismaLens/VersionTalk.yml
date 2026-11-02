@@ -1,0 +1,12 @@
+extends: existence
+message: "'%s' is version talk; say what the product does now (design/GUIDELINES.md §1)."
+level: error
+ignorecase: true
+tokens:
+  - coming soon
+  - coming in
+  - new in
+  - since v?\d
+  - as of v?\d
+  - will (?:ship|land|arrive)
+  - not yet (?:shipped|released)

@@ -2,6 +2,10 @@
 
 Instructions for AI coding agents working in this repository.
 
+## Site and docs rules
+
+Before changing anything under `site/` or `docs/`, read `design/GUIDELINES.md` (words, look, motion, accessibility) and `docs/POLICY.md` (what the docs cover). New site text goes into `design/COPY.md` first. `pnpm check` and `pnpm check:a11y` must pass after a build.
+
 <!-- BEGIN mage -->
 ## mage knowledge base (hub-linked)
 

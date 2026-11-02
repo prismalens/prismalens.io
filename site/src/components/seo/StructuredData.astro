@@ -1,0 +1,11 @@
+---
+import type { Thing } from 'schema-dts'
+import { structuredData } from '../../lib/structured-data'
+
+interface Props {
+  extra?: Thing[]
+}
+const json = structuredData(Astro.url.pathname, Astro.props.extra)
+---
+
+<script type="application/ld+json" is:inline set:html={json}></script>

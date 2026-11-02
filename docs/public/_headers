@@ -1,0 +1,11 @@
+# Static hosts guess a bare text/markdown; without a charset, curly quotes turn to mojibake.
+/*.md
+  Content-Type: text/markdown; charset=utf-8
+/llms.txt
+  Content-Type: text/plain; charset=utf-8
+/llms-full.txt
+  Content-Type: text/plain; charset=utf-8
+
+# Hashed build assets never change under the same name, so browsers may keep them for a year.
+/_astro/*
+  Cache-Control: public, max-age=31536000, immutable

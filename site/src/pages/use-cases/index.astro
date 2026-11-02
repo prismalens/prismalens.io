@@ -1,0 +1,117 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro'
+import { useCases, useCaseUrl } from '../../lib/use-cases'
+import type { BreadcrumbList, ItemList } from 'schema-dts'
+
+const origin = 'https://prismalens.io'
+const list: ItemList = {
+  '@type': 'ItemList',
+  itemListElement: useCases.map((u, i) => ({
+    '@type': 'ListItem' as const,
+    position: i + 1,
+    name: u.label,
+    url: `${origin}${useCaseUrl(u.slug)}`,
+  })),
+}
+const breadcrumbs: BreadcrumbList = {
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'PrismaLens', item: `${origin}/` },
+    { '@type': 'ListItem', position: 2, name: 'Use cases', item: `${origin}/use-cases/` },
+  ],
+}
+---
+
+<BaseLayout
+  title="Use cases"
+  description="Where PrismaLens fits: AI incident investigation, Alertmanager alerts and Claude Code, all on your machine."
+  schema={[list, breadcrumbs]}
+>
+  <section class="page">
+    <div class="glow" aria-hidden="true"></div>
+    <div class="wrap">
+      <h1 class="reveal">Use cases</h1>
+      <p class="lede reveal" style="--d:.06s">Point the agent you already use at real signals.</p>
+      <ul class="list">
+        {useCases.map((u, i) => (
+          <li class="reveal" style={`--d:${0.1 + i * 0.06}s`}>
+            <a class="card" href={useCaseUrl(u.slug)}>
+              <h2>{u.label}</h2>
+              <p>{u.line}</p>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .page {
+    position: relative;
+    padding: 96px 0 120px;
+    isolation: isolate;
+    overflow: hidden;
+  }
+  .glow {
+    position: absolute;
+    z-index: -1;
+    left: 50%;
+    top: 0;
+    width: 900px;
+    height: 420px;
+    transform: translate(-50%, -40%);
+    background: radial-gradient(closest-side, color-mix(in oklch, var(--primary) 28%, transparent), transparent);
+    filter: blur(40px);
+  }
+  h1 {
+    font-size: clamp(36px, 5vw, 56px);
+    line-height: 1.05;
+    letter-spacing: -0.035em;
+    margin: 0 0 16px;
+    font-weight: 650;
+  }
+  .lede {
+    font-size: 19px;
+    line-height: 1.5;
+    color: var(--muted-foreground);
+    margin: 0 0 48px;
+  }
+  .list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+  }
+  .card {
+    display: block;
+    height: 100%;
+    border-radius: 16px;
+    border: 1px solid oklch(1 0 0 / 0.08);
+    background: linear-gradient(180deg, oklch(0.18 0.006 285.9), oklch(0.15 0.006 285.9));
+    padding: 22px 22px 24px;
+    color: inherit;
+    transition: border-color 0.3s;
+  }
+  .card:hover {
+    border-color: oklch(1 0 0 / 0.2);
+    text-decoration: none;
+  }
+  h2 {
+    font-size: 19px;
+    margin: 0 0 6px;
+    letter-spacing: -0.02em;
+    font-weight: 620;
+  }
+  p {
+    margin: 0;
+    color: var(--muted-foreground);
+  }
+  @media (max-width: 900px) {
+    .list {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

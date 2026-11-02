@@ -12,6 +12,15 @@ import Default from '@astrojs/starlight/components/Footer.astro'
 <script>
   import { initAnalytics } from '../scripts/analytics'
   initAnalytics().catch(() => {})
+
+  const steps = document.querySelectorAll('.sl-steps > li')
+  if (steps.length && 'IntersectionObserver' in window) {
+    const io = new IntersectionObserver(
+      (entries) => entries.forEach((e) => e.isIntersecting && e.target.classList.add('seen')),
+      { rootMargin: '0px 0px -45% 0px' },
+    )
+    steps.forEach((li) => io.observe(li))
+  }
 </script>
 
 <style>
@@ -22,5 +31,8 @@ import Default from '@astrojs/starlight/components/Footer.astro'
   }
   .docs-license a {
     color: inherit;
+  }
+  .docs-license a:hover {
+    color: var(--sl-color-white);
   }
 </style>

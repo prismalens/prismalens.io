@@ -124,6 +124,53 @@ for (const { name, mod } of modules) {
         assert.equal(mod.copiedCommand('curl -fsSL https://example.com | prismalens'), 'other');
       });
     });
+
+    describe('trafficSource', () => {
+      const t = mod.trafficSource;
+
+      it('treats look-alike domains as plain referrals, not search or AI', () => {
+        assert.deepEqual(t('https://notgoogle.com/', ''), { traffic_source: 'referral', traffic_from: 'notgoogle.com' });
+        assert.deepEqual(t('https://notbing.com/', ''), { traffic_source: 'referral', traffic_from: 'notbing.com' });
+        assert.deepEqual(t('https://wwwxclaude.ai/', ''), { traffic_source: 'referral', traffic_from: 'wwwxclaude.ai' });
+        assert.deepEqual(t('https://www.google.co.uk/', ''), { traffic_source: 'search', traffic_from: 'google' });
+      });
+
+      it('names the AI assistant a visitor came from, by referrer or utm_source', () => {
+        assert.deepEqual(t('https://chatgpt.com/', ''), { traffic_source: 'ai_assistant', traffic_from: 'chatgpt' });
+        assert.deepEqual(t('https://chat.openai.com/c/1', ''), { traffic_source: 'ai_assistant', traffic_from: 'chatgpt' });
+        assert.deepEqual(t('https://www.perplexity.ai/search?q=x', ''), { traffic_source: 'ai_assistant', traffic_from: 'perplexity' });
+        assert.deepEqual(t('https://claude.ai/', ''), { traffic_source: 'ai_assistant', traffic_from: 'claude' });
+        assert.deepEqual(t('https://gemini.google.com/app', ''), { traffic_source: 'ai_assistant', traffic_from: 'gemini' });
+        assert.deepEqual(t('https://copilot.microsoft.com/', ''), { traffic_source: 'ai_assistant', traffic_from: 'copilot' });
+        assert.deepEqual(t('', '?utm_source=chatgpt.com'), { traffic_source: 'ai_assistant', traffic_from: 'chatgpt' });
+        assert.deepEqual(t('https://grok.com/', ''), { traffic_source: 'ai_assistant', traffic_from: 'grok' });
+        // ChatGPT often strips the referrer but appends utm_source; the UTM alone must still count as AI.
+        assert.deepEqual(t('', '?utm_source=chatgpt.com&utm_medium=referral'), { traffic_source: 'ai_assistant', traffic_from: 'chatgpt' });
+        assert.deepEqual(t('https://www.google.com/', '?utm_source=perplexity.ai'), { traffic_source: 'ai_assistant', traffic_from: 'perplexity' });
+        assert.deepEqual(t('', '?utm_source=ChatGPT.com'), { traffic_source: 'ai_assistant', traffic_from: 'chatgpt' });
+      });
+
+      it('names organic search engines, and keeps Gemini apart from Google search', () => {
+        assert.deepEqual(t('https://www.google.com/', ''), { traffic_source: 'search', traffic_from: 'google' });
+        assert.deepEqual(t('https://www.google.co.uk/', ''), { traffic_source: 'search', traffic_from: 'google' });
+        assert.deepEqual(t('https://www.bing.com/search?q=x', ''), { traffic_source: 'search', traffic_from: 'bing' });
+        assert.deepEqual(t('https://duckduckgo.com/', ''), { traffic_source: 'search', traffic_from: 'duckduckgo' });
+      });
+
+      it('separates social, campaign, other referrals, internal hops and direct visits', () => {
+        assert.deepEqual(t('https://news.ycombinator.com/item?id=1', ''), { traffic_source: 'social', traffic_from: 'news.ycombinator.com' });
+        assert.deepEqual(t('https://www.google.com/', '?utm_source=newsletter&utm_medium=email'), { traffic_source: 'campaign', traffic_from: 'newsletter' });
+        assert.deepEqual(t('https://github.com/prismalens/prismalens', ''), { traffic_source: 'referral', traffic_from: 'github.com' });
+        assert.deepEqual(t('https://docs.prismalens.io/install/', ''), { traffic_source: 'internal', traffic_from: 'docs.prismalens.io' });
+        assert.deepEqual(t('', ''), { traffic_source: 'direct', traffic_from: null });
+        assert.deepEqual(t('not a url', ''), { traffic_source: 'direct', traffic_from: null });
+      });
+
+      it('does not mistake a look-alike host for a known one', () => {
+        assert.deepEqual(t('https://notchatgpt.com/', ''), { traffic_source: 'referral', traffic_from: 'notchatgpt.com' });
+        assert.deepEqual(t('https://evil-prismalens.io/', ''), { traffic_source: 'referral', traffic_from: 'evil-prismalens.io' });
+      });
+    });
   });
 }
 

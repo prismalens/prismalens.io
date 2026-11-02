@@ -1,20 +1,59 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro'
-
-const docsBase = import.meta.env.DEV ? 'http://localhost:4322' : 'https://docs.prismalens.io'
+import { docsBase, githubUrl } from '../lib/links'
 ---
 
 <BaseLayout title="Page not found" description="There is no page at this address.">
-  <section class="mx-auto max-w-2xl px-4 py-24 sm:px-6 sm:py-32">
-    <h1 class="text-4xl font-semibold tracking-tight">There is no page at this address.</h1>
-    <p class="mt-6 text-lg leading-relaxed text-muted-foreground">
-      The blog and the old features page have been removed. The home page describes the product,
-      and the docs cover setup.
-    </p>
-    <ul class="mt-8 space-y-2">
-      <li><a href="/" class="underline underline-offset-4">Home</a></li>
-      <li><a href={`${docsBase}/quickstart/`} class="underline underline-offset-4">Quick start</a></li>
-      <li><a href="https://github.com/prismalens/prismalens/issues" class="underline underline-offset-4">Report a broken link</a></li>
-    </ul>
+  <section class="page">
+    <div class="glow" aria-hidden="true"></div>
+    <div class="wrap">
+      <p class="code" aria-hidden="true">404</p>
+      <h1>No page at this address.</h1>
+      <div class="links">
+        <a class="btn btn-primary" href="/">Home</a>
+        <a class="btn btn-ghost" href={`${docsBase}/`}>Docs</a>
+        <a class="btn btn-ghost" href={`${githubUrl}/issues`}>Report a broken link</a>
+      </div>
+    </div>
   </section>
 </BaseLayout>
+
+<style>
+  .page {
+    position: relative;
+    padding: 120px 0 140px;
+    text-align: center;
+    isolation: isolate;
+    overflow: hidden;
+  }
+  .glow {
+    position: absolute;
+    z-index: -1;
+    left: 50%;
+    top: 45%;
+    width: 900px;
+    height: 500px;
+    transform: translate(-50%, -50%);
+    background: radial-gradient(closest-side, color-mix(in oklch, var(--primary) 30%, transparent), transparent);
+    filter: blur(30px);
+  }
+  .code {
+    margin: 0 0 12px;
+    font: 600 14px/1 var(--font-mono);
+    letter-spacing: 0.12em;
+    color: var(--link);
+  }
+  h1 {
+    font-size: clamp(34px, 4.8vw, 56px);
+    line-height: 1.05;
+    letter-spacing: -0.035em;
+    margin: 0 0 34px;
+    font-weight: 640;
+  }
+  .links {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+</style>
