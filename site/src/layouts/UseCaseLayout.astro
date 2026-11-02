@@ -1,0 +1,261 @@
+---
+import BaseLayout from './BaseLayout.astro'
+import InstallBox from '../components/InstallBox.astro'
+import { docsBase } from '../lib/links'
+import { type UseCase, useCaseSchema } from '../lib/use-cases'
+
+interface Props {
+  useCase: UseCase
+}
+const { useCase: u } = Astro.props
+const docsHref = `${docsBase}${u.docsPath}`
+---
+
+<BaseLayout title={u.h1} fullTitle={u.title} description={u.description} schema={useCaseSchema(u)}>
+  <section class="hero" aria-labelledby="uc-title">
+    <div class="glow" aria-hidden="true"></div>
+    <div class="wrap hero-grid">
+      <div>
+        <h1 id="uc-title">{u.h1}</h1>
+        <p class="lede">{u.line}</p>
+        <InstallBox name="hero" />
+        <a class="more" href={docsHref}>{u.docsLabel} →</a>
+      </div>
+      <div class="visual"><slot /></div>
+    </div>
+  </section>
+
+  {/* Answer first: AI answers mostly quote a page's opening, so the query is asked and answered here. */}
+  <section class="answer" aria-labelledby="uc-answer">
+    <div class="wrap narrow">
+      <h2 id="uc-answer">{u.question}</h2>
+      <p>{u.answer}</p>
+    </div>
+  </section>
+
+  <section class="sec" aria-labelledby="uc-steps">
+    <div class="wrap">
+      <h2 id="uc-steps" class="reveal">{u.stepsHeading}</h2>
+      <ol class="cards">
+        {u.steps.map((s, i) => (
+          <li class="card reveal" style={`--d:${i * 0.06}s`}>
+            <span class="step" aria-hidden="true">{i + 1}</span>
+            <h3>{s.title}</h3>
+            <p>{s.line}</p>
+          </li>
+        ))}
+      </ol>
+    </div>
+  </section>
+
+  {u.compare && (
+    <section class="sec" aria-labelledby="uc-compare">
+      <div class="wrap">
+        <h2 id="uc-compare" class="reveal">{u.compare.heading}</h2>
+        <div class="compare reveal" tabindex="0" role="region" aria-labelledby="uc-compare">
+          <table>
+            <thead>
+              <tr><td></td>{u.compare.columns.map((c) => <th scope="col">{c}</th>)}</tr>
+            </thead>
+            <tbody>
+              {u.compare.rows.map((r) => (
+                <tr><th scope="row">{r.label}</th>{r.cells.map((c) => <td>{c}</td>)}</tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  )}
+
+  <section class="sec faq" aria-labelledby="uc-faq">
+    <div class="wrap narrow">
+      <h2 id="uc-faq" class="reveal">Questions, answered</h2>
+      {u.faq.map((f) => (
+        <div class="qa reveal">
+          <h3>{f.q}</h3>
+          <p>{f.a}</p>
+        </div>
+      ))}
+      <div class="next reveal">
+        <a class="btn btn-primary" href={docsHref}>{u.docsLabel}</a>
+        <a class="btn btn-ghost" href="/use-cases/">More use cases</a>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .hero {
+    position: relative;
+    padding: 84px 0 70px;
+    isolation: isolate;
+    overflow: hidden;
+  }
+  .glow {
+    position: absolute;
+    z-index: -1;
+    left: 30%;
+    top: 0;
+    width: 900px;
+    height: 480px;
+    transform: translate(-50%, -35%);
+    background: radial-gradient(closest-side, color-mix(in oklch, var(--primary) 28%, transparent), transparent);
+    filter: blur(40px);
+  }
+  .hero-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+    gap: 48px;
+    align-items: center;
+  }
+  h1 {
+    font-size: clamp(36px, 4.8vw, 58px);
+    line-height: 1.04;
+    letter-spacing: -0.035em;
+    margin: 0 0 20px;
+    font-weight: 650;
+  }
+  .lede {
+    font-size: 19px;
+    line-height: 1.5;
+    color: var(--muted-foreground);
+    margin: 0 0 30px;
+  }
+  .more {
+    display: inline-flex;
+    margin-top: 18px;
+    font-size: 14px;
+    font-weight: 500;
+  }
+  .visual {
+    min-width: 0;
+  }
+  .narrow > * {
+    max-width: 760px;
+  }
+  .answer {
+    padding: 10px 0 30px;
+  }
+  .answer h2,
+  .sec h2 {
+    font-size: clamp(26px, 3.2vw, 36px);
+    letter-spacing: -0.03em;
+    margin: 0 0 18px;
+    font-weight: 640;
+  }
+  .answer p {
+    margin: 0;
+    font-size: 18px;
+    line-height: 1.65;
+    color: oklch(0.88 0.005 286);
+  }
+  .sec {
+    padding: 50px 0;
+    min-width: 0;
+  }
+  .faq {
+    padding-bottom: 120px;
+  }
+  .cards {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 16px;
+  }
+  .card {
+    border-radius: 16px;
+    border: 1px solid oklch(1 0 0 / 0.08);
+    background: linear-gradient(180deg, oklch(0.18 0.006 285.9), oklch(0.15 0.006 285.9));
+    padding: 22px 20px 24px;
+    transition: border-color 0.3s;
+  }
+  .card:hover {
+    border-color: oklch(1 0 0 / 0.16);
+  }
+  .step {
+    display: inline-grid;
+    place-items: center;
+    width: 26px;
+    height: 26px;
+    border-radius: 8px;
+    margin-bottom: 14px;
+    font: 600 12px/1 var(--font-mono);
+    background: var(--indigo-soft);
+    color: var(--foreground);
+  }
+  h3 {
+    font-size: 18px;
+    margin: 0 0 6px;
+    letter-spacing: -0.015em;
+    font-weight: 620;
+  }
+  .card p,
+  .qa p {
+    margin: 0;
+    color: var(--muted-foreground);
+    font-size: 15px;
+    line-height: 1.6;
+  }
+  .compare {
+    max-width: 100%;
+    overflow-x: auto;
+    border-radius: 16px;
+    border: 1px solid oklch(1 0 0 / 0.08);
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 15px;
+  }
+  th,
+  td {
+    text-align: left;
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--hairline);
+    vertical-align: top;
+  }
+  tbody tr:last-child > * {
+    border-bottom: 0;
+  }
+  thead th {
+    font-weight: 620;
+    background: oklch(1 0 0 / 0.03);
+  }
+  tbody th {
+    font-weight: 500;
+    color: var(--muted-foreground);
+    white-space: nowrap;
+  }
+  tbody td:last-child {
+    color: var(--foreground);
+  }
+  tbody td:first-of-type {
+    color: var(--muted-foreground);
+  }
+  .qa {
+    padding: 18px 0;
+    border-bottom: 1px solid var(--hairline);
+  }
+  .next {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 32px;
+  }
+  @media (max-width: 1020px) {
+    .hero-grid {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .cards {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  @media (max-width: 600px) {
+    .cards {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
