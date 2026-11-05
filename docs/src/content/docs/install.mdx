@@ -79,6 +79,39 @@ pl upgrade
 It upgrades the way you installed. Your database upgrades itself on the next start
 and is backed up first, as `prismalens.db.bak-<time>` in the workspace.
 
+### From the app
+
+When a newer release is out, the bottom of the sidebar says so, with its
+release notes. What it offers depends on how you installed:
+
+| Installed with | The app offers |
+| :- | :- |
+| The installer | **Install and restart**, in this computer's own browser, while nothing is running |
+| npm, Homebrew or Scoop | `pl upgrade`, to copy and run |
+| The desktop app | A download link |
+
+**Settings → About** has **Check for updates** (on) and **When an update is
+ready**: **Notify me** (the default), or **Install automatically when idle**,
+which waits for 15 minutes with nothing running.
+
+Install and restart hands over in this order:
+
+1. New work waits. Alerts are still recorded, and runs started by hand or by a
+   schedule queue until after the restart.
+2. The installer downloads the release into its own folder and checks it
+   against `SHA256SUMS`. The running version's files stay as they are.
+3. PrismaLens stops. A background service starts it again. Started from a
+   terminal, a new `pl up` with the same options takes over once the old one
+   has stopped, and writes to `logs/update-restart.log` in the workspace.
+4. The page waits for the new version to answer, then reloads, and the queued
+   work starts.
+
+If the download or the check fails, or a run started meanwhile, nothing is
+replaced and the version you have keeps running. If the new version doesn't
+answer within two minutes, PrismaLens puts back the previous version and the
+database backup, and starts the previous version again. Either way the card
+shows what went wrong and `pl upgrade`.
+
 ## Uninstall
 
 Uninstalling leaves your workspace (`~/.prismalens`). To delete it as well,
