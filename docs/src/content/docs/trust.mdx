@@ -48,8 +48,15 @@ variables you set.
   `CI` is set. The exact list of what is sent is in
   [the source](https://github.com/prismalens/prismalens/blob/main/packages/api/src/core/telemetry/telemetry.service.ts).
 - **Update check:** once a day PrismaLens asks GitHub Releases whether a newer
-  version exists, with no identifier. `PRISMALENS_UPDATE_CHECK=off` or
+  version exists, and reads that release's notes, with no identifier.
+  **Settings → About → Check for updates**, `PRISMALENS_UPDATE_CHECK=off` or
   `DO_NOT_TRACK=1` turns it off.
+- **Images from the git host:** for a project cloned from GitHub, GitLab or
+  Bitbucket, the server fetches the project's logo, its owner's avatar and its
+  social preview from that host, without your credentials. A GitHub social
+  preview is looked up with the repository's own token. A project that ships its
+  own icon file needs no fetch. **Settings → Sources → Images from the git
+  host** turns them off.
 - **From git:** fetching a repository by URL contacts that host with your git
   credentials.
 
