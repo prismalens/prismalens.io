@@ -10,8 +10,13 @@ agent can reach, what leaves your machine, and where PrismaLens keeps its data.
 
 ## The short version
 
-- The agent works in a **git worktree** at the service's last commit, never in
-  your checkout. Uncommitted changes aren't read.
+- By default the agent works in a **git worktree** at the service's last
+  commit, never in your checkout. Uncommitted changes aren't read. Runs an
+  alert or a schedule starts, and threads an agent starts, always work this way.
+- On a project on your computer, a thread **you** start can work in **your own
+  checkout** instead, when you pick *Work in: This checkout*. One thread works
+  in a checkout at a time. PrismaLens never resets, cleans, stashes, moves or
+  deletes it, and it **cannot undo** what the agent changes there.
 - The agent runs **as your user, with no sandbox**. Your
   [permission level](/coding-agents/#what-the-agent-may-do) decides what it may
   do without asking.
