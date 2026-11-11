@@ -79,6 +79,21 @@ pl upgrade
 It upgrades the way you installed. Your database upgrades itself on the next start
 and is backed up first, as `prismalens.db.bak-<time>` in the workspace.
 
+### Stable and nightly
+
+PrismaLens follows the **stable** channel unless you choose otherwise. **Nightly**
+is a build of `main` from each night whose checks pass. It comes from npm only:
+
+```bash
+npm install -g prismalens@nightly
+pl upgrade --channel nightly
+```
+
+`pl upgrade --channel stable` (or **Release channel** in Settings → About) goes back
+to stable. It doesn't downgrade, because a nightly may already have migrated your
+database past the last stable release. It stays on the nightly you run until a
+newer stable release ships, then upgrades to it.
+
 ## Uninstall
 
 Uninstalling leaves your workspace (`~/.prismalens`). To delete it as well,
