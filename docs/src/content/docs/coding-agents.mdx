@@ -18,11 +18,13 @@ Other ACP agents can be added from the ACP registry, or as a local command, in
 
 1. `PRISMALENS_HARNESS`, if set when `pl up` starts, pins one, for example `PRISMALENS_HARNESS=claude-code pl up`.
 2. Otherwise, the agent chosen in **Settings → Agent**.
-3. Otherwise, the first agent that can run, in the order listed above.
+3. Otherwise, the first agent that can run and is not turned off, in the order listed above.
 
 ## Signing in
 
-The agent uses its own sign-in, as it does in your terminal. You can also enter an API
+The agent uses its own sign-in, as it does in your terminal. **Sign in** next
+to an agent runs that agent's own login in PrismaLens's terminal on the machine
+running PrismaLens, and the login stays with the agent. You can also enter an API
 key in **Add agent**. PrismaLens stores that key encrypted and never shows it
 again. It never reads or stores the agent's own login.
 
