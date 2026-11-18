@@ -110,6 +110,8 @@ export default defineConfig({
 					items: [
 						{ label: 'Sending alerts', slug: 'guides/alerts' },
 						{ label: 'Reading the report', slug: 'guides/reports' },
+						{ label: 'Threads and the panel', slug: 'guides/threads' },
+						{ label: 'Pull requests', slug: 'guides/pull-requests' },
 					],
 				},
 				{ label: 'What PrismaLens reads', slug: 'trust' },

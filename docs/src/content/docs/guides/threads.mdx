@@ -1,0 +1,113 @@
+---
+title: Threads and the thread panel
+description: What the thread panel's Session and Started sections show, what a fork carries, how to open a thread's folder in an editor, and project scripts.
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+The thread panel sits beside a thread. This page covers the parts that describe
+the thread itself. For pull requests, see
+[Pull requests in the thread panel](/guides/pull-requests/).
+
+## Session
+
+The Session section says what this thread is running on.
+
+| Row | Shows |
+| --- | --- |
+| Agent | The coding agent. |
+| Model | The model, then the effort. |
+| Session | **Same session** when the agent resumed or loaded its earlier session, **New session** otherwise, **Not recorded** when nothing says. |
+| Context | **\{used} of \{size}**. It warns at 80% and turns red at 90%. **Not reported** when the agent sends no size. |
+| Tokens | The total and the number of turns. |
+| Cost | The sum per currency. Hover it for turns that sent no cost. **Not priced** when no turn has one. |
+| Machine | The host and its system. |
+| Cache | Whether the agent's cache carried over. |
+
+## Started
+
+The Started section lists everything this thread started: its sub-agents and
+the threads it began. The heading counts what is running, as **Started · \{r}
+running**, and drops the count when nothing runs. Above the rows, one line says
+who started this thread.
+
+- Failed rows come first, with a red title.
+- Running rows follow, with the time they have run.
+- Everything done folds under **Finished \{n}**, closed until you open it. Each
+  finished row shows how long it took.
+
+Each row has the agent's mark, a status and a mark for how it started:
+**Sub-agent**, **Agent**, **Fork**, **Side question** or **Fix**. Selecting a
+thread opens it. Selecting a sub-agent opens its steps.
+
+This is the section of a thread with a failed sub-agent, a running fix thread
+and a running sub-agent, plus a finished sub-agent and a finished fork:
+
+```text
+Started · 2 running
+  [Sub-agent]  readiness check          failed
+  [Fix]        Fix unit tests on PR #412    working    4m 10s
+  [Sub-agent]  index review             working    1m 02s
+  > Finished 2
+      [Sub-agent]  schema check         done       3m 20s
+      [Fork]       Try a partial index  done       12m 45s
+```
+
+The thread's details box has one row for the same section:
+
+```text
+Started   4 · 2 running
+```
+
+The number counts sub-agents and threads together. Selecting the row opens the
+section.
+
+A thread started from another shows how, above its own Started section:
+**Forked from**, **Fix for**, **Side question of** or **Started by**.
+
+<Aside type="note" title="Older threads">
+A thread recorded before the section existed lists only the sub-agents that
+had a session of their own.
+</Aside>
+
+## Forking a thread
+
+A fork or a side question starts from a summary of the conversation so far.
+Above the box you type in, a line reads **Carries \{what}**. Hover it to see
+what the summary leaves out. The thread you came from is unchanged.
+
+## Open the folder in an editor
+
+The details box has a button that opens the thread's folder. It reads **Open in
+\{editor}**. The chevron beside it lists the editors installed on the machine
+running PrismaLens, and your file manager, which is **File Explorer**,
+**Finder** or **Files** by system. Terminal is in the same menu.
+
+Picking an editor opens the folder. If you are the owner, it also becomes the
+default. If you aren't, it opens without changing the default and the menu says
+**Default set by the owner**.
+
+## Detached worktrees
+
+A thread's worktree starts detached at a commit, with no branch. The branch row
+then reads **Detached at \{commit}**. Commits there can't be pushed until a
+branch exists.
+
+When a detached worktree has commits or changes, the details box offers
+**Create branch and push**, or **Create branch** when this worktree can't push
+to the project's remote. It asks the thread to do it: it fills the message box
+and waits for you to send it.
+
+## Project scripts
+
+A project's page lists its scripts. PrismaLens detects them from the project's
+package, make and just files. You can add your own.
+
+- **Add script** opens a dialog with **Name** and **Command**. **Edit script**
+  changes one.
+- Your scripts come first, then the detected ones. With none, the list reads
+  **No scripts yet**.
+- A script goes to the terminal; you press Enter to run it.
+
+Only the owner adds, edits or removes scripts. They are stored with the
+project, so they stay with it.

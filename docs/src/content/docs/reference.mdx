@@ -26,6 +26,13 @@ command's flags.
 | `PRISMALENS_UPDATE_CHECK=off` | Turns the daily update check off. |
 | `PRISMALENS_WORKSPACE_DIR` | Uses another workspace folder, like `--workspace`. |
 
+## Settings and stored data
+
+| Item | What it does |
+| --- | --- |
+| **Re-run checks from PrismaLens** | Off by default. When on, **Re-run** works on a failing check, using your git host token. See [Pull requests](/guides/pull-requests/#re-run-a-check). |
+| Project scripts | Stored in the project's metadata. Only the owner adds, edits or removes them. See [Threads](/guides/threads/#project-scripts). |
+
 ## Troubleshooting
 
 Start with `pl doctor`. Logs are in `~/.prismalens/logs/`.
