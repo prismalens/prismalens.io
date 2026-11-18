@@ -110,6 +110,7 @@ export default defineConfig({
 					items: [
 						{ label: 'Sending alerts', slug: 'guides/alerts' },
 						{ label: 'Reading the report', slug: 'guides/reports' },
+						{ label: 'Following a pull request', slug: 'guides/pull-requests' },
 					],
 				},
 				{ label: 'What PrismaLens reads', slug: 'trust' },
