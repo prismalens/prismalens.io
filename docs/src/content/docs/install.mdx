@@ -4,6 +4,10 @@ description: The ways to install PrismaLens, how to keep it running, upgrade it 
 ---
 
 import { Tabs, TabItem } from '@astrojs/starlight/components';
+import { release, downloadFallback } from '../../../../site/src/lib/release';
+import { networkHosts } from '../../../../site/src/lib/network-hosts';
+
+export const desktop = release ? Object.values(release.desktop).filter(Boolean) : [];
 
 PrismaLens is one command under two names, `pl` and `prismalens`. Install it
 one way and stick to that: every copy on a machine shares the workspace
@@ -58,11 +62,57 @@ scoop install prismalens
 </TabItem>
 <TabItem label="Desktop app (preview)">
 
-Download the zip for your OS from the
-[latest release](https://github.com/prismalens/prismalens/releases/latest).
+Unsigned preview: Windows and macOS may warn before they open it. Check the
+download against its checksum first ([verify](#verify-the-download)).
+
+{desktop.length ? (
+<table>
+<thead><tr><th>OS</th><th>Download</th><th>Size</th><th>SHA-256</th></tr></thead>
+<tbody>
+{desktop.map((d) => (
+<tr key={d.os}>
+<td>{d.osLabel} ({d.arch})</td>
+<td><a href={d.url}>{d.name}</a></td>
+<td>{d.size}</td>
+<td><code>{d.sha256 ?? 'in SHA256SUMS'}</code></td>
+</tr>
+))}
+</tbody>
+</table>
+) : (
+<p>Download the zip for your OS from the <a href={downloadFallback}>latest release</a>.</p>
+)}
 
 </TabItem>
 </Tabs>
+
+## Verify the download
+
+Every release lists a SHA-256 for each file in `SHA256SUMS`. Compare it with the
+hash of the file you downloaded.
+
+```powershell
+Get-FileHash .\PrismaLens-Windows-X64-unsigned.zip -Algorithm SHA256
+```
+
+```bash
+shasum -a 256 PrismaLens-macOS-ARM64-unsigned.zip
+```
+
+The two hashes must match exactly. On Linux, `sha256sum` does the same.
+
+## Network hosts an install touches
+
+Allow these if your network filters outbound traffic.
+
+<table>
+<thead><tr><th>Host</th><th>Used for</th></tr></thead>
+<tbody>
+{networkHosts.map((h) => (
+<tr key={h.host}><td><code>{h.host}</code></td><td>{h.why}</td></tr>
+))}
+</tbody>
+</table>
 
 ## Keep it running
 
