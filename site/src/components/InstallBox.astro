@@ -10,7 +10,7 @@ interface Props {
 const { name, class: className, center = false } = Astro.props
 const primary = installChannels.filter((c) => c.primary)
 const more = installChannels.filter((c) => !c.primary)
-const short = (h: string) => `${h.slice(0, 8)}…${h.slice(-8)}`
+const short = (h: string) => `${h.slice(0, 6)}…${h.slice(-6)}`
 // analytics.ts counts copies on `.expressive-code .copy button` and reads the command from that box's <pre>.
 ---
 
@@ -43,7 +43,7 @@ const short = (h: string) => `${h.slice(0, 8)}…${h.slice(-8)}`
               </button>
             </li>
           )}
-          <li><a href={verifyUrl}>How to verify</a></li>
+          <li><a href={verifyUrl}><span class="wide">How to verify</span><span class="narrow">Verify</span></a></li>
         </ul>
         {d.os === 'windows' ? (
           <p class="trust">Preview: runs natively, with rough edges. Unsigned, so SmartScreen may warn: More info → Run anyway.</p>
@@ -283,6 +283,9 @@ const short = (h: string) => `${h.slice(0, 8)}…${h.slice(-8)}`
   .others::before {
     content: 'Also';
   }
+  .narrow {
+    display: none;
+  }
   .size-note {
     margin: 8px 2px 0;
     font-size: 12.5px;
@@ -394,14 +397,12 @@ const short = (h: string) => `${h.slice(0, 8)}…${h.slice(-8)}`
     font-size: 13px;
     line-height: 1.6;
     color: var(--foreground);
-    /* Wrap rather than hide: a command cut off at the edge looks complete. */
+    /* Break only at spaces, never inside a token; a token wider than the box scrolls, and the thin bar shows it. */
     white-space: pre-wrap;
-    overflow-wrap: anywhere;
-    scrollbar-width: none;
+    overflow-wrap: normal;
+    word-break: normal;
+    scrollbar-width: thin;
     border-radius: 6px;
-  }
-  pre::-webkit-scrollbar {
-    display: none;
   }
   .line {
     display: block;
@@ -481,6 +482,24 @@ const short = (h: string) => `${h.slice(0, 8)}…${h.slice(-8)}`
     justify-content: center;
   }
   @media (max-width: 420px) {
+    .wide {
+      display: none;
+    }
+    .narrow {
+      display: inline;
+    }
+    .facts {
+      column-gap: 10px;
+    }
+    .install {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 6px;
+    }
+    .install .copy {
+      order: -1;
+      align-self: flex-end;
+    }
     .lbl {
       display: none;
     }
