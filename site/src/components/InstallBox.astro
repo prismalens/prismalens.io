@@ -481,6 +481,15 @@ const short = (h: string) => `${h.slice(0, 6)}…${h.slice(-6)}`
   .center .foot {
     justify-content: center;
   }
+  @media (max-width: 360px) {
+    .seg {
+      grid-template-columns: 1.5fr 1fr 0.8fr;
+    }
+    .seg .pick {
+      padding: 0 2px;
+      font-size: 12px;
+    }
+  }
   @media (max-width: 420px) {
     .wide {
       display: none;
