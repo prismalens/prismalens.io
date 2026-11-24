@@ -1,4 +1,4 @@
-import { release, type DesktopAsset, type OsId } from './release'
+import { downloadFallback, release, type DesktopAsset, type OsId } from './release'
 
 export const docsBase = import.meta.env.DEV ? 'http://localhost:4322' : 'https://docs.prismalens.io'
 export const githubUrl = 'https://github.com/prismalens/prismalens'
@@ -37,3 +37,5 @@ export const desktopDownloads: DesktopAsset[] = (['windows', 'macos', 'linux'] a
 export const releaseDate = release?.date ?? null
 export const cliWindowsSize = release?.cliWindowsSize ?? null
 export const releaseVersion = release?.version ?? null
+
+export { downloadFallback }
