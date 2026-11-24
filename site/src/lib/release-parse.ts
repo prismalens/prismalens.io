@@ -6,7 +6,9 @@ export type DesktopAsset = {
   osLabel: string
   arch: string
   name: string
+  /** The download mirror; `githubUrl` when the mirror did not answer at build time. */
   url: string
+  githubUrl: string
   bytes: number
   /** "196 MB": binary megabytes, the unit a file manager shows. */
   size: string
@@ -20,7 +22,12 @@ export type Release = {
   htmlUrl: string
   sumsUrl: string | null
   desktop: Record<OsId, DesktopAsset | null>
+  /** Size of the Windows installer-script archive, for the "about N MB" note. */
+  cliWindowsSize: string | null
 }
+
+export const mirrorBase = 'https://downloads.prismalens.io'
+export const mirrorUrl = (tag: string, name: string) => `${mirrorBase}/${tag}/${name}`
 
 export type ApiAsset = { name: string; size: number; browser_download_url: string }
 export type ApiRelease = { tag_name: string; html_url: string; published_at: string; assets: ApiAsset[] }
@@ -53,12 +60,14 @@ export function buildRelease(api: ApiRelease, sums: Map<string, string>): Releas
       osLabel: OS_LABELS[os],
       arch: m[2].toLowerCase(),
       name: a.name,
-      url: a.browser_download_url,
+      url: mirrorUrl(api.tag_name, a.name),
+      githubUrl: a.browser_download_url,
       bytes: a.size,
       size: formatSize(a.size),
       sha256: sums.get(a.name) ?? null,
     }
   }
+  const cliWin = api.assets.find((a) => /^prismalens-.+-win32-x64\.zip$/.test(a.name))
   const sumsAsset = api.assets.find((a) => a.name === 'SHA256SUMS')
   return {
     version: api.tag_name.replace(/^v/, ''),
@@ -66,5 +75,6 @@ export function buildRelease(api: ApiRelease, sums: Map<string, string>): Releas
     htmlUrl: api.html_url,
     sumsUrl: sumsAsset?.browser_download_url ?? null,
     desktop,
+    cliWindowsSize: cliWin ? formatSize(cliWin.size) : null,
   }
 }

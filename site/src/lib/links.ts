@@ -1,4 +1,4 @@
-import { downloadFallback, release, type DesktopAsset, type OsId } from './release'
+import { release, type DesktopAsset, type OsId } from './release'
 
 export const docsBase = import.meta.env.DEV ? 'http://localhost:4322' : 'https://docs.prismalens.io'
 export const githubUrl = 'https://github.com/prismalens/prismalens'
@@ -11,7 +11,6 @@ export type InstallChannel = {
   label: string
   /** Copied exactly from docs/src/content/docs/install.mdx, the source of truth. */
   commands?: string[]
-  download?: string
   os?: 'unix' | 'windows'
   /** Primary channels are always visible; the rest sit in the quieter "Also" row. */
   primary?: boolean
@@ -29,7 +28,6 @@ export const installChannels: InstallChannel[] = [
     commands: ['scoop bucket add prismalens https://github.com/prismalens/scoop-bucket', 'scoop install prismalens'],
     preview: true,
   },
-  { id: 'desktop', label: 'Desktop app', download: downloadFallback, preview: true },
 ]
 
 export const verifyUrl = `${docsBase}/install/#verify-the-download`
@@ -37,4 +35,5 @@ export const verifyUrl = `${docsBase}/install/#verify-the-download`
 /** Direct desktop downloads in the order the picker offers them; empty when the release was unreachable at build time. */
 export const desktopDownloads: DesktopAsset[] = (['windows', 'macos', 'linux'] as OsId[]).flatMap((os) => release?.desktop[os] ?? [])
 export const releaseDate = release?.date ?? null
+export const cliWindowsSize = release?.cliWindowsSize ?? null
 export const releaseVersion = release?.version ?? null

@@ -1,5 +1,5 @@
 ---
-import { desktopDownloads, installChannels, releaseDate, releaseVersion, verifyUrl } from '../lib/links'
+import { cliWindowsSize, desktopDownloads, installChannels, releaseDate, releaseVersion, verifyUrl } from '../lib/links'
 
 interface Props {
   /** Prefixes element ids, so the box can appear more than once on a page. */
@@ -79,14 +79,8 @@ const short = (h: string) => `${h.slice(0, 8)}…${h.slice(-8)}`
             </button>
           </div>
         </div>
-      ) : (
-        <div class="install download">
-          <a class="btn btn-primary" href={c.download}>
-            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M8 2v8M4.5 6.5L8 10l3.5-3.5M2.5 13.5h11"></path></svg>
-            Download the app
-          </a>
-        </div>
-      )}
+      ) : null}
+      {c.id === 'windows' && cliWindowsSize && <p class="size-note">The download is about {cliWindowsSize}.</p>}
     </div>
   ))}
 
@@ -340,8 +334,10 @@ const short = (h: string) => `${h.slice(0, 8)}…${h.slice(-8)}`
     box-shadow: 0 20px 50px -28px oklch(0 0 0 / 0.9), 0 0 0 1px oklch(0 0 0 / 0.4);
     text-align: left;
   }
-  .download {
-    padding-left: 7px;
+  .size-note {
+    margin: 6px 0 0;
+    font-size: 12.5px;
+    color: var(--muted-foreground);
   }
   pre {
     margin: 0;

@@ -21,6 +21,14 @@ async function load(): Promise<Release | null> {
       else console.warn(`[release] SHA256SUMS answered ${sumsRes.status}; checksums are left out`)
     }
     const release = buildRelease(api, sums)
+    for (const d of Object.values(release.desktop)) {
+      if (!d) continue
+      const ok = await fetch(d.url, { method: 'HEAD', redirect: 'follow', signal: AbortSignal.timeout(15_000) }).then((r) => r.ok, () => false)
+      if (!ok) {
+        console.warn(`[release] mirror HEAD failed for ${d.url}; ${d.name} links to GitHub`)
+        d.url = d.githubUrl
+      }
+    }
     console.info(`[release] using ${api.tag_name} from ${repo}`)
     return release
   } catch (err) {

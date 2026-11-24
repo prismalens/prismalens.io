@@ -35,9 +35,11 @@ describe('release parsing', () => {
     assert.equal(r.sumsUrl, 'https://example.test/SHA256SUMS')
     assert.deepEqual(r.desktop.windows, {
       os: 'windows', osLabel: 'Windows', arch: 'x64', name: 'PrismaLens-Windows-X64-unsigned.zip',
-      url: 'https://example.test/win.zip', bytes: 205691281, size: '196 MB', sha256: winHash,
+      url: 'https://downloads.prismalens.io/v0.5.6/PrismaLens-Windows-X64-unsigned.zip', githubUrl: 'https://example.test/win.zip', bytes: 205691281, size: '196 MB', sha256: winHash,
     })
-    assert.equal(r.desktop.linux?.url, 'https://example.test/linux.zip')
+    assert.equal(r.desktop.linux?.url, 'https://downloads.prismalens.io/v0.5.6/PrismaLens-Linux-X64-unsigned.zip')
+    assert.equal(r.desktop.linux?.githubUrl, 'https://example.test/linux.zip')
+    assert.equal(r.cliWindowsSize, '85 MB')
     assert.equal(r.desktop.macos, null)
   })
 
