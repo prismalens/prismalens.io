@@ -4,6 +4,10 @@ description: The ways to install PrismaLens, how to keep it running, upgrade it 
 ---
 
 import { Tabs, TabItem } from '@astrojs/starlight/components';
+import { release, downloadFallback } from '../../../../site/src/lib/release';
+import { networkHosts } from '../../../../site/src/lib/network-hosts';
+
+export const desktop = release ? Object.values(release.desktop).filter(Boolean) : [];
 
 PrismaLens is one command under two names, `pl` and `prismalens`. Install it
 one way and stick to that: every copy on a machine shares the workspace
@@ -55,14 +59,58 @@ scoop bucket add prismalens https://github.com/prismalens/scoop-bucket
 scoop install prismalens
 ```
 
+{release?.desktop.windows ? (
+<p>Prefer an app? <a href={release.desktop.windows.url}>Download the desktop app</a> ({release.desktop.windows.size}, {release.desktop.windows.arch}) and <a href="#verify-the-download">verify it</a>.</p>
+) : null}
+
 </TabItem>
 <TabItem label="Desktop app (preview)">
 
-Download the zip for your OS from the
-[latest release](https://github.com/prismalens/prismalens/releases/latest).
+Unsigned preview: Windows SmartScreen may warn. Choose **More info**, then
+**Run anyway**. Check the download against its checksum first
+([verify](#verify-the-download)).
+
+{desktop.length ? (
+<ul class="pl-downloads">
+{desktop.map((d) => (
+<li key={d.os}>
+<a href={d.url}>{d.osLabel} ({d.arch})</a>
+<span>{d.size}{d.sha256 ? <> · SHA-256 <code>{d.sha256}</code></> : null}</span>
+</li>
+))}
+</ul>
+) : (
+<p>Download the zip for your OS from the <a href={downloadFallback}>latest release</a>.</p>
+)}
 
 </TabItem>
 </Tabs>
+
+## Verify the download
+
+Every release lists a SHA-256 for each file in `SHA256SUMS`. Compare it with the
+hash of the file you downloaded.
+
+```powershell
+Get-FileHash .\PrismaLens-Windows-X64-unsigned.zip -Algorithm SHA256
+```
+
+```bash
+shasum -a 256 PrismaLens-macOS-ARM64-unsigned.zip
+```
+
+The two hashes must match exactly. On Linux, `sha256sum` does the same.
+
+## Network hosts an install touches
+
+Allow these if your network filters outbound traffic. Once installed, the app
+talks only to localhost, plus the update check.
+
+<ul class="pl-hosts">
+{networkHosts.map((h) => (
+<li key={h.host}><code>{h.host}</code><span>{h.why}</span></li>
+))}
+</ul>
 
 ## Keep it running
 
@@ -108,3 +156,19 @@ stop PrismaLens and run `pl reset` first. If you installed the background servic
 | Homebrew | `brew uninstall prismalens` |
 | Scoop | `scoop uninstall prismalens` |
 | The desktop app | delete the app |
+
+<script is:inline>
+  {`
+  document.addEventListener('DOMContentLoaded', function () {
+  try {
+    if (/Windows/i.test(navigator.userAgent) && !/Android/i.test(navigator.userAgent)) {
+      var key = 'starlight-synced-tabs__channel';
+      if (!localStorage.getItem(key)) {
+        var t = [].find.call(document.querySelectorAll('[role="tab"]'), function (e) { return e.textContent.trim().indexOf('Windows') === 0; });
+        if (t) t.click();
+      }
+    }
+  } catch (e) {}
+  });
+  `}
+</script>

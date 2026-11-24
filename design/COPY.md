@@ -29,6 +29,11 @@ Hero
     Scoop           scoop bucket add prismalens https://github.com/prismalens/scoop-bucket
                     scoop install prismalens                                       [Preview badge]
     Desktop app     [Download the app] → https://github.com/prismalens/prismalens/releases/latest  [Preview badge]
+  Download (shown for the visitor's OS when the release has a desktop build; read from the latest release at build time):
+    Button   Download for <OS>   <v-version> · <size> · <arch>   → the asset URL
+    Line     <release date> · Unsigned preview — <OS> may warn · SHA-256 <short hash> [Copy] · How to verify (→ docs install#verify-the-download)
+    Note     (Windows terminal panel) The download is about <size>.
+    Line     Also <OS> <arch> · <size> for the other OSes
   Link: Read the docs → (to the Quick start)
 
 Pillars (3)

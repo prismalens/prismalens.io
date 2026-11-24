@@ -1,5 +1,5 @@
 ---
-import { installChannels } from '../lib/links'
+import { cliWindowsSize, desktopDownloads, downloadFallback, installChannels, releaseDate, releaseVersion, verifyUrl } from '../lib/links'
 
 interface Props {
   /** Prefixes element ids, so the box can appear more than once on a page. */
@@ -10,10 +10,57 @@ interface Props {
 const { name, class: className, center = false } = Astro.props
 const primary = installChannels.filter((c) => c.primary)
 const more = installChannels.filter((c) => !c.primary)
+const short = (h: string) => `${h.slice(0, 6)}…${h.slice(-6)}`
 // analytics.ts counts copies on `.expressive-code .copy button` and reads the command from that box's <pre>.
 ---
 
 <div class:list={['installer', className, { center }]} data-installer>
+  {desktopDownloads.map((d) => {
+    const others = desktopDownloads.filter((o) => o.os !== d.os)
+    return (
+      <div class="get" data-dl={d.os} hidden>
+        <a class="btn btn-primary dlbtn" href={d.url}>
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M8 2v8M4.5 6.5L8 10l3.5-3.5M2.5 13.5h11"></path></svg>
+          <span class="dlname">Download for {d.osLabel}</span>
+          <span class="dlmeta">v{releaseVersion} · {d.size} · {d.arch}</span>
+        </a>
+        <ul class="facts">
+          <li>{releaseDate}</li>
+          {d.sha256 && (
+            <li class="sum">
+              <span>SHA-256</span>
+              <code title={d.sha256}>{short(d.sha256)}</code>
+              <button class="copy-btn mini" type="button" data-copy={d.sha256} aria-label={`Copy the ${d.osLabel} SHA-256 checksum`}>
+                <span class="idle">
+                  <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="5" y="5" width="8.5" height="8.5" rx="1.5"></rect><path d="M10.5 5V3.5A1.5 1.5 0 009 2H3.5A1.5 1.5 0 002 3.5V9A1.5 1.5 0 003.5 10.5H5"></path></svg>
+                  <span class="lbl">Copy</span>
+                </span>
+                <span class="done">
+                  <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 8.5l3 3 7-7"></path></svg>
+                  <span class="lbl">Copied</span>
+                </span>
+                <span class="fail"><span class="lbl">Copy failed</span></span>
+              </button>
+            </li>
+          )}
+          <li><a href={verifyUrl}><span class="wide">How to verify</span><span class="narrow">Verify</span></a></li>
+        </ul>
+        {d.os === 'windows' ? (
+          <p class="trust">Preview: runs natively, with rough edges. Unsigned, so SmartScreen may warn: More info → Run anyway.</p>
+        ) : (
+          <p class="trust">Unsigned preview: {d.osLabel} may warn.</p>
+        )}
+        {others.length > 0 && (
+          <ul class="others" aria-label="Other desktop downloads">
+            {others.map((o) => (
+              <li><a href={o.url}>{o.osLabel} {o.arch} · {o.size}</a></li>
+            ))}
+          </ul>
+        )}
+      </div>
+    )
+  })}
+
   <div class="seg" role="group" aria-label="Install with">
     {primary.map((c, i) => (
       <button type="button" class="pick" aria-pressed={i === 0 ? 'true' : 'false'} aria-controls={`${name}-panel-${c.id}`} data-channel={c.id} data-os={c.os}>
@@ -41,14 +88,8 @@ const more = installChannels.filter((c) => !c.primary)
             </button>
           </div>
         </div>
-      ) : (
-        <div class="install download">
-          <a class="btn btn-primary" href={c.download}>
-            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M8 2v8M4.5 6.5L8 10l3.5-3.5M2.5 13.5h11"></path></svg>
-            Download the app
-          </a>
-        </div>
-      )}
+      ) : null}
+      {c.id === 'windows' && cliWindowsSize && <p class="size-note">The download is about {cliWindowsSize}.</p>}
     </div>
   ))}
 
@@ -61,6 +102,7 @@ const more = installChannels.filter((c) => !c.primary)
     </p>
     <p class="more" role="group" aria-label="Other ways to install">
       <span>Also</span>
+      {desktopDownloads.length === 0 && <a class="pick link" href={downloadFallback}>Desktop app</a>}
       {more.map((c) => (
         <button type="button" class="pick link" aria-pressed="false" aria-controls={`${name}-panel-${c.id}`} data-channel={c.id}>
           {c.label}
@@ -99,7 +141,9 @@ const more = installChannels.filter((c) => !c.primary)
   )
 
   const ua = navigator.userAgent
-  const os = /Windows/i.test(ua) ? 'windows' : /Mac|Linux|X11|CrOS/i.test(ua) && !/Android|iPhone|iPad/i.test(ua) ? 'unix' : null
+  const mobile = /Android|iPhone|iPad/i.test(ua)
+  const desktopOs = mobile ? null : /Windows/i.test(ua) ? 'windows' : /Mac/i.test(ua) ? 'macos' : /Linux|X11|CrOS/i.test(ua) ? 'linux' : null
+  const os = desktopOs === 'windows' ? 'windows' : desktopOs ? 'unix' : null
 
   document.querySelectorAll<HTMLElement>('[data-installer]').forEach((box) => {
     const picks = [...box.querySelectorAll<HTMLButtonElement>('.pick')]
@@ -114,6 +158,11 @@ const more = installChannels.filter((c) => !c.primary)
     picks.forEach((p) => p.addEventListener('click', () => select(p)))
     const preferred = os && picks.find((p) => p.dataset.os === os)
     if (preferred) select(preferred)
+    const get = desktopOs && box.querySelector<HTMLElement>(`[data-dl="${desktopOs}"]`)
+    if (get) {
+      get.hidden = false
+      get.classList.add('shown')
+    }
   })
 </script>
 
@@ -121,6 +170,134 @@ const more = installChannels.filter((c) => !c.primary)
   .installer {
     max-width: 560px;
     min-width: 0;
+  }
+  .get {
+    margin-bottom: 14px;
+  }
+  .get.shown {
+    animation: get-in 240ms cubic-bezier(0.23, 1, 0.32, 1);
+  }
+  @keyframes get-in {
+    from {
+      opacity: 0;
+      transform: translateY(4px);
+    }
+  }
+  .center .get {
+    text-align: center;
+  }
+  .dlbtn {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 2px 10px;
+    height: auto;
+    min-height: 52px;
+    padding: 10px 18px;
+    border-radius: 12px;
+    white-space: normal;
+    width: 100%;
+    box-sizing: border-box;
+    text-align: center;
+  }
+  .dlbtn:active {
+    transform: scale(0.985);
+  }
+  .dlbtn svg {
+    width: 16px;
+    height: 16px;
+    flex: none;
+  }
+  .dlname {
+    font-weight: 600;
+  }
+  .dlmeta {
+    font-size: 12.5px;
+    font-variant-numeric: tabular-nums;
+    opacity: 0.9;
+  }
+  .facts,
+  .others {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 2px 14px;
+    margin: 10px 2px 0;
+    padding: 0;
+    list-style: none;
+    font-size: 12.5px;
+    line-height: 1.5;
+    color: var(--muted-foreground);
+  }
+  .center .facts,
+  .center .others {
+    justify-content: center;
+  }
+  .facts li,
+  .others li {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+  }
+  .facts a,
+  .others a {
+    color: var(--muted-foreground);
+    text-decoration-color: oklch(1 0 0 / 0.25);
+    text-underline-offset: 3px;
+  }
+  .facts a:hover,
+  .others a:hover {
+    color: var(--foreground);
+    text-decoration-color: currentColor;
+  }
+  .sum code {
+    font-size: 12px;
+    color: var(--muted-foreground);
+  }
+  .copy-btn.mini {
+    height: 24px;
+    padding: 0 7px;
+    border-radius: 6px;
+    font-size: 11.5px;
+  }
+  .copy-btn.mini svg {
+    width: 12px;
+    height: 12px;
+  }
+  .trust {
+    margin: 6px 2px 0;
+    max-width: 52ch;
+    font-size: 12.5px;
+    line-height: 1.5;
+    color: var(--muted-foreground);
+    text-wrap: pretty;
+  }
+  .center .trust {
+    margin-inline: auto;
+  }
+  .others {
+    margin-top: 6px;
+  }
+  .others::before {
+    content: 'Also';
+  }
+  .narrow {
+    display: none;
+  }
+  .size-note {
+    margin: 8px 2px 0;
+    font-size: 12.5px;
+    color: var(--muted-foreground);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .get.shown {
+      animation: none;
+    }
+    .dlbtn:active {
+      transform: none;
+    }
   }
   .seg {
     display: grid;
@@ -212,9 +389,6 @@ const more = installChannels.filter((c) => !c.primary)
     box-shadow: 0 20px 50px -28px oklch(0 0 0 / 0.9), 0 0 0 1px oklch(0 0 0 / 0.4);
     text-align: left;
   }
-  .download {
-    padding-left: 7px;
-  }
   pre {
     margin: 0;
     flex: 1;
@@ -223,14 +397,12 @@ const more = installChannels.filter((c) => !c.primary)
     font-size: 13px;
     line-height: 1.6;
     color: var(--foreground);
-    /* Wrap rather than hide: a command cut off at the edge looks complete. */
+    /* Break only at spaces, never inside a token; a token wider than the box scrolls, and the thin bar shows it. */
     white-space: pre-wrap;
-    overflow-wrap: anywhere;
-    scrollbar-width: none;
+    overflow-wrap: normal;
+    word-break: normal;
+    scrollbar-width: thin;
     border-radius: 6px;
-  }
-  pre::-webkit-scrollbar {
-    display: none;
   }
   .line {
     display: block;
@@ -309,7 +481,34 @@ const more = installChannels.filter((c) => !c.primary)
   .center .foot {
     justify-content: center;
   }
+  @media (max-width: 360px) {
+    .seg {
+      grid-template-columns: 1.5fr 1fr 0.8fr;
+    }
+    .seg .pick {
+      padding: 0 2px;
+      font-size: 12px;
+    }
+  }
   @media (max-width: 420px) {
+    .wide {
+      display: none;
+    }
+    .narrow {
+      display: inline;
+    }
+    .facts {
+      column-gap: 10px;
+    }
+    .install {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 6px;
+    }
+    .install .copy {
+      order: -1;
+      align-self: flex-end;
+    }
     .lbl {
       display: none;
     }

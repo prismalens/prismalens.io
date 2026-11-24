@@ -29,6 +29,9 @@ into this file either way.
 1. **No version numbers, anywhere** [CI]: not of PrismaLens, Node or agents, and
    no "new in", "since", "coming soon" or "upgrading from". Pages describe the
    latest release; history lives in the release notes.
+   **Exception:** the download button's label (`v0.5.6 · 196 MB · x64`), read from
+   the latest release at build time so it names the file it links to; `.vale.ini`
+   ignores that exact shape.
 2. **An app on your machine, never "self-hosted"** [CI].
 3. **No numeric confidence** [CI]: findings are ranked and backed by evidence,
    never scored. A strength bar has no numbers.

@@ -11,7 +11,7 @@ import { docsBase, githubUrl } from '../lib/links'
     </a>
     <nav class="nav-right" aria-label="Primary">
       <a href={`${docsBase}/`}>Docs</a>
-      <a href={githubUrl}>GitHub</a>
+      <a class="gh-link" href={githubUrl}>GitHub</a>
       <a class="btn btn-primary" href="/#install">Install</a>
     </nav>
   </div>
@@ -61,6 +61,18 @@ import { docsBase, githubUrl } from '../lib/links'
   @media (max-width: 420px) {
     .nav-right {
       gap: 16px;
+    }
+  }
+  /* Brand, Docs and Install fill 320px; GitHub stays one tap away in the footer. */
+  @media (max-width: 360px) {
+    .wrap {
+      gap: 12px;
+    }
+    .nav-right {
+      gap: 12px;
+    }
+    .gh-link {
+      display: none;
     }
   }
 </style>
