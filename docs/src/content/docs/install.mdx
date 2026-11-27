@@ -20,7 +20,10 @@ curl -fsSL https://prismalens.io/install.sh | sh
 ```
 
 No Node needed: the installer brings its own and checks the download against
-the release's `SHA256SUMS`.
+the release's `SHA256SUMS`. With a display, it also adds the desktop app: in
+`~/Applications` on a Mac with Apple silicon, where Launchpad and Spotlight
+find it, and in your app menu on Linux (x64). `--no-desktop` installs the CLI
+only, as on a server.
 
 </TabItem>
 <TabItem label="npm">
@@ -38,6 +41,13 @@ npm install -g prismalens
 brew install prismalens/tap/prismalens
 ```
 
+The desktop app is a separate cask (Apple silicon). It isn't notarized yet, so
+open it once from **System Settings → Privacy & Security → Open Anyway**.
+
+```bash
+brew install --cask prismalens/tap/prismalens-app
+```
+
 </TabItem>
 <TabItem label="Windows (preview)">
 
@@ -48,11 +58,15 @@ installs and runs, with rough edges. In PowerShell:
 irm https://prismalens.io/install.ps1 | iex
 ```
 
+It adds the desktop app and a **PrismaLens** Start menu shortcut too; pass
+`-NoDesktop` for the CLI only.
+
 Scoop (preview) works too:
 
 ```powershell
 scoop bucket add prismalens https://github.com/prismalens/scoop-bucket
 scoop install prismalens
+scoop install prismalens/prismalens-app   # the desktop app, with a Start menu shortcut
 ```
 
 </TabItem>
@@ -76,7 +90,8 @@ turn on **Start at login** in the desktop app.
 pl upgrade
 ```
 
-It upgrades the way you installed. Your database upgrades itself on the next start
+It upgrades the way you installed, and the desktop app with it when the
+installer, Homebrew or Scoop put it there. Your database upgrades itself on the next start
 and is backed up first, as `prismalens.db.bak-<time>` in the workspace.
 
 ### Stable and nightly
@@ -102,9 +117,9 @@ stop PrismaLens and run `pl reset` first. If you installed the background servic
 
 | Installed with | Uninstall |
 | --- | --- |
-| The installer (macOS, Linux) | `curl -fsSL https://prismalens.io/install.sh \| sh -s -- --uninstall` |
-| The installer (Windows) | `& ([scriptblock]::Create((irm https://prismalens.io/install.ps1))) -Uninstall` |
+| The installer (macOS, Linux), with its desktop app | `curl -fsSL https://prismalens.io/install.sh \| sh -s -- --uninstall` |
+| The installer (Windows), with its desktop app | `& ([scriptblock]::Create((irm https://prismalens.io/install.ps1))) -Uninstall` |
 | npm | `npm uninstall -g prismalens` |
-| Homebrew | `brew uninstall prismalens` |
-| Scoop | `scoop uninstall prismalens` |
+| Homebrew | `brew uninstall prismalens`, and `brew uninstall --cask prismalens-app` |
+| Scoop | `scoop uninstall prismalens`, and `scoop uninstall prismalens-app` |
 | The desktop app | delete the app |
